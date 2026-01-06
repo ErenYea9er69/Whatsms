@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contact {
+  id          Int      @id @default(autoincrement())
+  name        String
+  phone       String   @unique
+  preferences Json?    // Custom user-defined preferences
+  interests   String[] // Array of interests e.g. ["marketing", "sales"]
+  
+  lists       ContactListMember[]
+  messages    CampaignRecipient[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactList {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  
+  members     ContactListMember[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactListMember {
+  contactId     Int
+  contactListId Int
+  
+  contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactList   ContactList @relation(fields: [contactListId], references: [id], onDelete: Cascade)
+
+  assignedAt    DateTime @default(now())
+
+  @@id([contactId, contactListId])
+}
+
+model Campaign {
+  id            Int      @id @default(autoincrement())
+  name          String
+  status        String   // DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED, STOPPED
+  scheduledAt   DateTime?
+  messageBody   String
+  
+  recipients    CampaignRecipient[]
+  attachments   CampaignAttachment[] // Many-to-many relationship with media
+  
+  statsDelivered Int @default(0)
+  statsRead      Int @default(0)
+  statsFailed    Int @default(0)
+  statsReplied   Int @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CampaignRecipient {
+  id          Int      @id @default(autoincrement())
+  campaignId  Int
+  contactId   Int
+  
+  status      String   // PENDING, SENT, DELIVERED, READ, FAILED
+  replied     Boolean  @default(false)
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  @@unique([campaignId, contactId])
+}
+
+model MessageTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  content   String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  path      String   // path in storage or URL
+  mimetype  String
+  size      Int
+  
+  campaigns CampaignAttachment[]
+  
+  createdAt DateTime @default(now())
+}
+
+model CampaignAttachment {
+  campaignId Int
+  mediaId    Int
+  
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  media      Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  
+  @@id([campaignId, mediaId])
+}
