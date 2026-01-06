@@ -1,21 +1,47 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { LogIn, User, Lock, ArrowRight } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { LogIn, User, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const navigate = useNavigate();
+    const [error, setError] = useState('');
+    const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-    const handleLogin = async (e) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { login, register, isAuthenticated } = useAuth();
+
+    // Redirect if already authenticated
+    React.useEffect(() => {
+        if (isAuthenticated) {
+            const from = location.state?.from?.pathname || '/';
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, location]);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('Login attempt', { username, password });
-        setIsLoading(false);
-        navigate('/');
+
+        try {
+            if (isRegisterMode) {
+                await register(username, password);
+            } else {
+                await login(username, password);
+            }
+
+            // Navigate to the page they were trying to access, or home
+            const from = location.state?.from?.pathname || '/';
+            navigate(from, { replace: true });
+        } catch (err) {
+            setError(err.message || 'An error occurred');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -34,12 +60,26 @@ const Login = () => {
                         <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5">
                             <LogIn size={28} className="icon-gray" strokeWidth={1.5} />
                         </div>
-                        <h1 className="text-3xl font-bold gradient-text mb-2">Welcome Back</h1>
-                        <p className="text-gray-500 dark:text-gray-400">Sign in to manage your campaigns</p>
+                        <h1 className="text-3xl font-bold gradient-text mb-2">
+                            {isRegisterMode ? 'Create Account' : 'Welcome Back'}
+                        </h1>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            {isRegisterMode
+                                ? 'Sign up to start managing campaigns'
+                                : 'Sign in to manage your campaigns'}
+                        </p>
                     </div>
 
+                    {/* Error Alert */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-400">
+                            <AlertCircle size={20} />
+                            <span className="text-sm">{error}</span>
+                        </div>
+                    )}
+
                     {/* Form */}
-                    <form onSubmit={handleLogin} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Username
@@ -52,6 +92,8 @@ const Login = () => {
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base"
                                     placeholder="Enter your username"
+                                    required
+                                    autoComplete="username"
                                 />
                             </div>
                         </div>
@@ -67,19 +109,12 @@ const Login = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base"
-                                    placeholder="Enter your password"
+                                    placeholder={isRegisterMode ? 'Create a password (min 6 chars)' : 'Enter your password'}
+                                    required
+                                    minLength={isRegisterMode ? 6 : undefined}
+                                    autoComplete={isRegisterMode ? 'new-password' : 'current-password'}
                                 />
                             </div>
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-primary" />
-                                <span className="text-gray-600 dark:text-gray-400">Remember me</span>
-                            </label>
-                            <a href="#" className="text-primary hover:underline font-medium">
-                                Forgot password?
-                            </a>
                         </div>
 
                         <button
@@ -91,19 +126,25 @@ const Login = () => {
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    <span>Sign In</span>
+                                    <span>{isRegisterMode ? 'Create Account' : 'Sign In'}</span>
                                     <ArrowRight size={18} strokeWidth={2} />
                                 </>
                             )}
                         </button>
                     </form>
 
-                    {/* Footer */}
+                    {/* Toggle Register/Login */}
                     <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
-                        Don't have an account?{' '}
-                        <a href="#" className="text-primary hover:underline font-medium">
-                            Contact Admin
-                        </a>
+                        {isRegisterMode ? 'Already have an account?' : "Don't have an account?"}{' '}
+                        <button
+                            onClick={() => {
+                                setIsRegisterMode(!isRegisterMode);
+                                setError('');
+                            }}
+                            className="text-primary hover:underline font-medium"
+                        >
+                            {isRegisterMode ? 'Sign In' : 'Create one'}
+                        </button>
                     </p>
                 </div>
 

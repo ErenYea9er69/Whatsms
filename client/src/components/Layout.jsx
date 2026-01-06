@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +12,7 @@ import {
   Sun,
   X
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Layout = () => {
   const [isDark, setIsDark] = useState(() => {
@@ -23,6 +24,8 @@ const Layout = () => {
   });
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isDark) {
@@ -35,6 +38,11 @@ const Layout = () => {
   }, [isDark]);
 
   const toggleTheme = () => setIsDark(!isDark);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -51,7 +59,9 @@ const Layout = () => {
         {/* Logo */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800/80">
           <h1 className="text-2xl font-bold gradient-text">WhatsSMS</h1>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Marketing Platform</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            {user ? `Welcome, ${user.username}` : 'Marketing Platform'}
+          </p>
         </div>
 
         {/* Navigation */}
@@ -89,7 +99,10 @@ const Layout = () => {
             <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
 
-          <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all duration-200 font-medium group">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all duration-200 font-medium group"
+          >
             <LogOut size={20} className="icon-gray group-hover:text-red-500 transition-colors" strokeWidth={1.75} />
             <span>Logout</span>
           </button>
@@ -109,7 +122,9 @@ const Layout = () => {
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold gradient-text">WhatsSMS</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Marketing Platform</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              {user ? `Welcome, ${user.username}` : 'Marketing Platform'}
+            </p>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
@@ -148,7 +163,10 @@ const Layout = () => {
             <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
 
-          <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 rounded-xl transition-all duration-200 font-medium">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 rounded-xl transition-all duration-200 font-medium"
+          >
             <LogOut size={20} className="icon-gray" strokeWidth={1.75} />
             <span>Logout</span>
           </button>

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Megaphone,
     Send,
@@ -9,47 +10,122 @@ import {
     Plus,
     Upload,
     BarChart3,
-    Activity
+    Activity,
+    RefreshCw
 } from 'lucide-react';
+import api from '../services/api';
 
 const Dashboard = () => {
-    const stats = [
+    const [stats, setStats] = useState(null);
+    const [campaignStats, setCampaignStats] = useState(null);
+    const [campaigns, setCampaigns] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const [contactStats, cmpStats, recentCampaigns] = await Promise.all([
+                api.getContactStats(),
+                api.getCampaignStats(),
+                api.getCampaigns({ limit: 5 })
+            ]);
+
+            setStats(contactStats);
+            setCampaignStats(cmpStats);
+            setCampaigns(recentCampaigns.campaigns || []);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to fetch dashboard data:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const statCards = [
         {
             label: 'Total Campaigns',
-            value: '12',
-            change: '+3 this month',
-            trend: 'up',
+            value: campaignStats?.totalCampaigns ?? '-',
+            change: `${campaignStats?.activeCampaigns ?? 0} active`,
+            trend: campaignStats?.activeCampaigns > 0 ? 'up' : 'neutral',
             icon: Megaphone
         },
         {
             label: 'Messages Sent',
-            value: '1,234',
-            change: '+18% vs last week',
+            value: campaignStats?.totalMessagesSent?.toLocaleString() ?? '-',
+            change: `${campaignStats?.deliveryRate ?? 0}% delivery rate`,
             trend: 'up',
             icon: Send
         },
         {
             label: 'Total Contacts',
-            value: '5,678',
-            change: '+124 new',
-            trend: 'up',
+            value: stats?.total?.toLocaleString() ?? '-',
+            change: `+${stats?.thisWeek ?? 0} this week`,
+            trend: stats?.thisWeek > 0 ? 'up' : 'neutral',
             icon: Users
         },
         {
-            label: 'Pending',
-            value: '45',
-            change: '3 scheduled today',
+            label: 'Contact Lists',
+            value: stats?.listsCount ?? '-',
+            change: 'Active lists',
             trend: 'neutral',
             icon: Clock
         },
     ];
 
-    const recentActivity = [
-        { id: 1, action: 'Campaign "New Year Promo" completed', time: '2 hours ago', type: 'success' },
-        { id: 2, action: '124 new contacts imported', time: '5 hours ago', type: 'info' },
-        { id: 3, action: 'Campaign "Weekly Update" started', time: '1 day ago', type: 'info' },
-        { id: 4, action: 'Campaign "Survey Request" scheduled', time: '2 days ago', type: 'pending' },
-    ];
+    const getRecentActivity = () => {
+        return campaigns.slice(0, 4).map(campaign => ({
+            id: campaign.id,
+            action: `Campaign "${campaign.name}" ${campaign.status.toLowerCase().replace('_', ' ')}`,
+            time: new Date(campaign.updatedAt).toLocaleDateString(),
+            type: campaign.status === 'COMPLETED' ? 'success' :
+                campaign.status === 'IN_PROGRESS' ? 'info' : 'pending'
+        }));
+    };
+
+    if (loading) {
+        return (
+            <div className="space-y-8 animate-fade-in">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded-lg skeleton" />
+                        <div className="h-4 w-64 bg-gray-200 dark:bg-gray-800 rounded-lg mt-2 skeleton" />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
+                            <div className="h-12 w-12 bg-gray-200 dark:bg-gray-800 rounded-xl skeleton" />
+                            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded mt-4 skeleton" />
+                            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-800 rounded mt-2 skeleton" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+                <p className="text-red-500 mb-4">{error}</p>
+                <button
+                    onClick={fetchData}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl"
+                >
+                    <RefreshCw size={16} />
+                    Retry
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -62,11 +138,17 @@ const Dashboard = () => {
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-sm font-medium shadow-soft card-hover">
+                    <button
+                        onClick={() => navigate('/contacts')}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-sm font-medium shadow-soft card-hover"
+                    >
                         <Upload size={18} className="icon-gray" strokeWidth={1.75} />
                         <span>Import</span>
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow">
+                    <button
+                        onClick={() => navigate('/campaigns/new')}
+                        className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
+                    >
                         <Plus size={18} strokeWidth={2} />
                         <span>New Campaign</span>
                     </button>
@@ -75,7 +157,7 @@ const Dashboard = () => {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                {stats.map((stat, index) => (
+                {statCards.map((stat, index) => (
                     <div
                         key={index}
                         className={`stat-card bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 card-hover animate-slide-up stagger-${index + 1}`}
@@ -109,34 +191,57 @@ const Dashboard = () => {
                                 <BarChart3 size={20} className="icon-gray" strokeWidth={1.75} />
                             </div>
                             <div>
-                                <h3 className="font-semibold">Campaign Analytics</h3>
-                                <p className="text-xs text-gray-400">Messages sent over time</p>
+                                <h3 className="font-semibold">Campaign Performance</h3>
+                                <p className="text-xs text-gray-400">Message delivery overview</p>
                             </div>
                         </div>
-                        <select className="text-sm bg-gray-50 dark:bg-gray-800 border-none rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 outline-none">
-                            <option>Last 7 days</option>
-                            <option>Last 30 days</option>
-                            <option>Last 90 days</option>
-                        </select>
                     </div>
 
-                    {/* Chart Placeholder with visual bars */}
-                    <div className="h-64 flex items-end justify-between gap-2 px-4 pb-4 border-b border-gray-100 dark:border-gray-800">
-                        {[65, 45, 78, 52, 90, 68, 85].map((height, i) => (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                                <div
-                                    className="w-full bg-gradient-to-t from-primary/80 to-primary rounded-t-lg transition-all duration-500 hover:from-primary hover:to-primary-dark"
-                                    style={{ height: `${height}%` }}
-                                />
-                                <span className="text-xs text-gray-400">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}</span>
+                    {/* Stats Overview */}
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            <p className="text-2xl font-bold text-primary">{campaignStats?.totalDelivered?.toLocaleString() ?? 0}</p>
+                            <p className="text-xs text-gray-500 mt-1">Delivered</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            <p className="text-2xl font-bold text-emerald-500">{campaignStats?.totalRead?.toLocaleString() ?? 0}</p>
+                            <p className="text-xs text-gray-500 mt-1">Read</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            <p className="text-2xl font-bold text-amber-500">{campaignStats?.totalReplied?.toLocaleString() ?? 0}</p>
+                            <p className="text-xs text-gray-500 mt-1">Replied</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            <p className="text-2xl font-bold text-red-500">{campaignStats?.totalFailed?.toLocaleString() ?? 0}</p>
+                            <p className="text-xs text-gray-500 mt-1">Failed</p>
+                        </div>
+                    </div>
+
+                    {/* Progress bars */}
+                    <div className="space-y-4">
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-gray-500">Delivery Rate</span>
+                                <span className="font-medium">{campaignStats?.deliveryRate ?? 0}%</span>
                             </div>
-                        ))}
-                    </div>
-
-                    <div className="flex items-center justify-center gap-6 mt-4 text-sm">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-primary" />
-                            <span className="text-gray-500">Messages Sent</span>
+                            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-primary rounded-full transition-all duration-500"
+                                    style={{ width: `${campaignStats?.deliveryRate ?? 0}%` }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-gray-500">Read Rate</span>
+                                <span className="font-medium">{campaignStats?.readRate ?? 0}%</span>
+                            </div>
+                            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                    style={{ width: `${campaignStats?.readRate ?? 0}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -148,29 +253,36 @@ const Dashboard = () => {
                             <Activity size={20} className="icon-gray" strokeWidth={1.75} />
                         </div>
                         <div>
-                            <h3 className="font-semibold">Recent Activity</h3>
+                            <h3 className="font-semibold">Recent Campaigns</h3>
                             <p className="text-xs text-gray-400">Latest updates</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        {recentActivity.map((activity) => (
-                            <div key={activity.id} className="flex items-start gap-3 group">
-                                <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${activity.type === 'success' ? 'bg-emerald-500' :
-                                        activity.type === 'pending' ? 'bg-amber-500' : 'bg-primary'
-                                    }`} />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                                        {activity.action}
-                                    </p>
-                                    <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
+                        {getRecentActivity().length > 0 ? (
+                            getRecentActivity().map((activity) => (
+                                <div key={activity.id} className="flex items-start gap-3 group">
+                                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${activity.type === 'success' ? 'bg-emerald-500' :
+                                            activity.type === 'pending' ? 'bg-amber-500' : 'bg-primary'
+                                        }`} />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                                            {activity.action}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-400 text-center py-4">No campaigns yet</p>
+                        )}
                     </div>
 
-                    <button className="w-full mt-6 py-2.5 text-sm text-primary font-medium hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors flex items-center justify-center gap-1">
-                        View All Activity
+                    <button
+                        onClick={() => navigate('/campaigns')}
+                        className="w-full mt-6 py-2.5 text-sm text-primary font-medium hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors flex items-center justify-center gap-1"
+                    >
+                        View All Campaigns
                         <ArrowUpRight size={14} />
                     </button>
                 </div>
