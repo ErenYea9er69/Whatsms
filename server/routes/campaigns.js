@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../config/prisma');
 const { authenticate } = require('../middleware/auth');
 const whatsappService = require('../services/whatsapp');
+const mockService = require('../services/MockService');
 
 const router = express.Router();
 
@@ -507,8 +508,22 @@ router.post('/:id/stop', async (req, res) => {
 /**
  * Background function to send campaign messages
  */
+const whatsappService = require('../services/whatsapp');
+const mockService = require('../services/MockService');
+
+// ... existing code ...
+
+/**
+ * Background function to send campaign messages
+ */
 async function sendCampaignMessages(campaign) {
+    // If in Mock Mode, delegate to MockService for realistic simulation
+    if (whatsappService.isMockMode) {
+        return mockService.startCampaignSimulation(campaign.id);
+    }
+
     let delivered = 0;
+    // ... existing implementation for real WhatsApp ...
     let failed = 0;
 
     for (const recipient of campaign.recipients) {
