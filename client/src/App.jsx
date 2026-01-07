@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Contacts from './pages/Contacts';
+import Lists from './pages/Lists';
 import Login from './pages/Login';
 import CampaignBuilder from './pages/CampaignBuilder';
 import CampaignHistory from './pages/CampaignHistory';
@@ -30,6 +31,7 @@ function App() {
             }>
               <Route index element={<Dashboard />} />
               <Route path="contacts" element={<Contacts />} />
+              <Route path="lists" element={<Lists />} />
               <Route path="campaigns" element={<CampaignHistory />} />
               <Route path="campaigns/new" element={<CampaignBuilder />} />
               <Route path="templates" element={<Templates />} />

@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-
+  List,
   MessageSquarePlus,
   LayoutTemplate,
   History,
@@ -50,6 +50,7 @@ const Layout = () => {
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/contacts', icon: Users, label: 'Contacts' },
+    { to: '/lists', icon: List, label: 'Lists' },
     { to: '/campaigns/new', icon: MessageSquarePlus, label: 'New Campaign' },
     { to: '/campaigns', icon: History, label: 'History' },
     { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
