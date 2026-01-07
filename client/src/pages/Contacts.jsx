@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Search, Filter, Plus, MoreHorizontal, Mail, Phone, Tag, X, RefreshCw, AlertCircle } from 'lucide-react';
 import api from '../services/api';
+import ImportContacts from '../components/ImportContacts';
 
 const Contacts = () => {
     const [contacts, setContacts] = useState([]);
@@ -309,8 +310,8 @@ const Contacts = () => {
                                         key={pageNum}
                                         onClick={() => handlePageChange(pageNum)}
                                         className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${pagination.page === pageNum
-                                                ? 'bg-primary text-white'
-                                                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500'
+                                            ? 'bg-primary text-white'
+                                            : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500'
                                             }`}
                                     >
                                         {pageNum}
@@ -387,51 +388,14 @@ const Contacts = () => {
 
             {/* Import Modal */}
             {showImportModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full p-6 animate-slide-up" style={{ opacity: 0, animationDelay: '0s' }}>
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">Import Contacts</h2>
-                            <button onClick={() => { setShowImportModal(false); setImportResult(null); }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <p className="text-sm text-gray-500">
-                                Upload a CSV file with columns: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">name</code>, <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">phone</code>, <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">interests</code>
-                            </p>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".csv"
-                                onChange={handleImport}
-                                className="w-full"
-                                disabled={importing}
-                            />
-
-                            {importing && (
-                                <div className="flex items-center gap-2 text-primary">
-                                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                    <span>Importing...</span>
-                                </div>
-                            )}
-
-                            {importResult && (
-                                <div className={`p-4 rounded-xl ${importResult.error ? 'bg-red-50 dark:bg-red-900/20 text-red-700' : 'bg-green-50 dark:bg-green-900/20 text-green-700'}`}>
-                                    {importResult.error ? (
-                                        <p>{importResult.error}</p>
-                                    ) : (
-                                        <>
-                                            <p className="font-medium">Import complete!</p>
-                                            <p className="text-sm mt-1">{importResult.imported} imported, {importResult.skipped} skipped</p>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <ImportContacts
+                    onClose={() => setShowImportModal(false)}
+                    onSuccess={() => {
+                        fetchContacts(1, '');
+                        // Optional: Keep modal open or close it? 
+                        // Usually better to let user close it after seeing success message
+                    }}
+                />
             )}
         </div>
     );

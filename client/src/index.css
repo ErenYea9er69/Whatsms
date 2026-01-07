@@ -3,21 +3,15 @@
 
 @theme {
   --color-primary: #3B82F6;
-  /* Blue-500 */
   --color-primary-dark: #2563EB;
-  /* Blue-600 */
   --color-secondary: #000000;
-  /* Black */
   --color-accent: #10B981;
-  /* Green-500 */
   --color-background-light: #F8FAFC;
-  /* White/Off-white */
-  --color-background-dark: #000000;
-  /* Black */
+  --color-background-dark: #050505;
+  /* Deeper black */
   --color-surface-light: #FFFFFF;
-  /* White */
-  --color-surface-dark: #0A0A0A;
-  /* Slightly lighter dark for cards */
+  --color-surface-dark: #0F0F0F;
+  /* Premium dark surface */
   --font-display: "Inter", sans-serif;
   --font-body: "Inter", sans-serif;
 }
@@ -164,14 +158,16 @@ body {
    =============================== */
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .dark .glass {
-  background: rgba(20, 20, 20, 0.7);
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
