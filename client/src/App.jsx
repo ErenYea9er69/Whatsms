@@ -8,6 +8,8 @@ import Contacts from './pages/Contacts';
 import Login from './pages/Login';
 import CampaignBuilder from './pages/CampaignBuilder';
 import CampaignHistory from './pages/CampaignHistory';
+import MediaLibrary from './pages/MediaLibrary';
+import Templates from './pages/Templates';
 import Settings from './pages/Settings';
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
             <Route path="contacts" element={<Contacts />} />
             <Route path="campaigns" element={<CampaignHistory />} />
             <Route path="campaigns/new" element={<CampaignBuilder />} />
+            <Route path="templates" element={<Templates />} />
+            <Route path="media" element={<MediaLibrary />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

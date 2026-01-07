@@ -508,8 +508,7 @@ router.post('/:id/stop', async (req, res) => {
 /**
  * Background function to send campaign messages
  */
-const whatsappService = require('../services/whatsapp');
-const mockService = require('../services/MockService');
+
 
 // ... existing code ...
 

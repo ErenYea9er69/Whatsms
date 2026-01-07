@@ -3,14 +3,17 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
+
   MessageSquarePlus,
+  LayoutTemplate,
   History,
   Settings,
   LogOut,
   Menu,
   Moon,
   Sun,
-  X
+  X,
+  Image
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -49,6 +52,8 @@ const Layout = () => {
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/campaigns/new', icon: MessageSquarePlus, label: 'New Campaign' },
     { to: '/campaigns', icon: History, label: 'History' },
+    { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
+    { to: '/media', icon: Image, label: 'Media Library' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
