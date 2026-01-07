@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
             page = 1,
             limit = 20,
             search = '',
+            tag = '',
             sortBy = 'createdAt',
             sortOrder = 'desc'
         } = req.query;
@@ -39,12 +40,19 @@ router.get('/', async (req, res) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
-        const where = search ? {
-            OR: [
+        let where = {};
+
+        if (search) {
+            where.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search } }
-            ]
-        } : {};
+            ];
+        }
+
+        // Filter by tag
+        if (tag) {
+            where.tags = { has: tag };
+        }
 
         const [contacts, total] = await Promise.all([
             prisma.contact.findMany({
@@ -122,6 +130,30 @@ router.get('/stats', async (req, res) => {
 });
 
 /**
+ * GET /api/contacts/tags
+ * Get all unique tags across contacts
+ */
+router.get('/tags', async (req, res) => {
+    try {
+        const contacts = await prisma.contact.findMany({
+            select: { tags: true }
+        });
+
+        // Flatten and get unique tags
+        const allTags = contacts.flatMap(c => c.tags || []);
+        const uniqueTags = [...new Set(allTags)].sort();
+
+        res.json({ tags: uniqueTags });
+    } catch (error) {
+        console.error('Get tags error:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'Failed to fetch tags'
+        });
+    }
+});
+
+/**
  * GET /api/contacts/:id
  * Get single contact by ID
  */
@@ -172,7 +204,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
     try {
-        const { name, phone, interests = [], preferences = {} } = req.body;
+        const { name, phone, interests = [], tags = [], preferences = {} } = req.body;
 
         if (!name || !phone) {
             return res.status(400).json({
@@ -198,6 +230,7 @@ router.post('/', async (req, res) => {
                 name,
                 phone,
                 interests,
+                tags,
                 preferences
             }
         });
@@ -222,7 +255,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, phone, interests, preferences } = req.body;
+        const { name, phone, interests, tags, preferences } = req.body;
 
         const existing = await prisma.contact.findUnique({
             where: { id: parseInt(id) }
@@ -254,6 +287,7 @@ router.put('/:id', async (req, res) => {
                 ...(name && { name }),
                 ...(phone && { phone }),
                 ...(interests && { interests }),
+                ...(tags !== undefined && { tags }),
                 ...(preferences && { preferences })
             }
         });

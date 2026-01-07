@@ -13,6 +13,18 @@ import {
     Activity,
     RefreshCw
 } from 'lucide-react';
+import {
+    AreaChart,
+    Area,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    Legend
+} from 'recharts';
 import api from '../services/api';
 
 const Dashboard = () => {
@@ -22,6 +34,29 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    // Generate mock trend data for last 7 days
+    const generateTrendData = () => {
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        return days.map((day, i) => ({
+            name: day,
+            sent: Math.floor(Math.random() * 500) + 100,
+            delivered: Math.floor(Math.random() * 450) + 80,
+            read: Math.floor(Math.random() * 300) + 50,
+        }));
+    };
+
+    const [trendData] = useState(generateTrendData);
+
+    // Generate campaign comparison data
+    const getCampaignComparisonData = () => {
+        return campaigns.slice(0, 5).map(c => ({
+            name: c.name.length > 10 ? c.name.substring(0, 10) + '...' : c.name,
+            delivered: c.statsDelivered || 0,
+            read: c.statsRead || 0,
+            replied: c.statsReplied || 0,
+        }));
+    };
 
     const fetchData = async () => {
         try {
@@ -88,6 +123,23 @@ const Dashboard = () => {
             type: campaign.status === 'COMPLETED' ? 'success' :
                 campaign.status === 'IN_PROGRESS' ? 'info' : 'pending'
         }));
+    };
+
+    // Custom tooltip for charts
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+                    <p className="text-sm font-medium mb-2">{label}</p>
+                    {payload.map((entry, index) => (
+                        <p key={index} className="text-xs" style={{ color: entry.color }}>
+                            {entry.name}: {entry.value.toLocaleString()}
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
     };
 
     if (loading) {
@@ -181,38 +233,143 @@ const Dashboard = () => {
                 ))}
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Analytics Chart */}
-                <div className="lg:col-span-2 bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-5" style={{ opacity: 0 }}>
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Message Trends Chart */}
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-5" style={{ opacity: 0 }}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center">
-                                <BarChart3 size={20} className="icon-gray" strokeWidth={1.75} />
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                <Activity size={20} className="text-white" strokeWidth={1.75} />
                             </div>
                             <div>
-                                <h3 className="font-semibold">Campaign Performance</h3>
-                                <p className="text-xs text-gray-400">Message delivery overview</p>
+                                <h3 className="font-semibold">Message Trends</h3>
+                                <p className="text-xs text-gray-400">Last 7 days</p>
                             </div>
+                        </div>
+                    </div>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorDelivered" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorRead" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                                <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#9CA3AF" />
+                                <YAxis tick={{ fontSize: 12 }} stroke="#9CA3AF" />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Area type="monotone" dataKey="sent" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorSent)" name="Sent" />
+                                <Area type="monotone" dataKey="delivered" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorDelivered)" name="Delivered" />
+                                <Area type="monotone" dataKey="read" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorRead)" name="Read" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="flex justify-center gap-6 mt-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span className="text-xs text-gray-500">Sent</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                            <span className="text-xs text-gray-500">Delivered</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                            <span className="text-xs text-gray-500">Read</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Campaign Comparison Chart */}
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-6" style={{ opacity: 0 }}>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                                <BarChart3 size={20} className="text-white" strokeWidth={1.75} />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">Campaign Comparison</h3>
+                                <p className="text-xs text-gray-400">Recent campaigns</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="h-64">
+                        {campaigns.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={getCampaignComparisonData()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
+                                    <YAxis tick={{ fontSize: 12 }} stroke="#9CA3AF" />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Bar dataKey="delivered" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Delivered" />
+                                    <Bar dataKey="read" fill="#10b981" radius={[4, 4, 0, 0]} name="Read" />
+                                    <Bar dataKey="replied" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Replied" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex items-center justify-center">
+                                <p className="text-gray-400 text-sm">No campaigns yet</p>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex justify-center gap-6 mt-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span className="text-xs text-gray-500">Delivered</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                            <span className="text-xs text-gray-500">Read</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                            <span className="text-xs text-gray-500">Replied</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Performance Stats */}
+                <div className="lg:col-span-2 bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-7" style={{ opacity: 0 }}>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center">
+                            <TrendingUp size={20} className="icon-gray" strokeWidth={1.75} />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">Performance Overview</h3>
+                            <p className="text-xs text-gray-400">Message delivery metrics</p>
                         </div>
                     </div>
 
                     {/* Stats Overview */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
-                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                            <p className="text-2xl font-bold text-primary">{campaignStats?.totalDelivered?.toLocaleString() ?? 0}</p>
+                        <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{campaignStats?.totalDelivered?.toLocaleString() ?? 0}</p>
                             <p className="text-xs text-gray-500 mt-1">Delivered</p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                            <p className="text-2xl font-bold text-emerald-500">{campaignStats?.totalRead?.toLocaleString() ?? 0}</p>
+                        <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/20">
+                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{campaignStats?.totalRead?.toLocaleString() ?? 0}</p>
                             <p className="text-xs text-gray-500 mt-1">Read</p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                            <p className="text-2xl font-bold text-amber-500">{campaignStats?.totalReplied?.toLocaleString() ?? 0}</p>
+                        <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20">
+                            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{campaignStats?.totalReplied?.toLocaleString() ?? 0}</p>
                             <p className="text-xs text-gray-500 mt-1">Replied</p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                            <p className="text-2xl font-bold text-red-500">{campaignStats?.totalFailed?.toLocaleString() ?? 0}</p>
+                        <div className="text-center p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
+                            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{campaignStats?.totalFailed?.toLocaleString() ?? 0}</p>
                             <p className="text-xs text-gray-500 mt-1">Failed</p>
                         </div>
                     </div>
@@ -220,25 +377,25 @@ const Dashboard = () => {
                     {/* Progress bars */}
                     <div className="space-y-4">
                         <div>
-                            <div className="flex justify-between text-sm mb-1">
+                            <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-500">Delivery Rate</span>
-                                <span className="font-medium">{campaignStats?.deliveryRate ?? 0}%</span>
+                                <span className="font-semibold text-blue-600">{campaignStats?.deliveryRate ?? 0}%</span>
                             </div>
-                            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-primary rounded-full transition-all duration-500"
+                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 ease-out"
                                     style={{ width: `${campaignStats?.deliveryRate ?? 0}%` }}
                                 />
                             </div>
                         </div>
                         <div>
-                            <div className="flex justify-between text-sm mb-1">
+                            <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-500">Read Rate</span>
-                                <span className="font-medium">{campaignStats?.readRate ?? 0}%</span>
+                                <span className="font-semibold text-emerald-600">{campaignStats?.readRate ?? 0}%</span>
                             </div>
-                            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700 ease-out"
                                     style={{ width: `${campaignStats?.readRate ?? 0}%` }}
                                 />
                             </div>
@@ -247,7 +404,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-6" style={{ opacity: 0 }}>
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-8" style={{ opacity: 0 }}>
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center">
                             <Activity size={20} className="icon-gray" strokeWidth={1.75} />
@@ -263,7 +420,7 @@ const Dashboard = () => {
                             getRecentActivity().map((activity) => (
                                 <div key={activity.id} className="flex items-start gap-3 group">
                                     <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${activity.type === 'success' ? 'bg-emerald-500' :
-                                            activity.type === 'pending' ? 'bg-amber-500' : 'bg-primary'
+                                        activity.type === 'pending' ? 'bg-amber-500' : 'bg-primary'
                                         }`} />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
@@ -292,3 +449,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

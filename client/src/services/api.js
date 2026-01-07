@@ -103,6 +103,10 @@ class ApiClient {
         return this.request('/contacts/stats');
     }
 
+    async getContactTags() {
+        return this.request('/contacts/tags');
+    }
+
     async getContact(id) {
         return this.request(`/contacts/${id}`);
     }

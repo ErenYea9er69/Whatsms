@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe } from 'lucide-react';
-import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 const Settings = () => {
+    const toast = useToast();
     const [credentials, setCredentials] = useState({
         phoneNumberId: localStorage.getItem('phoneNumberId') || '',
         accessToken: localStorage.getItem('accessToken') || ''
@@ -21,25 +22,9 @@ const Settings = () => {
     };
 
     const handleSave = () => {
-        // Evaluate: In a real app, send to backend. 
-        // Here we save to localStorage or just mock the "save" to show the UI interaction.
-        // The backend uses process.env, so this is just for the user to "feel" they are configuring it.
-        // Or we could actually have an endpoint to update env vars (risky) or DB User config.
-        // For this task, we'll save to local storage so the form persists, 
-        // and maybe show a "Saved" toast.
-
         localStorage.setItem('phoneNumberId', credentials.phoneNumberId);
         localStorage.setItem('accessToken', credentials.accessToken);
-
-        // Visual feedback
-        const btn = document.getElementById('save-btn');
-        const originalText = btn.innerText;
-        btn.innerText = 'Saved!';
-        btn.classList.add('bg-green-600');
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.classList.remove('bg-green-600');
-        }, 2000);
+        toast.success('Configuration saved successfully!');
     };
 
     const copyToClipboard = () => {

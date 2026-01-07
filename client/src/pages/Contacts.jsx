@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Filter, Plus, MoreHorizontal, Mail, Phone, Tag, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { Upload, Search, Filter, Plus, MoreHorizontal, Mail, Phone, Tag, X, RefreshCw, AlertCircle, ChevronDown } from 'lucide-react';
 import api from '../services/api';
 import ImportContacts from '../components/ImportContacts';
+import { useToast } from '../context/ToastContext';
 
 const Contacts = () => {
+    const toast = useToast();
     const [contacts, setContacts] = useState([]);
     const [stats, setStats] = useState(null);
+    const [allTags, setAllTags] = useState([]);
+    const [selectedTag, setSelectedTag] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -16,27 +20,34 @@ const Contacts = () => {
     const [showImportModal, setShowImportModal] = useState(false);
     const [importing, setImporting] = useState(false);
     const [importResult, setImportResult] = useState(null);
+    const [showTagDropdown, setShowTagDropdown] = useState(false);
 
     // Form state
-    const [newContact, setNewContact] = useState({ name: '', phone: '', interests: '' });
+    const [newContact, setNewContact] = useState({ name: '', phone: '', interests: '', tags: '' });
     const [saving, setSaving] = useState(false);
 
     const fileInputRef = useRef(null);
     const searchTimeoutRef = useRef(null);
 
-    const fetchContacts = async (page = 1, search = '') => {
+    const fetchContacts = async (page = 1, search = '', tag = '') => {
         try {
             setLoading(true);
             setError(null);
 
-            const [contactsData, statsData] = await Promise.all([
-                api.getContacts({ page, limit: pagination.limit, search }),
-                api.getContactStats()
+            const params = { page, limit: pagination.limit };
+            if (search) params.search = search;
+            if (tag) params.tag = tag;
+
+            const [contactsData, statsData, tagsData] = await Promise.all([
+                api.getContacts(params),
+                api.getContactStats(),
+                api.getContactTags()
             ]);
 
             setContacts(contactsData.contacts || []);
             setPagination(contactsData.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
             setStats(statsData);
+            setAllTags(tagsData.tags || []);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -55,11 +66,11 @@ const Contacts = () => {
         }
 
         searchTimeoutRef.current = setTimeout(() => {
-            fetchContacts(1, searchQuery);
+            fetchContacts(1, searchQuery, selectedTag);
         }, 300);
 
         return () => clearTimeout(searchTimeoutRef.current);
-    }, [searchQuery]);
+    }, [searchQuery, selectedTag]);
 
     const handleAddContact = async (e) => {
         e.preventDefault();
@@ -71,17 +82,24 @@ const Contacts = () => {
                 .map(i => i.trim())
                 .filter(i => i);
 
+            const tags = newContact.tags
+                .split(',')
+                .map(t => t.trim())
+                .filter(t => t);
+
             await api.createContact({
                 name: newContact.name,
                 phone: newContact.phone,
-                interests
+                interests,
+                tags
             });
 
             setShowAddModal(false);
-            setNewContact({ name: '', phone: '', interests: '' });
-            fetchContacts(pagination.page, searchQuery);
+            setNewContact({ name: '', phone: '', interests: '', tags: '' });
+            fetchContacts(pagination.page, searchQuery, selectedTag);
+            toast.success('Contact added successfully!');
         } catch (err) {
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setSaving(false);
         }
@@ -92,9 +110,10 @@ const Contacts = () => {
 
         try {
             await api.deleteContact(id);
-            fetchContacts(pagination.page, searchQuery);
+            fetchContacts(pagination.page, searchQuery, selectedTag);
+            toast.success('Contact deleted');
         } catch (err) {
-            alert(err.message);
+            toast.error(err.message);
         }
     };
 
@@ -121,8 +140,13 @@ const Contacts = () => {
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
-            fetchContacts(newPage, searchQuery);
+            fetchContacts(newPage, searchQuery, selectedTag);
         }
+    };
+
+    const handleTagFilter = (tag) => {
+        setSelectedTag(tag);
+        setShowTagDropdown(false);
     };
 
     return (
@@ -180,8 +204,44 @@ const Contacts = () => {
                             className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:border-primary outline-none transition-all text-sm"
                         />
                     </div>
+
+                    {/* Tag Filter Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowTagDropdown(!showTagDropdown)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium border ${selectedTag ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+                        >
+                            <Tag size={16} strokeWidth={1.75} />
+                            <span>{selectedTag || 'Filter by Tag'}</span>
+                            <ChevronDown size={14} />
+                        </button>
+
+                        {showTagDropdown && (
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-surface-dark rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 z-50 py-2 max-h-60 overflow-y-auto">
+                                <button
+                                    onClick={() => handleTagFilter('')}
+                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-blue-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
+                                >
+                                    All Contacts
+                                </button>
+                                {allTags.map(tag => (
+                                    <button
+                                        key={tag}
+                                        onClick={() => handleTagFilter(tag)}
+                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedTag === tag ? 'text-blue-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
+                                    >
+                                        {tag}
+                                    </button>
+                                ))}
+                                {allTags.length === 0 && (
+                                    <p className="px-4 py-2 text-xs text-gray-400">No tags created yet</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     <button
-                        onClick={() => fetchContacts(pagination.page, searchQuery)}
+                        onClick={() => fetchContacts(pagination.page, searchQuery, selectedTag)}
                         className="flex items-center gap-2 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700"
                     >
                         <RefreshCw size={16} className="icon-gray" strokeWidth={1.75} />
@@ -205,7 +265,7 @@ const Contacts = () => {
                             <tr>
                                 <th className="px-6 py-4 font-semibold">Contact</th>
                                 <th className="px-6 py-4 font-semibold">Phone</th>
-                                <th className="px-6 py-4 font-semibold">Interests</th>
+                                <th className="px-6 py-4 font-semibold">Tags</th>
                                 <th className="px-6 py-4 font-semibold">Lists</th>
                                 <th className="px-6 py-4 text-right font-semibold">Actions</th>
                             </tr>
@@ -252,13 +312,16 @@ const Contacts = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-wrap gap-1.5">
-                                                {(contact.interests || []).slice(0, 2).map((tag, i) => (
-                                                    <span key={i} className="px-2.5 py-1 text-xs rounded-lg bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 font-medium">
+                                                {(contact.tags || []).slice(0, 3).map((tag, i) => (
+                                                    <span key={i} className="px-2.5 py-1 text-xs rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
                                                         {tag}
                                                     </span>
                                                 ))}
-                                                {(contact.interests || []).length > 2 && (
-                                                    <span className="px-2 py-1 text-xs text-gray-400">+{contact.interests.length - 2}</span>
+                                                {(contact.tags || []).length > 3 && (
+                                                    <span className="px-2 py-1 text-xs text-gray-400">+{contact.tags.length - 3}</span>
+                                                )}
+                                                {(contact.tags || []).length === 0 && (
+                                                    <span className="text-xs text-gray-400">No tags</span>
                                                 )}
                                             </div>
                                         </td>
@@ -372,6 +435,17 @@ const Contacts = () => {
                                     className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
                                     placeholder="marketing, sales"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Tags (comma-separated)</label>
+                                <input
+                                    type="text"
+                                    value={newContact.tags}
+                                    onChange={(e) => setNewContact({ ...newContact, tags: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
+                                    placeholder="VIP, Hot Lead"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Use tags to segment your contacts</p>
                             </div>
                             <div className="flex gap-3 pt-4">
                                 <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-medium">

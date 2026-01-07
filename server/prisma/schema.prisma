@@ -21,6 +21,7 @@ model Contact {
   phone       String   @unique
   preferences Json?    // Custom user-defined preferences
   interests   String[] // Array of interests e.g. ["marketing", "sales"]
+  tags        String[] // Quick labels e.g. ["VIP", "Hot Lead"]
   
   lists       ContactListMember[]
   messages    CampaignRecipient[]
