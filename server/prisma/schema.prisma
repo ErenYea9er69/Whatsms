@@ -110,6 +110,7 @@ model Media {
   createdAt DateTime @default(now())
 }
 
+
 model CampaignAttachment {
   campaignId Int
   mediaId    Int
@@ -118,4 +119,11 @@ model CampaignAttachment {
   media      Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   
   @@id([campaignId, mediaId])
+}
+
+model SystemConfig {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
 }

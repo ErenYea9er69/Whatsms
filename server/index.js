@@ -11,6 +11,7 @@ const campaignsRoutes = require('./routes/campaigns');
 const templatesRoutes = require('./routes/templates');
 const mediaRoutes = require('./routes/media');
 const webhooksRoutes = require('./routes/webhooks');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -58,6 +59,7 @@ app.use('/api/campaigns', campaignsRoutes);
 app.use('/api/templates', templatesRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // 404 handler for API routes
 app.use((req, res, next) => {

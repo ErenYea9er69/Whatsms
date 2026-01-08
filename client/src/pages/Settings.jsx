@@ -1,14 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import apiClient from '../services/apiClient';
 
 const Settings = () => {
     const toast = useToast();
     const [credentials, setCredentials] = useState({
-        phoneNumberId: localStorage.getItem('phoneNumberId') || '',
-        accessToken: localStorage.getItem('accessToken') || ''
+        phoneNumberId: '',
+        accessToken: ''
     });
+    const [loading, setLoading] = useState(true);
     const [showToken, setShowToken] = useState(false);
     const [copied, setCopied] = useState(false);
 
@@ -17,14 +19,39 @@ const Settings = () => {
     const webhookUrl = `${import.meta.env.VITE_API_URL?.replace('localhost', 'YOUR_PUBLIC_IP') || window.location.origin}/webhooks`;
     const verifyToken = 'whatsms_token'; // Hardcoded for this demo
 
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const data = await apiClient.get('/settings');
+            if (data) {
+                setCredentials({
+                    phoneNumberId: data.phoneNumberId || '',
+                    accessToken: data.accessToken || ''
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load settings', error);
+            // Fallback to empty if fails, don't show error toast on load to avoid annoyance
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleChange = (e) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
     };
 
-    const handleSave = () => {
-        localStorage.setItem('phoneNumberId', credentials.phoneNumberId);
-        localStorage.setItem('accessToken', credentials.accessToken);
-        toast.success('Configuration saved successfully!');
+    const handleSave = async () => {
+        try {
+            await apiClient.post('/settings', credentials);
+            toast.success('Configuration saved successfully!');
+        } catch (error) {
+            console.error('Failed to save settings', error);
+            toast.error('Failed to save configuration');
+        }
     };
 
     const copyToClipboard = () => {
@@ -32,6 +59,14 @@ const Settings = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -97,8 +132,7 @@ const Settings = () => {
                                 Save Configuration
                             </button>
                             <p className="text-xs text-center text-gray-400 mt-3">
-                                Note: In this demo, these keys are saved locally. <br />
-                                In production, updates would require a server restart or DB config.
+                                Note: These credentials are now saved securely in your database.
                             </p>
                         </div>
                     </div>
