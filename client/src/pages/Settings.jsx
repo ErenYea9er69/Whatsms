@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
-import apiClient from '../services/apiClient';
+import apiClient from '../services/api';
 
 const Settings = () => {
     const toast = useToast();

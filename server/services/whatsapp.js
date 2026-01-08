@@ -2,7 +2,7 @@ const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
+const WHATSAPP_API_URL = 'https://graph.facebook.com/v22.0';
 
 /**
  * Get WhatsApp Credentials

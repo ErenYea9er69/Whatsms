@@ -66,6 +66,22 @@ class ApiClient {
         return data;
     }
 
+    async get(endpoint, options = {}) {
+        return this.request(endpoint, { ...options, method: 'GET' });
+    }
+
+    async post(endpoint, body, options = {}) {
+        return this.request(endpoint, { ...options, method: 'POST', body });
+    }
+
+    async put(endpoint, body, options = {}) {
+        return this.request(endpoint, { ...options, method: 'PUT', body });
+    }
+
+    async delete(endpoint, options = {}) {
+        return this.request(endpoint, { ...options, method: 'DELETE' });
+    }
+
     // Auth
     async login(username, password) {
         const data = await this.request('/auth/login', {
