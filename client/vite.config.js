@@ -5,4 +5,18 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split heavy charting library
+          'recharts': ['recharts'],
+          // Split React Router
+          'router': ['react-router-dom'],
+          // Split Lucide icons
+          'icons': ['lucide-react'],
+        }
+      }
+    }
+  }
 })
