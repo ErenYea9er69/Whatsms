@@ -57,7 +57,14 @@ class ApiClient {
             throw new Error('Session expired. Please login again.');
         }
 
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch (e) {
+            console.error('API Error: Response was not JSON:', text);
+            throw new Error(`Server Error (${response.status}): Please check browser console for details.`);
+        }
 
         if (!response.ok) {
             throw new Error(data.message || 'An error occurred');
