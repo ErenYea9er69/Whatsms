@@ -98,9 +98,18 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`
+// Import Prisma for connection check
+const prisma = require('./config/prisma');
+
+async function startServer() {
+    try {
+        // Verify Database Connection
+        await prisma.$connect();
+        console.log('✅ Connected to Database (Neon/Postgres)');
+
+        // Start server
+        app.listen(PORT, () => {
+            console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║                                                   ║
 ║   🚀 WhatsSMS Server Running                      ║
@@ -109,5 +118,12 @@ app.listen(PORT, () => {
 ║   Health:  http://localhost:${PORT}/api/health      ║
 ║                                                   ║
 ╚═══════════════════════════════════════════════════╝
-    `);
-});
+            `);
+        });
+    } catch (error) {
+        console.error('❌ Failed to connect to database:', error);
+        process.exit(1);
+    }
+}
+
+startServer();
