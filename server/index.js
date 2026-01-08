@@ -148,4 +148,9 @@ async function startServer() {
     }
 }
 
-startServer();
+// Export for Vercel
+module.exports = app;
+
+if (require.main === module) {
+    startServer();
+}
