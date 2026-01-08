@@ -122,19 +122,35 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <div className="pt-4">
+                        <div className="pt-4 flex gap-3">
                             <button
                                 id="save-btn"
                                 onClick={handleSave}
-                                className="w-full py-2.5 btn-primary text-white rounded-xl font-medium shadow-glow flex items-center justify-center gap-2"
+                                className="flex-1 py-2.5 btn-primary text-white rounded-xl font-medium shadow-glow flex items-center justify-center gap-2"
                             >
                                 <Save size={18} />
                                 Save Configuration
                             </button>
-                            <p className="text-xs text-center text-gray-400 mt-3">
-                                Note: These credentials are now saved securely in your database.
-                            </p>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        await handleSave(); // Save first
+                                        const res = await apiClient.post('/settings/test');
+                                        toast.success(res.message || 'Connection Verified!');
+                                    } catch (err) {
+                                        toast.error(err.response?.data?.error || 'Test Connection Failed');
+                                    }
+                                }}
+                                className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                                title="Test Connection"
+                            >
+                                <Globe size={18} />
+                                Test
+                            </button>
                         </div>
+                        <p className="text-xs text-center text-gray-400 mt-3">
+                            Note: These credentials are now saved securely in your database.
+                        </p>
                     </div>
                 </div>
 

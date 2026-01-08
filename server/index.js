@@ -2,6 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+const { validateEnv } = require('./config/env');
+
+// Validate environment variables on startup
+try {
+    validateEnv();
+} catch (error) {
+    console.error('❌ Environment Configuration Error:');
+    console.error(error.message);
+    process.exit(1);
+}
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -15,6 +26,13 @@ const settingsRoutes = require('./routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Rate limiting for auth routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many login attempts from this IP, please try again after 15 minutes'
+});
 
 // Middleware
 app.use(cors({
@@ -55,7 +73,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/lists', listsRoutes);
 app.use('/api/campaigns', campaignsRoutes);
@@ -119,6 +137,7 @@ async function startServer() {
 ║                                                   ║
 ║   Local:   http://localhost:${PORT}                 ║
 ║   Health:  http://localhost:${PORT}/api/health      ║
+║   Env:     ${process.env.NODE_ENV}                ║
 ║                                                   ║
 ╚═══════════════════════════════════════════════════╝
             `);

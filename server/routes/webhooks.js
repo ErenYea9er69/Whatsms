@@ -23,11 +23,43 @@ router.get('/whatsapp', (req, res) => {
     }
 });
 
+const crypto = require('crypto');
+
+// ... (imports)
+
+const APP_SECRET = process.env.WHATSAPP_APP_SECRET;
+
+// Middleware to verify webhook signature
+const verifySignature = (req, res, next) => {
+    if (!APP_SECRET) {
+        console.warn('⚠️ WHATSAPP_APP_SECRET not set, skipping signature verification');
+        return next();
+    }
+
+    const signature = req.headers['x-hub-signature-256'];
+    if (!signature) {
+        return res.status(401).json({ error: 'Missing signature' });
+    }
+
+    const elements = signature.split('=');
+    const signatureHash = elements[1];
+    const expectedHash = crypto
+        .createHmac('sha256', APP_SECRET)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+
+    if (signatureHash !== expectedHash) {
+        return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    next();
+};
+
 /**
  * POST /api/webhooks/whatsapp
  * Receive webhook events from WhatsApp
  */
-router.post('/whatsapp', async (req, res) => {
+router.post('/whatsapp', verifySignature, async (req, res) => {
     try {
         const body = req.body;
 
