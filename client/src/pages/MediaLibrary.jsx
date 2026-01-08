@@ -63,7 +63,7 @@ const MediaLibrary = () => {
     const getIcon = (mimetype) => {
         if (mimetype.startsWith('image/')) return <ImageIcon size={24} className="text-purple-500" />;
         if (mimetype.startsWith('video/')) return <Video size={24} className="text-pink-500" />;
-        if (mimetype.startsWith('audio/')) return <Music size={24} className="text-blue-500" />;
+        if (mimetype.startsWith('audio/')) return <Music size={24} className="text-emerald-500" />;
         return <FileText size={24} className="text-gray-500" />;
     };
 
@@ -166,7 +166,7 @@ const MediaLibrary = () => {
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center">
-                                    <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center mb-3">
+                                    <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-full flex items-center justify-center mb-3">
                                         <Upload size={24} />
                                     </div>
                                     <p className="font-medium text-gray-900 dark:text-white">Click to upload</p>

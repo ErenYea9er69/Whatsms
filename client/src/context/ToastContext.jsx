@@ -13,17 +13,17 @@ export const useToast = () => {
 
 const Toast = ({ id, type, message, onClose }) => {
     const icons = {
-        success: <CheckCircle className="text-emerald-500" size={20} />,
+        success: <CheckCircle className="text-blue-500" size={20} />,
         error: <XCircle className="text-red-500" size={20} />,
         warning: <AlertCircle className="text-amber-500" size={20} />,
-        info: <Info className="text-blue-500" size={20} />,
+        info: <Info className="text-emerald-500" size={20} />,
     };
 
     const backgrounds = {
-        success: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800',
+        success: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
         error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
         warning: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',
-        info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
+        info: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800',
     };
 
     return (

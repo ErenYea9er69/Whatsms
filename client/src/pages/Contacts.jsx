@@ -209,7 +209,7 @@ const Contacts = () => {
                     <div className="relative">
                         <button
                             onClick={() => setShowTagDropdown(!showTagDropdown)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium border ${selectedTag ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium border ${selectedTag ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
                         >
                             <Tag size={16} strokeWidth={1.75} />
                             <span>{selectedTag || 'Filter by Tag'}</span>
@@ -220,7 +220,7 @@ const Contacts = () => {
                             <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-surface-dark rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 z-50 py-2 max-h-60 overflow-y-auto">
                                 <button
                                     onClick={() => handleTagFilter('')}
-                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-blue-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
+                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-emerald-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
                                 >
                                     All Contacts
                                 </button>
@@ -228,7 +228,7 @@ const Contacts = () => {
                                     <button
                                         key={tag}
                                         onClick={() => handleTagFilter(tag)}
-                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedTag === tag ? 'text-blue-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
+                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedTag === tag ? 'text-emerald-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
                                     >
                                         {tag}
                                     </button>
@@ -313,7 +313,7 @@ const Contacts = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex flex-wrap gap-1.5">
                                                 {(contact.tags || []).slice(0, 3).map((tag, i) => (
-                                                    <span key={i} className="px-2.5 py-1 text-xs rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
+                                                    <span key={i} className="px-2.5 py-1 text-xs rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-medium">
                                                         {tag}
                                                     </span>
                                                 ))}

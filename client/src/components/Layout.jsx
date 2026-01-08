@@ -79,7 +79,7 @@ const Layout = () => {
               end={item.to === '/'}
               className={({ isActive }) =>
                 `nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium group ${isActive
-                  ? 'active bg-blue-50 dark:bg-blue-900/20 text-primary'
+                  ? 'active bg-emerald-50 dark:bg-emerald-900/20 text-primary'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100'
                 }`
               }
@@ -100,7 +100,7 @@ const Layout = () => {
             {isDark ? (
               <Sun size={20} className="icon-gray group-hover:text-amber-500 transition-colors" strokeWidth={1.75} />
             ) : (
-              <Moon size={20} className="icon-gray group-hover:text-indigo-500 transition-colors" strokeWidth={1.75} />
+              <Moon size={20} className="icon-gray group-hover:text-emerald-500 transition-colors" strokeWidth={1.75} />
             )}
             <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
@@ -149,7 +149,7 @@ const Layout = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               className={({ isActive }) =>
                 `nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isActive
-                  ? 'active bg-blue-50 dark:bg-blue-900/20 text-primary'
+                  ? 'active bg-emerald-50 dark:bg-emerald-900/20 text-primary'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100'
                 }`
               }

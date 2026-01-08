@@ -2,10 +2,13 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary: #3B82F6;
-  --color-primary-dark: #2563EB;
+  --color-primary: #10B981;
+  /* Green 500 */
+  --color-primary-dark: #059669;
+  /* Green 600 */
   --color-secondary: #000000;
-  --color-accent: #10B981;
+  --color-accent: #3B82F6;
+  /* Blue 500 */
   --color-background-light: #F8FAFC;
   --color-background-dark: #050505;
   /* Deeper black */

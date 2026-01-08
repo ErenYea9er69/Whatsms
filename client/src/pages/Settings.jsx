@@ -79,7 +79,7 @@ const Settings = () => {
                 {/* Credentials Card */}
                 <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center">
                             <SettingsIcon size={20} />
                         </div>
                         <div>
@@ -162,7 +162,7 @@ const Settings = () => {
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
                                     title="Copy URL"
                                 >
-                                    {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} className="text-gray-400" />}
+                                    {copied ? <Check size={16} className="text-blue-500" /> : <Copy size={16} className="text-gray-400" />}
                                 </button>
                             </div>
                         </div>
@@ -177,7 +177,7 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl text-sm text-blue-800 dark:text-blue-300">
+                        <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl text-sm text-emerald-800 dark:text-emerald-300">
                             <h4 className="font-semibold mb-1">Setup Instructions:</h4>
                             <ol className="list-decimal pl-4 space-y-1 opacity-80">
                                 <li>Go to your App Dashboard in Meta Developers.</li>

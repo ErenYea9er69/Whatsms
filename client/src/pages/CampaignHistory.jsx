@@ -86,15 +86,15 @@ const CampaignHistory = () => {
         switch (status) {
             case 'COMPLETED':
                 return {
-                    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                    text: 'text-emerald-600 dark:text-emerald-400',
+                    bg: 'bg-blue-50 dark:bg-blue-900/20',
+                    text: 'text-blue-600 dark:text-blue-400',
                     icon: CheckCircle,
                     label: 'Completed'
                 };
             case 'IN_PROGRESS':
                 return {
-                    bg: 'bg-blue-50 dark:bg-blue-900/20',
-                    text: 'text-blue-600 dark:text-blue-400',
+                    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                    text: 'text-emerald-600 dark:text-emerald-400',
                     icon: Play,
                     label: 'In Progress'
                 };
@@ -177,8 +177,8 @@ const CampaignHistory = () => {
                         key={status}
                         onClick={() => setFilter(status)}
                         className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${filter === status
-                                ? 'bg-primary text-white'
-                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            ? 'bg-primary text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                             }`}
                     >
                         {status || 'All'}
@@ -269,11 +269,11 @@ const CampaignHistory = () => {
                                         <p className="text-xs text-gray-400">Recipients</p>
                                     </div>
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                                        <p className="text-lg font-bold text-emerald-600">{campaign.statsDelivered || 0}</p>
+                                        <p className="text-lg font-bold text-blue-600">{campaign.statsDelivered || 0}</p>
                                         <p className="text-xs text-gray-400">Delivered</p>
                                     </div>
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                                        <p className="text-lg font-bold text-blue-600">{campaign.statsRead || 0}</p>
+                                        <p className="text-lg font-bold text-emerald-600">{campaign.statsRead || 0}</p>
                                         <p className="text-xs text-gray-400">Read</p>
                                     </div>
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
@@ -305,7 +305,7 @@ const CampaignHistory = () => {
                                     {campaign.status === 'DRAFT' && (
                                         <button
                                             onClick={() => handleSendCampaign(campaign.id)}
-                                            className="p-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-400 hover:text-green-600 rounded-lg transition-colors"
+                                            className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-600 rounded-lg transition-colors"
                                             title="Send Campaign"
                                         >
                                             <Play size={18} />

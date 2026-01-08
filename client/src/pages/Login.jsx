@@ -45,7 +45,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light via-white to-blue-50 dark:from-background-dark dark:via-surface-dark dark:to-background-dark transition-colors duration-300 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background-light via-white to-emerald-50 dark:from-background-dark dark:via-surface-dark dark:to-background-dark transition-colors duration-300 p-4">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />

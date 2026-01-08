@@ -266,7 +266,7 @@ const Lists = () => {
                                         key={list.id}
                                         onClick={() => setSelectedList(list)}
                                         className={`w-full text-left p-3 rounded-xl transition-all mb-1 ${selectedList?.id === list.id
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
                                             : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                                             }`}
                                     >
@@ -448,7 +448,7 @@ const Lists = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setShowTagFilter(!showTagFilter)}
-                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${selectedTag ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${selectedTag ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                                 >
                                     <Tag size={16} />
                                     <span className="text-sm">{selectedTag || 'Tag'}</span>
@@ -459,7 +459,7 @@ const Lists = () => {
                                     <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-surface-dark rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 z-50 py-2 max-h-48 overflow-y-auto">
                                         <button
                                             onClick={() => { setSelectedTag(''); setShowTagFilter(false); }}
-                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-blue-600 font-medium' : ''}`}
+                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-emerald-600 font-medium' : ''}`}
                                         >
                                             All Tags
                                         </button>
@@ -467,7 +467,7 @@ const Lists = () => {
                                             <button
                                                 key={tag}
                                                 onClick={() => { setSelectedTag(tag); setShowTagFilter(false); }}
-                                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedTag === tag ? 'text-blue-600 font-medium' : ''}`}
+                                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedTag === tag ? 'text-emerald-600 font-medium' : ''}`}
                                             >
                                                 {tag}
                                             </button>
@@ -485,7 +485,7 @@ const Lists = () => {
                             <button
                                 onClick={handleAddAll}
                                 disabled={addableContacts.length === 0}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <CheckCheck size={14} />
                                 Add All ({addableContacts.length})
@@ -520,7 +520,7 @@ const Lists = () => {
                                             className={`w-full flex items-center justify-between p-3 transition-colors ${isAlreadyInList
                                                 ? 'opacity-50 cursor-not-allowed'
                                                 : isSelected
-                                                    ? 'bg-blue-50 dark:bg-blue-900/20'
+                                                    ? 'bg-emerald-50 dark:bg-emerald-900/20'
                                                     : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                                                 }`}
                                         >
@@ -536,7 +536,7 @@ const Lists = () => {
                                             {isAlreadyInList ? (
                                                 <span className="text-xs text-gray-400">Already in list</span>
                                             ) : isSelected ? (
-                                                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                                                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
                                                     <Check size={12} className="text-white" />
                                                 </div>
                                             ) : (
@@ -584,7 +584,7 @@ const Lists = () => {
                                         key={list.id}
                                         onClick={() => setSourceListId(list.id.toString())}
                                         className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${sourceListId === list.id.toString()
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
                                             : 'border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
                                             }`}
                                     >
@@ -596,7 +596,7 @@ const Lists = () => {
                                             </div>
                                         </div>
                                         {sourceListId === list.id.toString() && (
-                                            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                                            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
                                                 <Check size={12} className="text-white" />
                                             </div>
                                         )}

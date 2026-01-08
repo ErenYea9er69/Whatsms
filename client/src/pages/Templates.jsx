@@ -119,8 +119,8 @@ const Templates = () => {
                 </div>
             ) : templates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-surface-dark rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
-                    <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
-                        <LayoutTemplate size={32} className="text-green-500" />
+                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+                        <LayoutTemplate size={32} className="text-blue-500" />
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 font-medium">No templates yet</p>
                 </div>
@@ -138,7 +138,7 @@ const Templates = () => {
                             <div key={tpl.id} className="bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 p-5 card-hover">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-lg">
+                                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                                             <MessageSquare size={18} />
                                         </div>
                                         <h3 className="font-semibold text-gray-900 dark:text-white truncate">{tpl.name}</h3>

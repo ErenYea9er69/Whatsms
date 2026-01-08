@@ -239,7 +239,7 @@ const Dashboard = () => {
                 <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-5" style={{ opacity: 0 }}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                                 <Activity size={20} className="text-white" strokeWidth={1.75} />
                             </div>
                             <div>
@@ -253,12 +253,12 @@ const Dashboard = () => {
                             <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorDelivered" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                                         <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorDelivered" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="colorRead" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
@@ -269,19 +269,19 @@ const Dashboard = () => {
                                 <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#9CA3AF" />
                                 <YAxis tick={{ fontSize: 12 }} stroke="#9CA3AF" />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Area type="monotone" dataKey="sent" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorSent)" name="Sent" />
-                                <Area type="monotone" dataKey="delivered" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorDelivered)" name="Delivered" />
+                                <Area type="monotone" dataKey="sent" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorSent)" name="Sent" />
+                                <Area type="monotone" dataKey="delivered" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorDelivered)" name="Delivered" />
                                 <Area type="monotone" dataKey="read" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorRead)" name="Read" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                     <div className="flex justify-center gap-6 mt-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
                             <span className="text-xs text-gray-500">Sent</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                             <span className="text-xs text-gray-500">Delivered</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -295,7 +295,7 @@ const Dashboard = () => {
                 <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-6" style={{ opacity: 0 }}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                                 <BarChart3 size={20} className="text-white" strokeWidth={1.75} />
                             </div>
                             <div>
@@ -312,8 +312,8 @@ const Dashboard = () => {
                                     <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                                     <YAxis tick={{ fontSize: 12 }} stroke="#9CA3AF" />
                                     <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="delivered" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Delivered" />
-                                    <Bar dataKey="read" fill="#10b981" radius={[4, 4, 0, 0]} name="Read" />
+                                    <Bar dataKey="delivered" fill="#10b981" radius={[4, 4, 0, 0]} name="Delivered" />
+                                    <Bar dataKey="read" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Read" />
                                     <Bar dataKey="replied" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Replied" />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -325,11 +325,11 @@ const Dashboard = () => {
                     </div>
                     <div className="flex justify-center gap-6 mt-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
                             <span className="text-xs text-gray-500">Delivered</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                             <span className="text-xs text-gray-500">Read</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -356,12 +356,12 @@ const Dashboard = () => {
 
                     {/* Stats Overview */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
-                        <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
-                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{campaignStats?.totalDelivered?.toLocaleString() ?? 0}</p>
+                        <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/20">
+                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{campaignStats?.totalDelivered?.toLocaleString() ?? 0}</p>
                             <p className="text-xs text-gray-500 mt-1">Delivered</p>
                         </div>
-                        <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/20">
-                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{campaignStats?.totalRead?.toLocaleString() ?? 0}</p>
+                        <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{campaignStats?.totalRead?.toLocaleString() ?? 0}</p>
                             <p className="text-xs text-gray-500 mt-1">Read</p>
                         </div>
                         <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20">
@@ -379,11 +379,11 @@ const Dashboard = () => {
                         <div>
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-500">Delivery Rate</span>
-                                <span className="font-semibold text-blue-600">{campaignStats?.deliveryRate ?? 0}%</span>
+                                <span className="font-semibold text-emerald-600">{campaignStats?.deliveryRate ?? 0}%</span>
                             </div>
                             <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 ease-out"
+                                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700 ease-out"
                                     style={{ width: `${campaignStats?.deliveryRate ?? 0}%` }}
                                 />
                             </div>
@@ -391,11 +391,11 @@ const Dashboard = () => {
                         <div>
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-500">Read Rate</span>
-                                <span className="font-semibold text-emerald-600">{campaignStats?.readRate ?? 0}%</span>
+                                <span className="font-semibold text-blue-600">{campaignStats?.readRate ?? 0}%</span>
                             </div>
                             <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700 ease-out"
+                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700 ease-out"
                                     style={{ width: `${campaignStats?.readRate ?? 0}%` }}
                                 />
                             </div>
@@ -437,7 +437,7 @@ const Dashboard = () => {
 
                     <button
                         onClick={() => navigate('/campaigns')}
-                        className="w-full mt-6 py-2.5 text-sm text-primary font-medium hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        className="w-full mt-6 py-2.5 text-sm text-primary font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/10 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                         View All Campaigns
                         <ArrowUpRight size={14} />

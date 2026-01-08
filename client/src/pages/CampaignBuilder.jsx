@@ -132,10 +132,10 @@ const CampaignBuilder = () => {
                         style={{ animationDelay: `${index * 0.1}s`, opacity: 0 }}
                     >
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${step > s.number
+                            ? 'bg-primary text-white shadow-glow'
+                            : step === s.number
                                 ? 'bg-primary text-white shadow-glow'
-                                : step === s.number
-                                    ? 'bg-primary text-white shadow-glow'
-                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
                             }`}>
                             {step > s.number ? (
                                 <Check size={20} strokeWidth={2.5} />
@@ -241,8 +241,8 @@ const CampaignBuilder = () => {
                                         key={list.id}
                                         onClick={() => toggleList(list.id)}
                                         className={`p-4 rounded-xl border-2 text-left transition-all duration-200 animate-slide-up ${campaign.selectedLists.includes(list.id)
-                                                ? 'border-primary bg-blue-50 dark:bg-blue-900/20'
-                                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                            ? 'border-primary bg-emerald-50 dark:bg-emerald-900/20'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                             }`}
                                         style={{ animationDelay: `${index * 0.05}s`, opacity: 0 }}
                                     >
@@ -252,8 +252,8 @@ const CampaignBuilder = () => {
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">{list.memberCount || 0} contacts</p>
                                             </div>
                                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${campaign.selectedLists.includes(list.id)
-                                                    ? 'border-primary bg-primary text-white'
-                                                    : 'border-gray-300 dark:border-gray-600'
+                                                ? 'border-primary bg-primary text-white'
+                                                : 'border-gray-300 dark:border-gray-600'
                                                 }`}>
                                                 {campaign.selectedLists.includes(list.id) && <Check size={14} />}
                                             </div>
