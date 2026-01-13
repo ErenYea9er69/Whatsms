@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2 } from 'lucide-react';
+import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import api from '../services/api';
+import aiService from '../services/ai';
 
 const CampaignBuilder = () => {
     const [step, setStep] = useState(1);
@@ -19,6 +20,11 @@ const CampaignBuilder = () => {
         selectedLists: [],
         scheduledAt: ''
     });
+
+    // AI Generation State
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -97,6 +103,25 @@ const CampaignBuilder = () => {
             setError(err.message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleAiGenerate = async () => {
+        if (!aiPrompt.trim()) return;
+
+        setAiLoading(true);
+        try {
+            const generatedText = await aiService.generateMessage(aiPrompt);
+            setCampaign(prev => ({
+                ...prev,
+                messageBody: generatedText
+            }));
+            setShowAiModal(false);
+            setAiPrompt('');
+        } catch (err) {
+            setError('Failed to generate message with AI');
+        } finally {
+            setAiLoading(false);
         }
     };
 
@@ -194,7 +219,16 @@ const CampaignBuilder = () => {
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium mb-2">Message *</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium">Message *</label>
+                                <button
+                                    onClick={() => setShowAiModal(true)}
+                                    className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-lg"
+                                >
+                                    <Sparkles size={14} />
+                                    <span>Generate with AI</span>
+                                </button>
+                            </div>
                             <div className="text-xs text-gray-400 mb-2">
                                 Use <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{name}}'}</code> or <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{phone}}'}</code> for personalization
                             </div>
@@ -347,6 +381,60 @@ const CampaignBuilder = () => {
                     </button>
                 )}
             </div>
+            {/* AI Generation Modal */}
+            {showAiModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-4">
+                    <div className="bg-white dark:bg-surface-dark rounded-2xl w-full max-w-md p-6 shadow-xl border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2 text-primary">
+                                <Wand2 size={24} />
+                                <h3 className="text-lg font-bold">AI Assistant</h3>
+                            </div>
+                            <button onClick={() => setShowAiModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-gray-500 mb-4">
+                            Describe what you want to say, and I'll write a message for you.
+                        </p>
+
+                        <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-32 mb-4"
+                            placeholder="e.g. Write a promotion for our summer sale. 20% off all items using code SUMMER20..."
+                            autoFocus
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowAiModal(false)}
+                                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAiGenerate}
+                                disabled={aiLoading || !aiPrompt.trim()}
+                                className="flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium shadow-glow disabled:opacity-50"
+                            >
+                                {aiLoading ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        <span>Thinking...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={16} />
+                                        <span>Generate</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
