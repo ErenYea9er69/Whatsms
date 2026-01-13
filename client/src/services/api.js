@@ -163,6 +163,12 @@ class ApiClient {
         });
     }
 
+    async fetchWhatsAppContacts() {
+        return this.request('/contacts/fetch-whatsapp', {
+            method: 'POST',
+        });
+    }
+
     // Lists
     async getLists() {
         return this.request('/lists');

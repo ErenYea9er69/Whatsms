@@ -414,4 +414,125 @@ router.post('/import', upload.single('file'), async (req, res) => {
     }
 });
 
+/**
+ * POST /api/contacts/fetch-whatsapp
+ * Fetch contacts from recent WhatsApp conversations
+ */
+router.post('/fetch-whatsapp', async (req, res) => {
+    try {
+        const axios = require('axios');
+
+        // Get WhatsApp credentials
+        let accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+        let phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+        let businessAccountId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
+
+        // Try to get from DB config
+        try {
+            const settings = await prisma.systemConfig.findMany({
+                where: { key: { in: ['accessToken', 'phoneNumberId', 'businessAccountId'] } }
+            });
+            const dbConfig = settings.reduce((acc, curr) => {
+                acc[curr.key] = curr.value;
+                return acc;
+            }, {});
+            if (dbConfig.accessToken) accessToken = dbConfig.accessToken;
+            if (dbConfig.phoneNumberId) phoneNumberId = dbConfig.phoneNumberId;
+            if (dbConfig.businessAccountId) businessAccountId = dbConfig.businessAccountId;
+        } catch (e) {
+            // Use env vars
+        }
+
+        if (!accessToken || !businessAccountId) {
+            return res.status(400).json({
+                error: 'Configuration Error',
+                message: 'WhatsApp credentials not configured. Please set up your API credentials in settings.'
+            });
+        }
+
+        // Fetch conversations from WhatsApp Business API
+        const conversationsUrl = `https://graph.facebook.com/v22.0/${businessAccountId}/conversations`;
+
+        let imported = 0;
+        let skipped = 0;
+        const errors = [];
+
+        try {
+            const response = await axios.get(conversationsUrl, {
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+                params: { fields: 'name,id' }
+            });
+
+            const conversations = response.data?.data || [];
+
+            for (const conv of conversations) {
+                // Each conversation has contact info
+                // The conversation ID format is like "PHONE_wa_id_..."
+                const phoneMatch = conv.id?.match(/(\d{10,15})/);
+                if (!phoneMatch) continue;
+
+                const phone = phoneMatch[1];
+                const name = conv.name || `WhatsApp ${phone.slice(-4)}`;
+
+                // Check if contact exists
+                const existing = await prisma.contact.findFirst({
+                    where: { phone: { endsWith: phone.slice(-10) } }
+                });
+
+                if (!existing) {
+                    try {
+                        await prisma.contact.create({
+                            data: {
+                                name,
+                                phone,
+                                tags: ['whatsapp-import'],
+                                interests: [],
+                                preferences: {}
+                            }
+                        });
+                        imported++;
+                    } catch (err) {
+                        errors.push(`Failed to create ${phone}: ${err.message}`);
+                    }
+                } else {
+                    skipped++;
+                }
+            }
+        } catch (apiError) {
+            console.error('WhatsApp API Error:', apiError.response?.data || apiError.message);
+
+            // Fallback: try to get contacts from campaign recipients who replied
+            const recentRepliers = await prisma.campaignRecipient.findMany({
+                where: { replied: true },
+                include: { contact: true },
+                distinct: ['contactId']
+            });
+
+            // These are already in contacts, so just report what we have
+            return res.json({
+                message: 'Could not fetch from WhatsApp API. Showing existing contacts who replied to campaigns.',
+                imported: 0,
+                skipped: recentRepliers.length,
+                total: recentRepliers.length,
+                note: 'Contacts are automatically added when someone messages your WhatsApp number.'
+            });
+        }
+
+        res.json({
+            message: 'WhatsApp contacts sync completed',
+            imported,
+            skipped,
+            total: imported + skipped,
+            errors: errors.slice(0, 5)
+        });
+
+    } catch (error) {
+        console.error('Fetch WhatsApp error:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'Failed to fetch WhatsApp contacts'
+        });
+    }
+});
+
 module.exports = router;

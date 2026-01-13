@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Filter, Plus, MoreHorizontal, Mail, Phone, Tag, X, RefreshCw, AlertCircle, ChevronDown } from 'lucide-react';
+import { Upload, Search, Filter, Plus, MoreHorizontal, Mail, Phone, Tag, X, RefreshCw, AlertCircle, ChevronDown, MessageSquare, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import ImportContacts from '../components/ImportContacts';
 import { useToast } from '../context/ToastContext';
@@ -25,6 +25,10 @@ const Contacts = () => {
     // Form state
     const [newContact, setNewContact] = useState({ name: '', phone: '', interests: '', tags: '' });
     const [saving, setSaving] = useState(false);
+
+    // WhatsApp Fetch State
+    const [fetchingWhatsApp, setFetchingWhatsApp] = useState(false);
+    const [fetchResult, setFetchResult] = useState(null);
 
     const fileInputRef = useRef(null);
     const searchTimeoutRef = useRef(null);
@@ -144,6 +148,25 @@ const Contacts = () => {
         }
     };
 
+    const handleFetchWhatsApp = async () => {
+        setFetchingWhatsApp(true);
+        setFetchResult(null);
+        try {
+            const result = await api.fetchWhatsAppContacts();
+            setFetchResult(result);
+            fetchContacts(1, searchQuery, selectedTag);
+            if (result.imported > 0) {
+                toast.success(`Imported ${result.imported} new contacts from WhatsApp!`);
+            } else {
+                toast.info(result.message || 'No new contacts to import');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Failed to fetch WhatsApp contacts');
+        } finally {
+            setFetchingWhatsApp(false);
+        }
+    };
+
     const handleTagFilter = (tag) => {
         setSelectedTag(tag);
         setShowTagDropdown(false);
@@ -158,6 +181,18 @@ const Contacts = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your audience and contact lists</p>
                 </div>
                 <div className="flex gap-3">
+                    <button
+                        onClick={handleFetchWhatsApp}
+                        disabled={fetchingWhatsApp}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-medium shadow-glow card-hover disabled:opacity-50"
+                    >
+                        {fetchingWhatsApp ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <MessageSquare size={18} />
+                        )}
+                        <span>{fetchingWhatsApp ? 'Fetching...' : 'Fetch WhatsApp'}</span>
+                    </button>
                     <button
                         onClick={() => setShowImportModal(true)}
                         className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-sm font-medium shadow-soft card-hover"
