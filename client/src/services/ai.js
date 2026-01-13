@@ -20,7 +20,7 @@ const aiService = {
                     }
                 ]
             });
-            return response.data.content;
+            return response.content;
         } catch (error) {
             console.error('AI Generation Error:', error);
             throw error;
