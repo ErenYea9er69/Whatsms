@@ -268,15 +268,15 @@ const Templates = () => {
                         {/* Preview Side */}
                         <div className="w-1/2 p-6 bg-gray-50 dark:bg-black/40 flex flex-col items-center justify-center">
                             <h3 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wider">Preview</h3>
-                            <div className="w-[300px] h-[580px] bg-white dark:bg-[#111b21] rounded-[30px] border-[6px] border-gray-900 relative shadow-2xl overflow-hidden">
+                            <div className="w-[300px] h-[580px] bg-white dark:bg-[#111b21] rounded-[30px] border-[6px] border-gray-900 relative shadow-2xl overflow-hidden flex flex-col">
                                 {/* WhatsApp Header Bar */}
-                                <div className="h-14 bg-[#008069] dark:bg-[#202c33] flex items-center px-4 gap-3">
+                                <div className="h-14 bg-[#008069] dark:bg-[#202c33] flex items-center px-4 gap-3 shrink-0">
                                     <div className="w-8 h-8 rounded-full bg-white/20"></div>
                                     <div className="text-white font-medium text-sm">Business Name</div>
                                 </div>
 
                                 {/* Chat Area */}
-                                <div className="p-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-90 h-full">
+                                <div className="p-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-90 flex-1 overflow-y-auto">
                                     <div className="bg-white dark:bg-[#202c33] p-2 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
                                         {formData.header && (
                                             <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{formData.header}</p>
