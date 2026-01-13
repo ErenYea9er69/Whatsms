@@ -1,16 +1,16 @@
 const axios = require('axios');
 
-const LONGCAT_BASE_URL = process.env.LONGCAT_BASE_URL || 'https://api.longcat.chat/v1';
+const LONGCAT_BASE_URL = process.env.LONGCAT_BASE_URL || 'https://api.longcat.chat/openai/v1';
 const LONGCAT_API_KEY = process.env.LONGCAT_API_KEY;
 
 const aiService = {
     /**
      * Generate a response from the AI model.
      * @param {Array} messages - Array of message objects [{role: 'user', content: '...'}].
-     * @param {string} model - Model to use (default: 'longcat-flash-chat').
+     * @param {string} model - Model to use (default: 'LongCat-Flash-Chat').
      * @returns {Promise<string>} - The AI's response content.
      */
-    generateResponse: async (messages, model = 'longcat-flash-chat') => {
+    generateResponse: async (messages, model = 'LongCat-Flash-Chat') => {
         if (!LONGCAT_API_KEY) {
             throw new Error('LONGCAT_API_KEY is not configured');
         }
