@@ -37,7 +37,9 @@ const aiService = {
             }
         } catch (error) {
             console.error('Error calling Longcat API:', error.response ? error.response.data : error.message);
-            throw new Error('Failed to generate AI response');
+            // Throw the actual error message if available, or a generic one
+            const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to generate AI response';
+            throw new Error(errorMessage);
         }
     },
 };
