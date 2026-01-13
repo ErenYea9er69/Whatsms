@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal, Sparkles, Wand2, Loader2 } from 'lucide-react';
 import api from '../services/api';
+import aiService from '../services/ai';
 
 const Templates = () => {
     const [templates, setTemplates] = useState([]);
@@ -16,6 +17,11 @@ const Templates = () => {
         footer: '',
         buttons: [] // { type: 'QUICK_REPLY' | 'URL', text: '' }
     });
+
+    // AI Generation State
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
 
     const fetchTemplates = async () => {
         try {
@@ -36,6 +42,25 @@ const Templates = () => {
     const resetForm = () => {
         setFormData({ name: '', header: '', body: '', footer: '', buttons: [] });
         setEditingId(null);
+    };
+
+    const handleAiGenerate = async () => {
+        if (!aiPrompt.trim()) return;
+
+        setAiLoading(true);
+        try {
+            const generatedText = await aiService.generateMessage(aiPrompt);
+            setFormData(prev => ({
+                ...prev,
+                body: generatedText
+            }));
+            setShowAiModal(false);
+            setAiPrompt('');
+        } catch (err) {
+            alert('Failed to generate message with AI');
+        } finally {
+            setAiLoading(false);
+        }
     };
 
     const handleSave = async () => {
@@ -199,7 +224,16 @@ const Templates = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5">Body Text</label>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-sm font-medium">Body Text</label>
+                                        <button
+                                            onClick={() => setShowAiModal(true)}
+                                            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-lg"
+                                        >
+                                            <Sparkles size={14} />
+                                            <span>Generate with AI</span>
+                                        </button>
+                                    </div>
                                     <textarea
                                         className="w-full h-32 px-4 py-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary resize-none"
                                         placeholder="Hello {{1}}, thanks for signing up!"
@@ -263,7 +297,65 @@ const Templates = () => {
                     </div>
                 </div>
             )}
-        </div>
+
+
+            {/* AI Generation Modal */}
+            {
+                showAiModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] animate-fade-in p-4">
+                        <div className="bg-white dark:bg-surface-dark rounded-2xl w-full max-w-md p-6 shadow-xl border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2 text-primary">
+                                    <Wand2 size={24} />
+                                    <h3 className="text-lg font-bold">AI Assistant</h3>
+                                </div>
+                                <button onClick={() => setShowAiModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <p className="text-sm text-gray-500 mb-4">
+                                Describe what you want to say, and I'll write a message for you.
+                            </p>
+
+                            <textarea
+                                value={aiPrompt}
+                                onChange={(e) => setAiPrompt(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-32 mb-4"
+                                placeholder="e.g. Write a welcome message for new subscribers..."
+                                autoFocus
+                            />
+
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => setShowAiModal(false)}
+                                    className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAiGenerate}
+                                    disabled={aiLoading || !aiPrompt.trim()}
+                                    className="flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium shadow-glow disabled:opacity-50"
+                                >
+                                    {aiLoading ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            <span>Thinking...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles size={16} />
+                                            <span>Generate</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 
