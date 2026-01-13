@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal, Sparkles, Wand2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal, Sparkles, Wand2, Loader2, AlertCircle, CheckCircle2, Paperclip } from 'lucide-react';
 import api from '../services/api';
 import aiService from '../services/ai';
 
@@ -15,8 +15,15 @@ const Templates = () => {
         header: '',
         body: '',
         footer: '',
-        buttons: [] // { type: 'QUICK_REPLY' | 'URL', text: '' }
+        name: '',
+        header: '',
+        body: '',
+        footer: '',
+        buttons: [], // { type: 'QUICK_REPLY' | 'URL', text: '' }
+        files: [] // Array of { mediaId, filename, mimetype }
     });
+
+    const [uploading, setUploading] = useState(false);
 
     // AI Generation State
     const [showAiModal, setShowAiModal] = useState(false);
@@ -87,6 +94,42 @@ const Templates = () => {
         }
     };
 
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // check size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const result = await api.uploadFile(file);
+            setFormData(prev => ({
+                ...prev,
+                files: [...prev.files, {
+                    mediaId: result.mediaId,
+                    filename: result.filename || file.name,
+                    mimetype: result.mimeType || file.type
+                }]
+            }));
+        } catch (err) {
+            alert('Failed to upload file');
+        } finally {
+            setUploading(false);
+            e.target.value = null;
+        }
+    };
+
+    const removeFile = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            files: prev.files.filter((_, i) => i !== index)
+        }));
+    };
+
     const handleSave = async () => {
         try {
             // Pack structured data into JSON string for storage
@@ -94,7 +137,8 @@ const Templates = () => {
                 header: formData.header,
                 body: formData.body,
                 footer: formData.footer,
-                buttons: formData.buttons
+                buttons: formData.buttons,
+                files: formData.files
             });
 
             if (editingId) {
@@ -118,7 +162,8 @@ const Templates = () => {
                 header: parsed.header || '',
                 body: parsed.body || tpl.content, // Fallback for old simple strings
                 footer: parsed.footer || '',
-                buttons: parsed.buttons || []
+                buttons: parsed.buttons || [],
+                files: parsed.files || []
             });
         } catch (e) {
             // Handle legacy text-only templates
@@ -250,13 +295,30 @@ const Templates = () => {
                                 <div>
                                     <div className="flex items-center justify-between mb-1.5">
                                         <label className="block text-sm font-medium">Body Text</label>
-                                        <button
-                                            onClick={() => setShowAiModal(true)}
-                                            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-lg"
-                                        >
-                                            <Sparkles size={14} />
-                                            <span>Generate with AI</span>
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="file"
+                                                id="tpl-file-upload"
+                                                className="hidden"
+                                                accept="image/*,application/pdf"
+                                                onChange={handleFileUpload}
+                                                disabled={uploading}
+                                            />
+                                            <label
+                                                htmlFor="tpl-file-upload"
+                                                className={`p-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                title="Attach Image or PDF"
+                                            >
+                                                {uploading ? <Loader2 size={16} className="animate-spin text-gray-500" /> : <Paperclip size={16} className="text-gray-500 dark:text-gray-400" />}
+                                            </label>
+                                            <button
+                                                onClick={() => setShowAiModal(true)}
+                                                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-lg"
+                                            >
+                                                <Sparkles size={14} />
+                                                <span>Generate with AI</span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <textarea
                                         className="w-full h-32 px-4 py-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary resize-none"
@@ -265,6 +327,24 @@ const Templates = () => {
                                         onChange={e => setFormData({ ...formData, body: e.target.value })}
                                     />
                                     <p className="text-xs text-gray-400 mt-1">Use {'{{1}}'}, {'{{2}}'} for variables.</p>
+
+                                    {/* File List */}
+                                    {formData.files.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {formData.files.map((file, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-xs">
+                                                    <Paperclip size={12} className="text-gray-400" />
+                                                    <span className="max-w-[150px] truncate text-gray-600 dark:text-gray-300">{file.filename}</span>
+                                                    <button
+                                                        onClick={() => removeFile(idx)}
+                                                        className="text-gray-400 hover:text-red-500"
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -342,6 +422,18 @@ const Templates = () => {
                                 {/* Chat Area */}
                                 <div className="p-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-90 flex-1 overflow-y-auto">
                                     <div className="bg-white dark:bg-[#202c33] p-2 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
+                                        {/* Image Preview */}
+                                        {formData.files.length > 0 && formData.files[0].mimetype.startsWith('image/') && (
+                                            <div className="mb-2 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                                <div className="w-full text-xs text-center p-8 text-gray-400 bg-gray-100 dark:bg-gray-800 flex flex-col items-center gap-2">
+                                                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                        <Paperclip size={18} />
+                                                    </div>
+                                                    <span>{formData.files[0].filename}</span>
+                                                    <span className="text-[10px] uppercase">(Image Preview)</span>
+                                                </div>
+                                            </div>
+                                        )}
                                         {formData.header && (
                                             <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{formData.header}</p>
                                         )}

@@ -66,9 +66,24 @@ const CampaignBuilder = () => {
     };
 
     const applyTemplate = (template) => {
+        let messageBody = template.content;
+        let files = [];
+
+        try {
+            const parsed = JSON.parse(template.content);
+            messageBody = parsed.body || template.content;
+            if (parsed.files) {
+                files = parsed.files;
+            }
+        } catch (e) {
+            // Legacy text-only template
+            console.log('Template is not JSON, using as raw text');
+        }
+
         setCampaign(prev => ({
             ...prev,
-            messageBody: template.content
+            messageBody,
+            files // Template overrides existing files
         }));
     };
 
