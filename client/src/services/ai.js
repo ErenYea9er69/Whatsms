@@ -44,6 +44,16 @@ Separate the variations clearly so the user can copy the one they like.`
             console.error('AI Generation Error:', error);
             throw error;
         }
+    },
+
+    getAnalyticsInsights: async () => {
+        try {
+            const response = await api.post('/ai/analytics');
+            return response.insights;
+        } catch (error) {
+            console.error('Error fetching AI analytics:', error);
+            throw error;
+        }
     }
 };
 

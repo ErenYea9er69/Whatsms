@@ -11,7 +11,8 @@ import {
     Upload,
     BarChart3,
     Activity,
-    RefreshCw
+    RefreshCw,
+    Sparkles
 } from 'lucide-react';
 import {
     AreaChart,
@@ -26,11 +27,13 @@ import {
     Legend
 } from 'recharts';
 import api from '../services/api';
+import aiService from '../services/ai';
 
 const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [campaignStats, setCampaignStats] = useState(null);
     const [campaigns, setCampaigns] = useState([]);
+    const [insights, setInsights] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -63,15 +66,17 @@ const Dashboard = () => {
             setLoading(true);
             setError(null);
 
-            const [contactStats, cmpStats, recentCampaigns] = await Promise.all([
+            const [contactStats, cmpStats, recentCampaigns, aiInsights] = await Promise.all([
                 api.getContactStats(),
                 api.getCampaignStats(),
-                api.getCampaigns({ limit: 5 })
+                api.getCampaigns({ limit: 5 }),
+                apiService.getAnalyticsInsights().catch(e => []) // Don't block dashboard on AI failure
             ]);
 
             setStats(contactStats);
             setCampaignStats(cmpStats);
             setCampaigns(recentCampaigns.campaigns || []);
+            setInsights(aiInsights || []);
         } catch (err) {
             setError(err.message);
             console.error('Failed to fetch dashboard data:', err);
@@ -204,6 +209,37 @@ const Dashboard = () => {
                         <Plus size={18} strokeWidth={2} />
                         <span>New Campaign</span>
                     </button>
+                </div>
+            </div>
+
+            {/* AI Insights Widget */}
+            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white shadow-soft relative overflow-hidden animate-slide-up">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                            <Sparkles size={20} className="text-white" />
+                        </div>
+                        <h2 className="text-lg font-bold">AI Performance Insights</h2>
+                    </div>
+
+                    {loading ? (
+                        <div className="space-y-3">
+                            <div className="h-4 bg-white/20 rounded w-3/4 skeleton"></div>
+                            <div className="h-4 bg-white/20 rounded w-1/2 skeleton"></div>
+                        </div>
+                    ) : insights.length > 0 ? (
+                        <div className="grid md:grid-cols-3 gap-4">
+                            {insights.map((insight, idx) => (
+                                <div key={idx} className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/20 transition-colors">
+                                    <p className="text-sm leading-relaxed opacity-90">{insight}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="opacity-80">No enough data to generate insights yet. Start sending campaigns!</p>
+                    )}
                 </div>
             </div>
 
