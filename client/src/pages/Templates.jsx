@@ -15,10 +15,6 @@ const Templates = () => {
         header: '',
         body: '',
         footer: '',
-        name: '',
-        header: '',
-        body: '',
-        footer: '',
         buttons: [], // { type: 'QUICK_REPLY' | 'URL', text: '' }
         files: [] // Array of { mediaId, filename, mimetype }
     });
