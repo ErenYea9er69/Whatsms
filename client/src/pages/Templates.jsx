@@ -54,13 +54,15 @@ const Templates = () => {
 
         setAiLoading(true);
         try {
-            const generatedText = await aiService.generateMessage(aiPrompt);
+            // Pass existing body text so AI can modify it if present
+            const generatedText = await aiService.generateMessage(aiPrompt, formData.body);
             setFormData(prev => ({
                 ...prev,
                 body: generatedText
             }));
             setShowAiModal(false);
             setAiPrompt('');
+            setAnalysis(null); // Clear previous analysis
         } catch (err) {
             alert('Failed to generate message with AI');
         } finally {
