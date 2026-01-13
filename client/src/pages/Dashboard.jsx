@@ -12,7 +12,12 @@ import {
     BarChart3,
     Activity,
     RefreshCw,
-    Sparkles
+    RefreshCw,
+    Sparkles,
+    CheckSquare,
+    Square,
+    X,
+    Loader2
 } from 'lucide-react';
 import {
     AreaChart,
@@ -34,6 +39,13 @@ const Dashboard = () => {
     const [campaignStats, setCampaignStats] = useState(null);
     const [campaigns, setCampaigns] = useState([]);
     const [insights, setInsights] = useState([]);
+
+    // Analysis State
+    const [analyzing, setAnalyzing] = useState(false);
+    const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+    const [analysisScope, setAnalysisScope] = useState('all'); // 'all' | 'select'
+    const [selectedCampaignIds, setSelectedCampaignIds] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -66,17 +78,15 @@ const Dashboard = () => {
             setLoading(true);
             setError(null);
 
-            const [contactStats, cmpStats, recentCampaigns, aiInsights] = await Promise.all([
+            const [contactStats, cmpStats, recentCampaigns] = await Promise.all([
                 api.getContactStats(),
                 api.getCampaignStats(),
                 api.getCampaigns({ limit: 5 }),
-                AiService.getAnalyticsInsights().catch(e => []) // Don't block dashboard on AI failure
             ]);
 
             setStats(contactStats);
             setCampaignStats(cmpStats);
             setCampaigns(recentCampaigns.campaigns || []);
-            setInsights(aiInsights || []);
         } catch (err) {
             setError(err.message);
             console.error('Failed to fetch dashboard data:', err);
@@ -88,6 +98,29 @@ const Dashboard = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    const handleAnalyze = async () => {
+        setAnalyzing(true);
+        try {
+            const ids = analysisScope === 'select' ? selectedCampaignIds : [];
+            const newInsights = await AiService.getAnalyticsInsights(ids);
+            setInsights(newInsights || []);
+            setShowAnalysisModal(false);
+        } catch (err) {
+            console.error(err);
+            alert('Failed to generate insights');
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    const toggleCampaignSelection = (id) => {
+        setSelectedCampaignIds(prev =>
+            prev.includes(id)
+                ? prev.filter(cid => cid !== id)
+                : [...prev, id]
+        );
+    };
 
     const statCards = [
         {
@@ -217,17 +250,25 @@ const Dashboard = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                            <Sparkles size={20} className="text-white" />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                                <Sparkles size={20} className="text-white" />
+                            </div>
+                            <h2 className="text-lg font-bold">AI Performance Insights</h2>
                         </div>
-                        <h2 className="text-lg font-bold">AI Performance Insights</h2>
+                        <button
+                            onClick={() => setShowAnalysisModal(true)}
+                            className="px-4 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-sm font-medium transition-colors"
+                        >
+                            {insights.length > 0 ? 'Analyze Again' : 'Analyze Performance'}
+                        </button>
                     </div>
 
-                    {loading ? (
-                        <div className="space-y-3">
-                            <div className="h-4 bg-white/20 rounded w-3/4 skeleton"></div>
-                            <div className="h-4 bg-white/20 rounded w-1/2 skeleton"></div>
+                    {analyzing ? (
+                        <div className="flex items-center gap-3 py-4">
+                            <Loader2 size={24} className="animate-spin" />
+                            <p>Analyzing campaign data...</p>
                         </div>
                     ) : insights.length > 0 ? (
                         <div className="grid md:grid-cols-3 gap-4">
@@ -238,10 +279,119 @@ const Dashboard = () => {
                             ))}
                         </div>
                     ) : (
-                        <p className="opacity-80">No enough data to generate insights yet. Start sending campaigns!</p>
+                        <div className="py-4 text-center bg-white/5 rounded-xl border border-white/10 border-dashed">
+                            <p className="opacity-80 mb-2">Get AI-powered recommendations to improve your delivery and read rates.</p>
+                            <button
+                                onClick={() => setShowAnalysisModal(true)}
+                                className="text-sm underline hover:text-white/80"
+                            >
+                                Start Analysis
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
+
+            {/* Analysis Modal */}
+            {showAnalysisModal && (
+                <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 animate-fade-in backdrop-blur-sm">
+                    <div className="bg-white dark:bg-surface-dark w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold">Configure Analysis</h3>
+                            <button onClick={() => setShowAnalysisModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 mb-6">
+                            <div
+                                onClick={() => setAnalysisScope('all')}
+                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${analysisScope === 'all'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${analysisScope === 'all' ? 'border-primary' : 'border-gray-300'
+                                        }`}>
+                                        {analysisScope === 'all' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">Analyze All Data</p>
+                                        <p className="text-xs text-gray-500">Includes all past campaigns</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                onClick={() => setAnalysisScope('select')}
+                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${analysisScope === 'select'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${analysisScope === 'select' ? 'border-primary' : 'border-gray-300'
+                                        }`}>
+                                        {analysisScope === 'select' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">Select Specific Campaigns</p>
+                                        <p className="text-xs text-gray-500">Compare specific blasts</p>
+                                    </div>
+                                </div>
+
+                                {analysisScope === 'select' && (
+                                    <div className="pl-8 space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                        {campaigns.map(c => (
+                                            <div
+                                                key={c.id}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleCampaignSelection(c.id);
+                                                }}
+                                                className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-lg cursor-pointer"
+                                            >
+                                                {selectedCampaignIds.includes(c.id)
+                                                    ? <CheckSquare size={18} className="text-primary" />
+                                                    : <Square size={18} className="text-gray-400" />
+                                                }
+                                                <span className="text-sm truncate">{c.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowAnalysisModal(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAnalyze}
+                                disabled={analyzing || (analysisScope === 'select' && selectedCampaignIds.length === 0)}
+                                className="flex items-center gap-2 px-6 py-2 btn-primary text-white rounded-lg font-medium shadow-glow disabled:opacity-50"
+                            >
+                                {analyzing ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        <span>Analyzing...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={16} />
+                                        <span>Generate Insights</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

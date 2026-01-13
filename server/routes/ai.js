@@ -22,9 +22,18 @@ router.post('/chat', async (req, res) => {
 // POST /api/ai/analytics
 router.post('/analytics', async (req, res) => {
     try {
+        const { campaignIds } = req.body;
+
+        // Build where clause
+        const where = {};
+        if (campaignIds && Array.isArray(campaignIds) && campaignIds.length > 0) {
+            where.id = { in: campaignIds.map(id => parseInt(id)) };
+        }
+
         // 1. Fetch real campaign data
         const [stats, recentCampaigns] = await Promise.all([
             prisma.campaign.aggregate({
+                where,
                 _sum: {
                     statsDelivered: true,
                     statsRead: true,
@@ -33,7 +42,8 @@ router.post('/analytics', async (req, res) => {
                 }
             }),
             prisma.campaign.findMany({
-                take: 5,
+                where,
+                take: 10, // Increased take for specific analysis
                 orderBy: { updatedAt: 'desc' },
                 select: {
                     name: true,

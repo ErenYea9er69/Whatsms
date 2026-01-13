@@ -46,9 +46,9 @@ Separate the variations clearly so the user can copy the one they like.`
         }
     },
 
-    getAnalyticsInsights: async () => {
+    getAnalyticsInsights: async (campaignIds = []) => {
         try {
-            const response = await api.post('/ai/analytics');
+            const response = await api.post('/ai/analytics', { campaignIds });
             return response.insights;
         } catch (error) {
             console.error('Error fetching AI analytics:', error);
