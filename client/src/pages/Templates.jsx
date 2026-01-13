@@ -336,6 +336,7 @@ const Templates = () => {
                                                     <Paperclip size={12} className="text-gray-400" />
                                                     <span className="max-w-[150px] truncate text-gray-600 dark:text-gray-300">{file.filename}</span>
                                                     <button
+                                                        type="button"
                                                         onClick={() => removeFile(idx)}
                                                         className="text-gray-400 hover:text-red-500"
                                                     >
