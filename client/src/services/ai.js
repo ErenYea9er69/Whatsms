@@ -54,6 +54,16 @@ Separate the variations clearly so the user can copy the one they like.`
             console.error('Error fetching AI analytics:', error);
             throw error;
         }
+    },
+
+    analyzeTemplate: async (templateBody, templateName) => {
+        try {
+            const response = await api.post('/ai/analyze-template', { templateBody, templateName });
+            return response;
+        } catch (error) {
+            console.error('Error analyzing template:', error);
+            throw error;
+        }
     }
 };
 

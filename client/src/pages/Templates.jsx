@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal, Sparkles, Wand2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal, Sparkles, Wand2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
 import aiService from '../services/ai';
 
@@ -23,6 +23,10 @@ const Templates = () => {
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
 
+    // AI Analysis State
+    const [analyzing, setAnalyzing] = useState(false);
+    const [analysis, setAnalysis] = useState(null);
+
     const fetchTemplates = async () => {
         try {
             setLoading(true);
@@ -42,6 +46,7 @@ const Templates = () => {
     const resetForm = () => {
         setFormData({ name: '', header: '', body: '', footer: '', buttons: [] });
         setEditingId(null);
+        setAnalysis(null);
     };
 
     const handleAiGenerate = async () => {
@@ -60,6 +65,23 @@ const Templates = () => {
             alert('Failed to generate message with AI');
         } finally {
             setAiLoading(false);
+        }
+    };
+
+    const handleAnalyze = async () => {
+        if (!formData.body.trim()) {
+            alert('Please add body text first.');
+            return;
+        }
+        setAnalyzing(true);
+        setAnalysis(null);
+        try {
+            const result = await aiService.analyzeTemplate(formData.body, formData.name);
+            setAnalysis(result);
+        } catch (err) {
+            alert('Failed to analyze template.');
+        } finally {
+            setAnalyzing(false);
         }
     };
 
@@ -255,9 +277,49 @@ const Templates = () => {
                                 </div>
                             </div>
 
+                            {/* Analysis Results */}
+                            {analysis && (
+                                <div className={`p-4 rounded-xl border ${analysis.verdict === 'good'
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                                    : analysis.verdict === 'bad'
+                                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                                        : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                                    }`}>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        {analysis.verdict === 'good' ? (
+                                            <CheckCircle2 size={18} className="text-emerald-600" />
+                                        ) : (
+                                            <AlertCircle size={18} className={analysis.verdict === 'bad' ? 'text-red-600' : 'text-amber-600'} />
+                                        )}
+                                        <span className="font-semibold">
+                                            Score: {analysis.score}/10
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{analysis.summary}</p>
+                                    {analysis.suggestions && analysis.suggestions.length > 0 && (
+                                        <ul className="text-sm space-y-1">
+                                            {analysis.suggestions.map((s, i) => (
+                                                <li key={i} className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span className="text-gray-600 dark:text-gray-400">{s}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="mt-8 flex gap-3">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                                     Cancel
+                                </button>
+                                <button
+                                    onClick={handleAnalyze}
+                                    disabled={analyzing || !formData.body.trim()}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-primary text-primary hover:bg-primary/10 disabled:opacity-50"
+                                >
+                                    {analyzing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                    {analyzing ? 'Analyzing...' : 'Analyze'}
                                 </button>
                                 <button onClick={handleSave} className="flex-1 py-2.5 btn-primary text-white rounded-xl shadow-glow">
                                     Save Template
