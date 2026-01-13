@@ -82,13 +82,55 @@ async function sendTextMessage(phone, message) {
 /**
  * Send a media message via WhatsApp
  */
-async function sendMediaMessage(phone, mediaUrl, type = 'image', caption = '') {
+
+
+/**
+ * Upload media to WhatsApp API
+ * Returns the media ID
+ */
+async function uploadMedia(filePath, mimeType) {
+    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
+    const fs = require('fs');
+    const FormData = require('form-data');
+
+    if (isMockMode) {
+        console.log(`📱 [MOCK] Uploading media: ${filePath}`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return `mock_media_${Date.now()}`;
+    }
+
+    try {
+        const form = new FormData();
+        form.append('messaging_product', 'whatsapp');
+        form.append('file', fs.createReadStream(filePath), { contentType: mimeType });
+
+        const response = await axios.post(
+            `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/media`,
+            form,
+            {
+                headers: {
+                    'Authorization': `Bearer ${ACCESS_TOKEN}`,
+                    ...form.getHeaders()
+                }
+            }
+        );
+        return response.data.id;
+    } catch (error) {
+        console.error('WhatsApp Upload Error:', error.response?.data || error.message);
+        throw new Error('Failed to upload media to WhatsApp');
+    }
+}
+
+/**
+ * Send a media message via WhatsApp
+ */
+async function sendMediaMessage(phone, mediaInput, type = 'image', caption = '') {
     const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
     const normalizedPhone = phone.replace(/[\s+\-]/g, '');
 
     if (isMockMode) {
         console.log(`📱 [MOCK] Sending ${type} to ${normalizedPhone}:`);
-        console.log(`   URL: ${mediaUrl}`);
+        console.log(`   Media: ${mediaInput}`);
         if (caption) console.log(`   Caption: ${caption}`);
         await new Promise(resolve => setTimeout(resolve, 50));
         return {
@@ -98,9 +140,21 @@ async function sendMediaMessage(phone, mediaUrl, type = 'image', caption = '') {
         };
     }
 
-    const mediaPayload = { link: mediaUrl };
-    if (caption && (type === 'image' || type === 'video')) {
+    const mediaPayload = {};
+    if (mediaInput.startsWith('http')) {
+        mediaPayload.link = mediaInput;
+    } else {
+        mediaPayload.id = mediaInput;
+    }
+
+    if (caption && (type === 'image' || type === 'video' || type === 'document')) {
         mediaPayload.caption = caption;
+    }
+
+    // For documents, it's good to have a filename, but we'll skip for now or inferred
+    if (type === 'document' && !mediaPayload.caption) {
+        // WhatsApp sometimes requires a filename/caption for docs
+        mediaPayload.filename = 'attachment.pdf';
     }
 
     try {
@@ -207,5 +261,6 @@ module.exports = {
     sendTextMessage,
     sendMediaMessage,
     sendTemplateMessage,
-    markAsRead
+    markAsRead,
+    uploadMedia
 };

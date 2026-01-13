@@ -82,7 +82,9 @@ app.use('/api/templates', templatesRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/upload', require('./routes/upload'));
 
 // 404 handler for API routes
 app.use((req, res, next) => {

@@ -169,6 +169,15 @@ class ApiClient {
         });
     }
 
+    async uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.request('/upload', {
+            method: 'POST',
+            body: formData,
+        });
+    }
+
     // Lists
     async getLists() {
         return this.request('/lists');

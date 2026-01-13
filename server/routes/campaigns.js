@@ -537,7 +537,7 @@ async function sendCampaignMessages(campaign) {
     // Simple heuristic: if messageBody matches a known pattern or is short and no spaces?
     // User instruction: "if the message body exactly matches a template name" - but user might have params.
     // BETTER: For now, we will try to calculate if it's a template.
-    // If the message has NO spaces and is < 64 chars, we assume it's a template name? 
+    // If the message has NO spaces and is < 64 chars, we assume it's a template name?
     // Or we just check if it was created as a template in the UI (future).
     // FOR THIS TASK: We will support explicit template syntax or check against valid templates?
     // Let's rely on the content. If it looks like "hello_world" (snake_case, no spaces), try as template.
@@ -549,31 +549,49 @@ async function sendCampaignMessages(campaign) {
             // We'll proceed optimistically.
 
             try {
-                // Check stop status occasionally? 
-                // Getting DB status for EVERY message is too heavy. 
-                // We'll check it at the parent level if we were chunking. 
+                // Check stop status occasionally?
+                // Getting DB status for EVERY message is too heavy.
+                // We'll check it at the parent level if we were chunking.
                 // For now, let's just send.
 
-                let result;
-
+                // 1. Send Text/Template Message
+                // Only send text if there is body OR if it's a template
+                // (Sometimes users might want to send ONLY an image? But validators prevent empty body)
                 if (isTemplate) {
-                    // Send as Template
-                    result = await whatsappService.sendTemplateMessage(
+                    await whatsappService.sendTemplateMessage(
                         recipient.contact.phone,
-                        campaign.messageBody, // The body IS the template name
-                        'en_US' // Default language
+                        campaign.messageBody,
+                        'en_US'
                     );
-                } else {
-                    // Send as Text
-                    // Personalize message
+                } else if (campaign.messageBody) {
                     const personalizedMessage = campaign.messageBody
                         .replace(/\{\{name\}\}/g, recipient.contact.name || '')
                         .replace(/\{\{phone\}\}/g, recipient.contact.phone || '');
 
-                    result = await whatsappService.sendTextMessage(
+                    await whatsappService.sendTextMessage(
                         recipient.contact.phone,
                         personalizedMessage
                     );
+                }
+
+                // 2. Send Attachments
+                if (campaign.attachments && campaign.attachments.length > 0) {
+                    for (const attachment of campaign.attachments) {
+                        const media = attachment.media;
+
+                        // Determine type from mimetype
+                        let type = 'document';
+                        if (media.mimetype.startsWith('image/')) type = 'image';
+                        else if (media.mimetype.startsWith('video/')) type = 'video';
+                        else if (media.mimetype.startsWith('audio/')) type = 'audio';
+
+                        await whatsappService.sendMediaMessage(
+                            recipient.contact.phone,
+                            media.path, // This contains the WhatsApp Media ID
+                            type,
+                            '' // No caption for subsequent media, or use filename?
+                        );
+                    }
                 }
 
                 // Update recipient status
@@ -581,7 +599,7 @@ async function sendCampaignMessages(campaign) {
                     where: { id: recipient.id },
                     data: {
                         status: 'SENT',
-                        sentAt: new Date() // Note: Real delivery status comes via webhook
+                        sentAt: new Date()
                     }
                 });
 

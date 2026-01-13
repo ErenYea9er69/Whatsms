@@ -18,8 +18,12 @@ const CampaignBuilder = () => {
         name: '',
         messageBody: '',
         selectedLists: [],
-        scheduledAt: ''
+        scheduledAt: '',
+        files: [] // Array of { mediaId, filename, mimetype, url/preview }
     });
+
+    // File Upload State
+    const [uploading, setUploading] = useState(false);
 
     // AI Generation State
     const [showAiModal, setShowAiModal] = useState(false);
@@ -89,7 +93,8 @@ const CampaignBuilder = () => {
                 name: campaign.name,
                 messageBody: campaign.messageBody,
                 listIds: campaign.selectedLists,
-                scheduledAt: campaign.scheduledAt || null
+                scheduledAt: campaign.scheduledAt || null,
+                mediaIds: campaign.files.map(f => f.mediaId)
             });
 
             // Optionally send immediately
@@ -123,6 +128,43 @@ const CampaignBuilder = () => {
         } finally {
             setAiLoading(false);
         }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // check size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            setError('File size must be less than 10MB');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const result = await api.uploadFile(file);
+            setCampaign(prev => ({
+                ...prev,
+                files: [...prev.files, {
+                    mediaId: result.mediaId,
+                    filename: result.filename || file.name,
+                    mimetype: result.mimeType || file.type
+                }]
+            }));
+        } catch (err) {
+            setError('Failed to upload file');
+        } finally {
+            setUploading(false);
+            // Reset input
+            e.target.value = null;
+        }
+    };
+
+    const removeFile = (index) => {
+        setCampaign(prev => ({
+            ...prev,
+            files: prev.files.filter((_, i) => i !== index)
+        }));
     };
 
     if (loading) {
@@ -204,7 +246,7 @@ const CampaignBuilder = () => {
                         {templates.length > 0 && (
                             <div>
                                 <label className="block text-sm font-medium mb-2">Use Template</label>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2 mb-4">
                                     {templates.map(template => (
                                         <button
                                             key={template.id}
@@ -219,15 +261,32 @@ const CampaignBuilder = () => {
                         )}
 
                         <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="block text-sm font-medium">Message *</label>
-                                <button
-                                    onClick={() => setShowAiModal(true)}
-                                    className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-lg"
-                                >
-                                    <Sparkles size={14} />
-                                    <span>Generate with AI</span>
-                                </button>
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Message Content</h3>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="file"
+                                        id="file-upload"
+                                        className="hidden"
+                                        accept="image/*,application/pdf"
+                                        onChange={handleFileUpload}
+                                        disabled={uploading}
+                                    />
+                                    <label
+                                        htmlFor="file-upload"
+                                        className={`p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        title="Attach Image or PDF"
+                                    >
+                                        {uploading ? <Loader2 size={16} className="animate-spin text-gray-500" /> : <Paperclip size={16} className="text-gray-500 dark:text-gray-400" />}
+                                    </label>
+                                    <button
+                                        onClick={() => setShowAiModal(true)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-lg text-xs font-medium shadow-glow hover:opacity-90 transition-opacity"
+                                    >
+                                        <Sparkles size={14} />
+                                        <span>Generate with AI</span>
+                                    </button>
+                                </div>
                             </div>
                             <div className="text-xs text-gray-400 mb-2">
                                 Use <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{name}}'}</code> or <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{phone}}'}</code> for personalization
