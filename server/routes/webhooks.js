@@ -166,11 +166,40 @@ async function processStatusUpdate(status) {
 
 /**
  * Process incoming messages (replies)
+ * Also auto-creates contacts if they don't exist
  */
 async function processIncomingMessage(message, contacts) {
     const { from, timestamp, type, text } = message;
 
     console.log(`📥 Incoming message from ${from}: ${type}`);
+
+    // Get contact name from WhatsApp if available
+    const waContact = contacts?.find(c => c.wa_id === from);
+    const contactName = waContact?.profile?.name || `WhatsApp User`;
+
+    // Auto-create or update contact if not exists
+    try {
+        const existingContact = await prisma.contact.findFirst({
+            where: {
+                phone: { endsWith: from.slice(-10) }
+            }
+        });
+
+        if (!existingContact) {
+            await prisma.contact.create({
+                data: {
+                    name: contactName,
+                    phone: from,
+                    tags: ['whatsapp-import'],
+                    interests: [],
+                    preferences: {}
+                }
+            });
+            console.log(`✅ Auto-created contact for ${from} (${contactName})`);
+        }
+    } catch (err) {
+        console.error('Failed to auto-create contact:', err);
+    }
 
     // Find recent recipient
     const recipient = await prisma.campaignRecipient.findFirst({
