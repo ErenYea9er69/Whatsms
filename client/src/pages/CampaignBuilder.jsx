@@ -313,6 +313,25 @@ const CampaignBuilder = () => {
                                 placeholder="Hey {{name}}, we have exciting news for you..."
                             />
                             <p className="text-xs text-gray-400 mt-2">{campaign.messageBody.length} characters</p>
+
+                            {/* File Attachments List */}
+                            {campaign.files && campaign.files.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {campaign.files.map((file, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-xs">
+                                            <Paperclip size={12} className="text-gray-400" />
+                                            <span className="max-w-[150px] truncate text-gray-600 dark:text-gray-300">{file.filename}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeFile(idx)}
+                                                className="text-gray-400 hover:text-red-500"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div>
