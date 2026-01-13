@@ -49,18 +49,40 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Generate mock trend data for last 7 days
-    const generateTrendData = () => {
+    // Generate trend data for last 7 days
+    // If no real data is available, show zeros instead of fake data
+    const getTrendData = () => {
         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        return days.map((day, i) => ({
-            name: day,
-            sent: Math.floor(Math.random() * 500) + 100,
-            delivered: Math.floor(Math.random() * 450) + 80,
-            read: Math.floor(Math.random() * 300) + 50,
-        }));
-    };
 
-    const [trendData] = useState(generateTrendData);
+        // If we have no campaign stats or no messages sent, show zeros
+        const hasData = campaignStats && campaignStats.totalMessagesSent > 0;
+
+        if (!hasData) {
+            return days.map(day => ({
+                name: day,
+                sent: 0,
+                delivered: 0,
+                read: 0,
+            }));
+        }
+
+        // Distribute actual stats across days (simplified distribution)
+        // In a real app, you'd query per-day stats from the database
+        const totalSent = campaignStats.totalMessagesSent || 0;
+        const totalDelivered = campaignStats.totalDelivered || 0;
+        const totalRead = campaignStats.totalRead || 0;
+
+        return days.map((day, i) => {
+            // Simple distribution: weight recent days more heavily
+            const weight = (i + 1) / 28; // Sum of 1-7 = 28
+            return {
+                name: day,
+                sent: Math.round(totalSent * weight),
+                delivered: Math.round(totalDelivered * weight),
+                read: Math.round(totalRead * weight),
+            };
+        });
+    };
 
     // Generate campaign comparison data
     const getCampaignComparisonData = () => {
@@ -439,7 +461,7 @@ const Dashboard = () => {
                     </div>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <AreaChart data={getTrendData()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
