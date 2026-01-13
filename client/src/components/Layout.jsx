@@ -48,11 +48,11 @@ const Layout = () => {
   };
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/lists', icon: List, label: 'Lists' },
     { to: '/campaigns/new', icon: MessageSquarePlus, label: 'New Campaign' },
-    { to: '/campaigns', icon: History, label: 'History' },
+    { to: '/campaigns', icon: History, label: 'History', end: true },
     { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
     { to: '/media', icon: Image, label: 'Media Library' },
     { to: '/settings', icon: Settings, label: 'Settings' },
@@ -76,7 +76,7 @@ const Layout = () => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.end}
               className={({ isActive }) =>
                 `nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium group ${isActive
                   ? 'active bg-emerald-50 dark:bg-emerald-900/20 text-primary'
@@ -145,7 +145,7 @@ const Layout = () => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.end}
               onClick={() => setIsMobileMenuOpen(false)}
               className={({ isActive }) =>
                 `nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isActive
