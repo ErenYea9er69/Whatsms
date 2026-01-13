@@ -12,7 +12,6 @@ import {
     BarChart3,
     Activity,
     RefreshCw,
-    RefreshCw,
     Sparkles,
     CheckSquare,
     Square,
@@ -307,8 +306,8 @@ const Dashboard = () => {
                             <div
                                 onClick={() => setAnalysisScope('all')}
                                 className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${analysisScope === 'all'
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -326,8 +325,8 @@ const Dashboard = () => {
                             <div
                                 onClick={() => setAnalysisScope('select')}
                                 className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${analysisScope === 'select'
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
                                     }`}
                             >
                                 <div className="flex items-center gap-3 mb-3">
