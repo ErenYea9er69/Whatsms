@@ -27,7 +27,7 @@ import {
     Legend
 } from 'recharts';
 import api from '../services/api';
-import aiService from '../services/ai';
+import AiService from '../services/ai';
 
 const Dashboard = () => {
     const [stats, setStats] = useState(null);
@@ -70,7 +70,7 @@ const Dashboard = () => {
                 api.getContactStats(),
                 api.getCampaignStats(),
                 api.getCampaigns({ limit: 5 }),
-                apiService.getAnalyticsInsights().catch(e => []) // Don't block dashboard on AI failure
+                AiService.getAnalyticsInsights().catch(e => []) // Don't block dashboard on AI failure
             ]);
 
             setStats(contactStats);
