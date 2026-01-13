@@ -245,46 +245,50 @@ const Dashboard = () => {
             </div>
 
             {/* AI Insights Widget */}
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white shadow-soft relative overflow-hidden animate-slide-up">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-gray-800/80 relative overflow-hidden animate-slide-up">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 dark:bg-primary/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
                 <div className="relative z-10">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                                 <Sparkles size={20} className="text-white" />
                             </div>
-                            <h2 className="text-lg font-bold">AI Performance Insights</h2>
+                            <div>
+                                <h2 className="font-semibold">AI Performance Insights</h2>
+                                <p className="text-xs text-gray-400">AI-powered analysis</p>
+                            </div>
                         </div>
                         <button
                             onClick={() => setShowAnalysisModal(true)}
-                            className="px-4 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-sm font-medium transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                         >
-                            {insights.length > 0 ? 'Analyze Again' : 'Analyze Performance'}
+                            <Sparkles size={14} />
+                            {insights.length > 0 ? 'Analyze Again' : 'Analyze'}
                         </button>
                     </div>
 
                     {analyzing ? (
-                        <div className="flex items-center gap-3 py-4">
-                            <Loader2 size={24} className="animate-spin" />
+                        <div className="flex items-center gap-3 py-4 text-gray-600 dark:text-gray-400">
+                            <Loader2 size={24} className="animate-spin text-primary" />
                             <p>Analyzing campaign data...</p>
                         </div>
                     ) : insights.length > 0 ? (
                         <div className="grid md:grid-cols-3 gap-4">
                             {insights.map((insight, idx) => (
-                                <div key={idx} className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/20 transition-colors">
-                                    <p className="text-sm leading-relaxed opacity-90">{insight}</p>
+                                <div key={idx} className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 hover:border-primary/30 transition-colors">
+                                    <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">{insight}</p>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-4 text-center bg-white/5 rounded-xl border border-white/10 border-dashed">
-                            <p className="opacity-80 mb-2">Get AI-powered recommendations to improve your delivery and read rates.</p>
+                        <div className="py-6 text-center bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700/50 border-dashed">
+                            <p className="text-gray-500 dark:text-gray-400 mb-2">Get AI-powered recommendations to improve your delivery and read rates.</p>
                             <button
                                 onClick={() => setShowAnalysisModal(true)}
-                                className="text-sm underline hover:text-white/80"
+                                className="text-sm text-primary hover:underline font-medium"
                             >
-                                Start Analysis
+                                Start Analysis →
                             </button>
                         </div>
                     )}
