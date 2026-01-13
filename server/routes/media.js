@@ -7,11 +7,11 @@ const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const os = require('os');
+
+// Helper to get uploads directory (in production use S3/Cloud Storage)
+// For Vercel, this is ephermal and only /tmp is writable
+const uploadsDir = os.tmpdir();
 
 // Configure multer storage
 const storage = multer.diskStorage({

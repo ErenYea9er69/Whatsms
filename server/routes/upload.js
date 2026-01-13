@@ -7,14 +7,13 @@ const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
+const os = require('os');
+
 // Configure storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, '../uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        // Use system temp directory which is writable on Vercel
+        cb(null, os.tmpdir());
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
