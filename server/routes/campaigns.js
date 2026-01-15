@@ -518,8 +518,10 @@ const pLimit = require('../utils/concurrency');
  * Background function to send campaign messages
  */
 async function sendCampaignMessages(campaign) {
-    // If in Mock Mode, delegate to MockService for realistic simulation
-    if (whatsappService.isMockMode) {
+    // Check if in Mock Mode using the async function
+    const isMockMode = await whatsappService.checkMockMode();
+
+    if (isMockMode) {
         return mockService.startCampaignSimulation(campaign.id);
     }
 
@@ -533,41 +535,32 @@ async function sendCampaignMessages(campaign) {
     let failed = 0;
     let skipped = 0;
 
-    // Detect if this is likely a template
-    // Simple heuristic: if messageBody matches a known pattern or is short and no spaces?
-    // User instruction: "if the message body exactly matches a template name" - but user might have params.
-    // BETTER: For now, we will try to calculate if it's a template.
-    // If the message has NO spaces and is < 64 chars, we assume it's a template name?
-    // Or we just check if it was created as a template in the UI (future).
-    // FOR THIS TASK: We will support explicit template syntax or check against valid templates?
-    // Let's rely on the content. If it looks like "hello_world" (snake_case, no spaces), try as template.
-    const isTemplate = /^[a-z0-9_]+$/.test(campaign.messageBody);
+    // Check if message body looks like a template name (snake_case, no spaces)
+    // OR if we're using a test number (which REQUIRES templates for first contact)
+    const isTemplateName = /^[a-z0-9_]+$/.test(campaign.messageBody);
+
+    // For Test Numbers: We need to use the hello_world template
+    // because test numbers can ONLY initiate conversations with approved templates
+    const useTemplate = isTemplateName;
 
     const tasks = campaign.recipients.map(recipient => {
         return limit(async () => {
-            // Check if campaign was stopped (check every N messages or in loop? In parallel it's harder)
-            // We'll proceed optimistically.
-
             try {
-                // Check stop status occasionally?
-                // Getting DB status for EVERY message is too heavy.
-                // We'll check it at the parent level if we were chunking.
-                // For now, let's just send.
-
-                // 1. Send Text/Template Message
-                // Only send text if there is body OR if it's a template
-                // (Sometimes users might want to send ONLY an image? But validators prevent empty body)
-                if (isTemplate) {
+                if (useTemplate) {
+                    // Send as template message
+                    console.log(`📤 Sending template "${campaign.messageBody}" to ${recipient.contact.phone}`);
                     await whatsappService.sendTemplateMessage(
                         recipient.contact.phone,
                         campaign.messageBody,
                         'en_US'
                     );
-                } else if (campaign.messageBody) {
+                } else {
+                    // Send as text message (only works if user has already messaged you first)
                     const personalizedMessage = campaign.messageBody
                         .replace(/\{\{name\}\}/g, recipient.contact.name || '')
                         .replace(/\{\{phone\}\}/g, recipient.contact.phone || '');
 
+                    console.log(`📤 Sending text to ${recipient.contact.phone}: "${personalizedMessage.substring(0, 50)}..."`);
                     await whatsappService.sendTextMessage(
                         recipient.contact.phone,
                         personalizedMessage

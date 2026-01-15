@@ -257,10 +257,19 @@ async function markAsRead(messageId) {
     }
 }
 
+/**
+ * Check if running in mock mode (no credentials configured)
+ */
+async function checkMockMode() {
+    const { isMockMode } = await getCredentials();
+    return isMockMode;
+}
+
 module.exports = {
     sendTextMessage,
     sendMediaMessage,
     sendTemplateMessage,
     markAsRead,
-    uploadMedia
+    uploadMedia,
+    checkMockMode
 };
