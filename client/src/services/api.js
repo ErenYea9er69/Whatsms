@@ -51,7 +51,8 @@ class ApiClient {
         const response = await fetch(url, config);
 
         // Handle 401 - token expired
-        if (response.status === 401) {
+        // Don't auto-logout if we're just trying to log in and got wrong credentials
+        if (response.status === 401 && !endpoint.includes('/auth/login')) {
             this.setToken(null);
             window.location.href = '/login';
             throw new Error('Session expired. Please login again.');
@@ -62,7 +63,7 @@ class ApiClient {
         try {
             data = text ? JSON.parse(text) : {};
         } catch (e) {
-            console.error('API Error: Response was not JSON:', text);
+            console.error('API Error:', e, 'Response was not JSON:', text);
             throw new Error(`Server Error (${response.status}): Please check browser console for details.`);
         }
 

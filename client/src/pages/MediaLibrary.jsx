@@ -6,7 +6,7 @@ const MediaLibrary = () => {
     const [mediaItems, setMediaItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    const [error, setError] = useState(null);
+    // const [error, setError] = useState(null);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const fileInputRef = useRef(null);
 

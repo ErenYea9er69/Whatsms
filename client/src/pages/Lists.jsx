@@ -41,29 +41,29 @@ const Lists = () => {
     const [sourceListId, setSourceListId] = useState('');
     const [saving, setSaving] = useState(false);
 
-    const fetchLists = async () => {
+    const fetchLists = React.useCallback(async () => {
         try {
             setLoading(true);
             const data = await api.getLists();
             setLists(data.lists || []);
-        } catch (err) {
+        } catch {
             toast.error('Failed to load lists');
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
 
-    const fetchListMembers = async (listId) => {
+    const fetchListMembers = React.useCallback(async (listId) => {
         try {
             setLoadingMembers(true);
             const data = await api.getList(listId);
             setListMembers(data.members || []);
-        } catch (err) {
+        } catch {
             toast.error('Failed to load list members');
         } finally {
             setLoadingMembers(false);
         }
-    };
+    }, [toast]);
 
     const fetchAllContacts = async () => {
         try {
@@ -73,20 +73,20 @@ const Lists = () => {
             ]);
             setAllContacts(contactsData.contacts || []);
             setAllTags(tagsData.tags || []);
-        } catch (err) {
+        } catch {
             toast.error('Failed to load contacts');
         }
     };
 
     useEffect(() => {
         fetchLists();
-    }, []);
+    }, [fetchLists]);
 
     useEffect(() => {
         if (selectedList) {
             fetchListMembers(selectedList.id);
         }
-    }, [selectedList]);
+    }, [selectedList, fetchListMembers]);
 
     const handleCreateList = async (e) => {
         e.preventDefault();
@@ -97,7 +97,7 @@ const Lists = () => {
             setShowCreateModal(false);
             setNewList({ name: '', description: '' });
             fetchLists();
-        } catch (err) {
+        } catch {
             toast.error(err.message);
         } finally {
             setSaving(false);
@@ -114,7 +114,7 @@ const Lists = () => {
                 setListMembers([]);
             }
             fetchLists();
-        } catch (err) {
+        } catch {
             toast.error(err.message);
         }
     };
@@ -132,7 +132,7 @@ const Lists = () => {
             setSelectedContacts([]);
             fetchListMembers(selectedList.id);
             fetchLists(); // Refresh counts
-        } catch (err) {
+        } catch {
             toast.error(err.message);
         } finally {
             setSaving(false);
@@ -162,7 +162,7 @@ const Lists = () => {
             setSourceListId('');
             fetchListMembers(selectedList.id);
             fetchLists();
-        } catch (err) {
+        } catch {
             toast.error(err.message);
         } finally {
             setSaving(false);
@@ -175,7 +175,7 @@ const Lists = () => {
             toast.success('Contact removed from list');
             fetchListMembers(selectedList.id);
             fetchLists();
-        } catch (err) {
+        } catch {
             toast.error(err.message);
         }
     };

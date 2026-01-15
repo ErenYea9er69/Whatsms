@@ -26,7 +26,7 @@ const CampaignHistory = () => {
     const [filter, setFilter] = useState('');
     const navigate = useNavigate();
 
-    const fetchData = async () => {
+    const fetchData = React.useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -43,11 +43,11 @@ const CampaignHistory = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
 
     useEffect(() => {
         fetchData();
-    }, [filter]);
+    }, [fetchData]);
 
     const handleSendCampaign = async (id) => {
         if (!confirm('Start sending this campaign now?')) return;
@@ -55,8 +55,8 @@ const CampaignHistory = () => {
         try {
             await api.sendCampaign(id);
             fetchData();
-        } catch (err) {
-            alert(err.message);
+        } catch (error) {
+            alert(error.message);
         }
     };
 
@@ -66,8 +66,8 @@ const CampaignHistory = () => {
         try {
             await api.stopCampaign(id);
             fetchData();
-        } catch (err) {
-            alert(err.message);
+        } catch (error) {
+            alert(error.message);
         }
     };
 
@@ -77,8 +77,8 @@ const CampaignHistory = () => {
         try {
             await api.deleteCampaign(id);
             fetchData();
-        } catch (err) {
-            alert(err.message);
+        } catch (error) {
+            alert(error.message);
         }
     };
 
@@ -233,9 +233,6 @@ const CampaignHistory = () => {
                     {campaigns.map((campaign, index) => {
                         const statusConfig = getStatusConfig(campaign.status);
                         const StatusIcon = statusConfig.icon;
-                        const successRate = campaign.statsDelivered > 0
-                            ? Math.round((campaign.statsRead / campaign.statsDelivered) * 100)
-                            : 0;
 
                         return (
                             <div

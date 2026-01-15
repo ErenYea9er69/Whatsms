@@ -18,8 +18,6 @@ const Contacts = () => {
     // Modal states
     const [showAddModal, setShowAddModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
-    const [importing, setImporting] = useState(false);
-    const [importResult, setImportResult] = useState(null);
     const [showTagDropdown, setShowTagDropdown] = useState(false);
 
     // Form state
@@ -28,12 +26,10 @@ const Contacts = () => {
 
     // WhatsApp Fetch State
     const [fetchingWhatsApp, setFetchingWhatsApp] = useState(false);
-    const [fetchResult, setFetchResult] = useState(null);
 
-    const fileInputRef = useRef(null);
     const searchTimeoutRef = useRef(null);
 
-    const fetchContacts = async (page = 1, search = '', tag = '') => {
+    const fetchContacts = React.useCallback(async (page = 1, search = '', tag = '') => {
         try {
             setLoading(true);
             setError(null);
@@ -57,11 +53,11 @@ const Contacts = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [pagination.limit]);
 
     useEffect(() => {
         fetchContacts();
-    }, []);
+    }, [fetchContacts]);
 
     // Debounced search
     useEffect(() => {
@@ -74,7 +70,7 @@ const Contacts = () => {
         }, 300);
 
         return () => clearTimeout(searchTimeoutRef.current);
-    }, [searchQuery, selectedTag]);
+    }, [searchQuery, selectedTag, fetchContacts]);
 
     const handleAddContact = async (e) => {
         e.preventDefault();
@@ -121,26 +117,7 @@ const Contacts = () => {
         }
     };
 
-    const handleImport = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
 
-        setImporting(true);
-        setImportResult(null);
-
-        try {
-            const result = await api.importContacts(file);
-            setImportResult(result);
-            fetchContacts(1, '');
-        } catch (err) {
-            setImportResult({ error: err.message });
-        } finally {
-            setImporting(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-        }
-    };
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -150,10 +127,8 @@ const Contacts = () => {
 
     const handleFetchWhatsApp = async () => {
         setFetchingWhatsApp(true);
-        setFetchResult(null);
         try {
             const result = await api.fetchWhatsAppContacts();
-            setFetchResult(result);
             fetchContacts(1, searchQuery, selectedTag);
             if (result.imported > 0) {
                 toast.success(`Imported ${result.imported} new contacts from WhatsApp!`);
@@ -323,7 +298,7 @@ const Contacts = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                contacts.map((contact, index) => (
+                                contacts.map((contact) => (
                                     <tr
                                         key={contact.id}
                                         className="table-row-hover group"

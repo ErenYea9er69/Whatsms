@@ -68,7 +68,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
 
             // Add AI response
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-        } catch (error) {
+        } catch {
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: 'Sorry, I encountered an error. Please try again.',

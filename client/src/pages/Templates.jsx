@@ -31,7 +31,7 @@ const Templates = () => {
             setLoading(true);
             const data = await api.getTemplates();
             setTemplates(data.templates || []);
-        } catch (err) {
+        } catch {
             console.error(err);
         } finally {
             setLoading(false);
@@ -58,7 +58,7 @@ const Templates = () => {
         try {
             const result = await aiService.analyzeTemplate(formData.body, formData.name);
             setAnalysis(result);
-        } catch (err) {
+        } catch {
             alert('Failed to analyze template.');
         } finally {
             setAnalyzing(false);
@@ -86,7 +86,7 @@ const Templates = () => {
                     mimetype: result.mimeType || file.type
                 }]
             }));
-        } catch (err) {
+        } catch {
             alert('Failed to upload file');
         } finally {
             setUploading(false);
@@ -120,7 +120,7 @@ const Templates = () => {
             setShowModal(false);
             fetchTemplates();
             resetForm();
-        } catch (err) {
+        } catch {
             alert(err.message);
         }
     };
@@ -136,7 +136,7 @@ const Templates = () => {
                 buttons: parsed.buttons || [],
                 files: parsed.files || []
             });
-        } catch (e) {
+        } catch {
             // Handle legacy text-only templates
             setFormData({
                 name: tpl.name,
@@ -155,7 +155,7 @@ const Templates = () => {
         try {
             await api.deleteTemplate(id);
             setTemplates(templates.filter(t => t.id !== id));
-        } catch (err) {
+        } catch {
             alert(err.message);
         }
     };

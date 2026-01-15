@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2, Sparkles, Wand2, Send, LayoutDashboard } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
-import aiService from '../services/ai';
+// import aiService from '../services/ai'; // Unused now
 import AiChatPanel from '../components/AiChatPanel';
 
 const CampaignBuilder = () => {
@@ -33,9 +33,10 @@ const CampaignBuilder = () => {
     const [uploading, setUploading] = useState(false);
 
     // AI Generation State
-    const [showAiModal, setShowAiModal] = useState(false);
-    const [aiPrompt, setAiPrompt] = useState('');
-    const [aiLoading, setAiLoading] = useState(false);
+    // AI Generation State
+    // const [showAiModal, setShowAiModal] = useState(false);
+    // const [aiPrompt, setAiPrompt] = useState('');
+    // const [aiLoading, setAiLoading] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -82,7 +83,7 @@ const CampaignBuilder = () => {
             if (parsed.files) {
                 files = parsed.files;
             }
-        } catch (e) {
+        } catch {
             // Legacy text-only template
             console.log('Template is not JSON, using as raw text');
         }
@@ -132,24 +133,7 @@ const CampaignBuilder = () => {
         }
     };
 
-    const handleAiGenerate = async () => {
-        if (!aiPrompt.trim()) return;
 
-        setAiLoading(true);
-        try {
-            const generatedText = await aiService.generateMessage(aiPrompt);
-            setCampaign(prev => ({
-                ...prev,
-                messageBody: generatedText
-            }));
-            setShowAiModal(false);
-            setAiPrompt('');
-        } catch (err) {
-            setError('Failed to generate message with AI');
-        } finally {
-            setAiLoading(false);
-        }
-    };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
@@ -172,7 +156,7 @@ const CampaignBuilder = () => {
                     mimetype: result.mimeType || file.type
                 }]
             }));
-        } catch (err) {
+        } catch {
             setError('Failed to upload file');
         } finally {
             setUploading(false);
