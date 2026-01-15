@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Check, X, MessageSquare, LayoutTemplate, MoreHorizontal, Sparkles, Wand2, Loader2, AlertCircle, CheckCircle2, Paperclip } from 'lucide-react';
 import api from '../services/api';
 import aiService from '../services/ai';
+import AiChatPanel from '../components/AiChatPanel';
 
 const Templates = () => {
     const [templates, setTemplates] = useState([]);
@@ -47,7 +48,7 @@ const Templates = () => {
     }, []);
 
     const resetForm = () => {
-        setFormData({ name: '', header: '', body: '', footer: '', buttons: [] });
+        setFormData({ name: '', header: '', body: '', footer: '', buttons: [], files: [] });
         setEditingId(null);
         setAnalysis(null);
     };
@@ -406,45 +407,42 @@ const Templates = () => {
                             </div>
                         </div>
 
-                        {/* Preview Side */}
-                        <div className="w-1/2 p-6 bg-gray-50 dark:bg-black/40 flex flex-col items-center justify-center">
-                            <h3 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wider">Preview</h3>
-                            <div className="w-[300px] h-[580px] bg-white dark:bg-[#111b21] rounded-[30px] border-[6px] border-gray-900 relative shadow-2xl overflow-hidden flex flex-col">
-                                {/* WhatsApp Header Bar */}
-                                <div className="h-14 bg-[#008069] dark:bg-[#202c33] flex items-center px-4 gap-3 shrink-0">
-                                    <div className="w-8 h-8 rounded-full bg-white/20"></div>
-                                    <div className="text-white font-medium text-sm">Business Name</div>
-                                </div>
-
-                                {/* Chat Area */}
-                                <div className="p-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-90 flex-1 overflow-y-auto">
-                                    <div className="bg-white dark:bg-[#202c33] p-2 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                                        {/* Image Preview */}
-                                        {formData.files.length > 0 && formData.files[0].mimetype.startsWith('image/') && (
-                                            <div className="mb-2 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                                <div className="w-full text-xs text-center p-8 text-gray-400 bg-gray-100 dark:bg-gray-800 flex flex-col items-center gap-2">
-                                                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                                        <Paperclip size={18} />
-                                                    </div>
-                                                    <span>{formData.files[0].filename}</span>
-                                                    <span className="text-[10px] uppercase">(Image Preview)</span>
-                                                </div>
+                        {/* Preview & AI Side */}
+                        <div className="w-1/2 bg-gray-50 dark:bg-black/40 flex flex-col overflow-hidden">
+                            {/* Compact Preview */}
+                            <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                                <h3 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Preview</h3>
+                                <div className="bg-[#E5DDD5] dark:bg-[#1f2c34] p-3 rounded-xl">
+                                    <div className="bg-white dark:bg-[#202c33] p-3 rounded-lg shadow-sm text-sm">
+                                        {formData.files.length > 0 && formData.files[0].mimetype?.startsWith('image/') && (
+                                            <div className="mb-2 py-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-center text-xs text-gray-400 flex items-center justify-center gap-2">
+                                                <Paperclip size={14} />
+                                                <span>{formData.files[0].filename}</span>
                                             </div>
                                         )}
                                         {formData.header && (
-                                            <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{formData.header}</p>
+                                            <p className="font-bold text-gray-800 dark:text-gray-200 mb-1">{formData.header}</p>
                                         )}
-                                        <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-tight">
+                                        <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-snug">
                                             {formData.body || <span className="text-gray-300 italic">Message body...</span>}
                                         </p>
                                         {formData.footer && (
                                             <p className="text-[10px] text-gray-400 mt-2">{formData.footer}</p>
                                         )}
-                                        <div className="flex justify-end mt-1">
-                                            <span className="text-[10px] text-gray-400">12:00 PM</span>
-                                        </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* AI Chat Panel */}
+                            <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
+                                <AiChatPanel
+                                    currentContent={formData.body}
+                                    contentType="template"
+                                    onApplyText={(text) => {
+                                        setFormData(prev => ({ ...prev, body: text }));
+                                        setAnalysis(null);
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>

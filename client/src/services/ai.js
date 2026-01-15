@@ -81,6 +81,27 @@ Separate the variations clearly so the user can copy the one they like.`;
             console.error('Error analyzing template:', error);
             throw error;
         }
+    },
+
+    /**
+     * Chat with AI assistant for templates/campaigns
+     * @param {Array} chatHistory - Array of {role, content} messages
+     * @param {string} currentContent - The current template/campaign text for context
+     * @param {string} contentType - 'template' or 'campaign'
+     * @returns {Promise<string>} - AI response
+     */
+    chatAssistant: async (chatHistory, currentContent = '', contentType = 'template') => {
+        try {
+            const response = await api.post('/ai/chat-assistant', {
+                messages: chatHistory,
+                currentContent,
+                contentType
+            });
+            return response.content;
+        } catch (error) {
+            console.error('AI Chat Assistant Error:', error);
+            throw error;
+        }
     }
 };
 

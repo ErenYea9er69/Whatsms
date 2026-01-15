@@ -163,4 +163,53 @@ Do not include markdown or backticks. Just the raw JSON.`;
     }
 });
 
+// POST /api/ai/chat-assistant - Conversational AI for templates/campaigns
+router.post('/chat-assistant', async (req, res) => {
+    try {
+        const { messages, currentContent, contentType = 'template' } = req.body;
+
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({ error: 'Messages array is required' });
+        }
+
+        // Build context-aware system prompt
+        const systemPrompt = `You are an expert WhatsApp marketing assistant helping the user create effective ${contentType}s.
+
+${currentContent ? `**Current ${contentType} content:**
+"""
+${currentContent}
+"""
+
+When the user asks to analyze, edit, or improve "my text" or "current text", refer to the content above.` : `The user hasn't written any content yet. Help them get started or answer their questions.`}
+
+**Your capabilities:**
+1. **Analyze** - Review their text and provide constructive feedback on clarity, engagement, and effectiveness
+2. **Edit** - Make specific improvements like making text shorter, adding emojis, improving CTAs
+3. **Generate** - Create new message content based on their requirements
+4. **Advise** - Answer questions about WhatsApp marketing best practices
+
+**Guidelines:**
+- Be concise and actionable
+- When providing edited/generated text, present it clearly so they can copy it
+- Use *bold* formatting for emphasis when suggesting text
+- Keep WhatsApp character limits in mind (messages should be scannable)
+- For edits, show the improved version directly (don't explain what you changed unless asked)
+
+Be helpful, friendly, and focused on making their ${contentType} more effective.`;
+
+        // Build messages array with system prompt
+        const aiMessages = [
+            { role: 'system', content: systemPrompt },
+            ...messages
+        ];
+
+        const response = await aiService.generateResponse(aiMessages);
+        res.json({ content: response });
+
+    } catch (error) {
+        console.error('AI Chat Assistant Error:', error);
+        res.status(500).json({ error: error.message || 'Failed to get AI response' });
+    }
+});
+
 module.exports = router;

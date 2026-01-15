@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import api from '../services/api';
 import aiService from '../services/ai';
+import AiChatPanel from '../components/AiChatPanel';
 
 const CampaignBuilder = () => {
     const [step, setStep] = useState(1);
@@ -243,104 +244,109 @@ const CampaignBuilder = () => {
             {/* Step Content */}
             <div className="bg-white dark:bg-surface-dark p-8 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
                 {step === 1 && (
-                    <div className="space-y-6 animate-fade-in">
-                        <h2 className="text-xl font-semibold">Compose Message</h2>
+                    <div className="flex gap-6 animate-fade-in">
+                        {/* Form Side */}
+                        <div className="flex-1 space-y-6">
+                            <h2 className="text-xl font-semibold">Compose Message</h2>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Campaign Name *</label>
-                            <input
-                                type="text"
-                                value={campaign.name}
-                                onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors"
-                                placeholder="e.g., January Newsletter"
-                            />
-                        </div>
-
-                        {/* Templates */}
-                        {templates.length > 0 && (
                             <div>
-                                <label className="block text-sm font-medium mb-2">Use Template</label>
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {templates.map(template => (
-                                        <button
-                                            key={template.id}
-                                            onClick={() => applyTemplate(template)}
-                                            className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                        >
-                                            {template.name}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="block text-sm font-medium mb-2">Campaign Name *</label>
+                                <input
+                                    type="text"
+                                    value={campaign.name}
+                                    onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors"
+                                    placeholder="e.g., January Newsletter"
+                                />
                             </div>
-                        )}
 
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Message Content</h3>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="file"
-                                        id="file-upload"
-                                        className="hidden"
-                                        accept="image/*,application/pdf"
-                                        onChange={handleFileUpload}
-                                        disabled={uploading}
-                                    />
-                                    <label
-                                        htmlFor="file-upload"
-                                        className={`p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        title="Attach Image or PDF"
-                                    >
-                                        {uploading ? <Loader2 size={16} className="animate-spin text-gray-500" /> : <Paperclip size={16} className="text-gray-500 dark:text-gray-400" />}
-                                    </label>
-                                    <button
-                                        onClick={() => setShowAiModal(true)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-lg text-xs font-medium shadow-glow hover:opacity-90 transition-opacity"
-                                    >
-                                        <Sparkles size={14} />
-                                        <span>Generate with AI</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="text-xs text-gray-400 mb-2">
-                                Use <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{name}}'}</code> or <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{phone}}'}</code> for personalization
-                            </div>
-                            <textarea
-                                value={campaign.messageBody}
-                                onChange={(e) => setCampaign({ ...campaign, messageBody: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-40"
-                                placeholder="Hey {{name}}, we have exciting news for you..."
-                            />
-                            <p className="text-xs text-gray-400 mt-2">{campaign.messageBody.length} characters</p>
-
-                            {/* File Attachments List */}
-                            {campaign.files && campaign.files.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {campaign.files.map((file, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-xs">
-                                            <Paperclip size={12} className="text-gray-400" />
-                                            <span className="max-w-[150px] truncate text-gray-600 dark:text-gray-300">{file.filename}</span>
+                            {/* Templates */}
+                            {templates.length > 0 && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Use Template</label>
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {templates.map(template => (
                                             <button
-                                                type="button"
-                                                onClick={() => removeFile(idx)}
-                                                className="text-gray-400 hover:text-red-500"
+                                                key={template.id}
+                                                onClick={() => applyTemplate(template)}
+                                                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
                                             >
-                                                <X size={12} />
+                                                {template.name}
                                             </button>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             )}
+
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Message Content</h3>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="file"
+                                            id="file-upload"
+                                            className="hidden"
+                                            accept="image/*,application/pdf"
+                                            onChange={handleFileUpload}
+                                            disabled={uploading}
+                                        />
+                                        <label
+                                            htmlFor="file-upload"
+                                            className={`p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title="Attach Image or PDF"
+                                        >
+                                            {uploading ? <Loader2 size={16} className="animate-spin text-gray-500" /> : <Paperclip size={16} className="text-gray-500 dark:text-gray-400" />}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-gray-400 mb-2">
+                                    Use <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{name}}'}</code> or <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{phone}}'}</code> for personalization
+                                </div>
+                                <textarea
+                                    value={campaign.messageBody}
+                                    onChange={(e) => setCampaign({ ...campaign, messageBody: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-40"
+                                    placeholder="Hey {{name}}, we have exciting news for you..."
+                                />
+                                <p className="text-xs text-gray-400 mt-2">{campaign.messageBody.length} characters</p>
+
+                                {/* File Attachments List */}
+                                {campaign.files && campaign.files.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {campaign.files.map((file, idx) => (
+                                            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-xs">
+                                                <Paperclip size={12} className="text-gray-400" />
+                                                <span className="max-w-[150px] truncate text-gray-600 dark:text-gray-300">{file.filename}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeFile(idx)}
+                                                    className="text-gray-400 hover:text-red-500"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Schedule (Optional)</label>
+                                <input
+                                    type="datetime-local"
+                                    value={campaign.scheduledAt}
+                                    onChange={(e) => setCampaign({ ...campaign, scheduledAt: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Schedule (Optional)</label>
-                            <input
-                                type="datetime-local"
-                                value={campaign.scheduledAt}
-                                onChange={(e) => setCampaign({ ...campaign, scheduledAt: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors"
+                        {/* AI Chat Side */}
+                        <div className="w-[380px] flex-shrink-0">
+                            <AiChatPanel
+                                currentContent={campaign.messageBody}
+                                contentType="campaign"
+                                onApplyText={(text) => setCampaign(prev => ({ ...prev, messageBody: text }))}
                             />
                         </div>
                     </div>
