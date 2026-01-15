@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2, Sparkles, Wand2, Send, LayoutDashboard } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import aiService from '../services/ai';
 import AiChatPanel from '../components/AiChatPanel';
@@ -13,6 +14,11 @@ const CampaignBuilder = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const toast = useToast();
+
+    // Success Modal State
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [createdCampaignId, setCreatedCampaignId] = useState(null);
 
     // Campaign form state
     const [campaign, setCampaign] = useState({
@@ -113,15 +119,14 @@ const CampaignBuilder = () => {
                 mediaIds: campaign.files.map(f => f.mediaId)
             });
 
-            // Optionally send immediately
-            if (confirm('Campaign created! Would you like to send it now?')) {
-                await api.sendCampaign(result.campaign.id);
-                alert('Campaign is now sending!');
-            }
+            // Store ID and show success modal
+            setCreatedCampaignId(result.campaign.id);
+            setShowSuccessModal(true);
 
-            navigate('/campaigns');
+            // Navigate is now handled by the modal actions
         } catch (err) {
             setError(err.message);
+            toast.error(err.message || 'Failed to create campaign');
         } finally {
             setSaving(false);
         }
@@ -480,55 +485,47 @@ const CampaignBuilder = () => {
                     </button>
                 )}
             </div>
-            {/* AI Generation Modal */}
-            {showAiModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-4">
-                    <div className="bg-white dark:bg-surface-dark rounded-2xl w-full max-w-md p-6 shadow-xl border border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2 text-primary">
-                                <Wand2 size={24} />
-                                <h3 className="text-lg font-bold">AI Assistant</h3>
-                            </div>
-                            <button onClick={() => setShowAiModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                <X size={20} />
-                            </button>
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center border border-gray-100 dark:border-gray-800">
+                        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Check size={32} strokeWidth={3} />
                         </div>
 
-                        <p className="text-sm text-gray-500 mb-4">
-                            Describe what you want to say, and I'll write a message for you.
+                        <h3 className="text-xl font-bold mb-2">Campaign Created!</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            Your campaign has been successfully saved as a draft. What would you like to do next?
                         </p>
 
-                        <textarea
-                            value={aiPrompt}
-                            onChange={(e) => setAiPrompt(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-32 mb-4"
-                            placeholder="e.g. Write a promotion for our summer sale. 20% off all items using code SUMMER20..."
-                            autoFocus
-                        />
-
-                        <div className="flex justify-end gap-3">
+                        <div className="space-y-3">
                             <button
-                                onClick={() => setShowAiModal(false)}
-                                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                                onClick={async () => {
+                                    try {
+                                        // Show toast immediately
+                                        toast.success('Campaign started! Sending messages...');
+                                        // Close modal first
+                                        setShowSuccessModal(false);
+                                        // Navigate to dashboard
+                                        navigate('/campaigns');
+                                        // Trigger send in background (or await if critical, but better UI to move on)
+                                        await api.sendCampaign(createdCampaignId);
+                                    } catch (err) {
+                                        toast.error('Failed to start campaign: ' + err.message);
+                                    }
+                                }}
+                                className="w-full py-3 btn-primary text-white rounded-xl font-medium shadow-glow flex items-center justify-center gap-2"
                             >
-                                Cancel
+                                <Send size={18} />
+                                <span>Send Now</span>
                             </button>
+
                             <button
-                                onClick={handleAiGenerate}
-                                disabled={aiLoading || !aiPrompt.trim()}
-                                className="flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium shadow-glow disabled:opacity-50"
+                                onClick={() => navigate('/campaigns')}
+                                className="w-full py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
                             >
-                                {aiLoading ? (
-                                    <>
-                                        <Loader2 size={16} className="animate-spin" />
-                                        <span>Thinking...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles size={16} />
-                                        <span>Generate</span>
-                                    </>
-                                )}
+                                <LayoutDashboard size={18} />
+                                <span>Go to Dashboard</span>
                             </button>
                         </div>
                     </div>
