@@ -260,7 +260,7 @@ const CampaignBuilder = () => {
                                     type="text"
                                     value={campaign.name}
                                     onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors"
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="e.g., January Newsletter"
                                 />
                             </div>
@@ -310,7 +310,7 @@ const CampaignBuilder = () => {
                                 <textarea
                                     value={campaign.messageBody}
                                     onChange={(e) => setCampaign({ ...campaign, messageBody: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-40"
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-40 text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="Hey {{name}}, we have exciting news for you..."
                                 />
                                 <p className="text-xs text-gray-400 mt-2">{campaign.messageBody.length} characters</p>

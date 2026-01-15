@@ -97,7 +97,7 @@ const Settings = () => {
                                 value={credentials.phoneNumberId}
                                 onChange={handleChange}
                                 placeholder="e.g. 10452..."
-                                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
                             />
                             <p className="text-xs text-gray-400 mt-1">Found in WhatsApp API Setup</p>
                         </div>
@@ -111,7 +111,7 @@ const Settings = () => {
                                     value={credentials.accessToken}
                                     onChange={handleChange}
                                     placeholder="Permanent or Temporary Access Token"
-                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all pr-12"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all pr-12 text-gray-900 dark:text-white placeholder:text-gray-400"
                                 />
                                 <button
                                     onClick={() => setShowToken(!showToken)}

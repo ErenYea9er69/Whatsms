@@ -251,7 +251,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                         onKeyDown={handleKeyDown}
                         placeholder="Ask me anything..."
                         rows={1}
-                        className="flex-1 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary resize-none text-sm min-h-[42px] max-h-[120px]"
+                        className="flex-1 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary resize-none text-sm min-h-[42px] max-h-[120px] text-gray-900 dark:text-white placeholder:text-gray-400"
                         style={{ height: 'auto' }}
                         disabled={loading}
                     />

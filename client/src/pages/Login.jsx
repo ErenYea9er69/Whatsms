@@ -90,7 +90,7 @@ const Login = () => {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base"
+                                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="Enter your username"
                                     required
                                     autoComplete="username"
@@ -108,7 +108,7 @@ const Login = () => {
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base"
+                                    className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder={isRegisterMode ? 'Create a password (min 6 chars)' : 'Enter your password'}
                                     required
                                     minLength={isRegisterMode ? 6 : undefined}

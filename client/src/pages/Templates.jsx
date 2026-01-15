@@ -245,7 +245,7 @@ const Templates = () => {
                                     <label className="block text-sm font-medium mb-1.5">Template Name</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary"
+                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary text-gray-900 dark:text-white placeholder:text-gray-400"
                                         placeholder="e.g. welcome_message"
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -256,7 +256,7 @@ const Templates = () => {
                                     <label className="block text-sm font-medium mb-1.5">Header (Optional)</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary"
+                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary text-gray-900 dark:text-white placeholder:text-gray-400"
                                         placeholder="Company Name / Title"
                                         value={formData.header}
                                         onChange={e => setFormData({ ...formData, header: e.target.value })}
@@ -285,7 +285,7 @@ const Templates = () => {
                                         </div>
                                     </div>
                                     <textarea
-                                        className="w-full h-32 px-4 py-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary resize-none"
+                                        className="w-full h-32 px-4 py-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary resize-none text-gray-900 dark:text-white placeholder:text-gray-400"
                                         placeholder="Hello {{1}}, thanks for signing up!"
                                         value={formData.body}
                                         onChange={e => setFormData({ ...formData, body: e.target.value })}
@@ -316,7 +316,7 @@ const Templates = () => {
                                     <label className="block text-sm font-medium mb-1.5">Footer (Optional)</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary"
+                                        className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary text-gray-900 dark:text-white placeholder:text-gray-400"
                                         placeholder="Reply STOP to unsubscribe"
                                         value={formData.footer}
                                         onChange={e => setFormData({ ...formData, footer: e.target.value })}

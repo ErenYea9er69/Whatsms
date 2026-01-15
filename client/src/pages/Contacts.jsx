@@ -236,7 +236,7 @@ const Contacts = () => {
                             placeholder="Search contacts by name or phone..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:border-primary outline-none transition-all text-sm"
+                            className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:border-primary outline-none transition-all text-sm text-gray-900 dark:text-white placeholder:text-gray-400"
                         />
                     </div>
 
@@ -446,7 +446,7 @@ const Contacts = () => {
                                     type="text"
                                     value={newContact.name}
                                     onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
                                     required
                                 />
                             </div>
@@ -456,7 +456,7 @@ const Contacts = () => {
                                     type="text"
                                     value={newContact.phone}
                                     onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="+1234567890"
                                     required
                                 />
@@ -467,7 +467,7 @@ const Contacts = () => {
                                     type="text"
                                     value={newContact.interests}
                                     onChange={(e) => setNewContact({ ...newContact, interests: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="marketing, sales"
                                 />
                             </div>
@@ -477,7 +477,7 @@ const Contacts = () => {
                                     type="text"
                                     value={newContact.tags}
                                     onChange={(e) => setNewContact({ ...newContact, tags: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="VIP, Hot Lead"
                                 />
                                 <p className="text-xs text-gray-400 mt-1">Use tags to segment your contacts</p>
