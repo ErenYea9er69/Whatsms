@@ -25,6 +25,18 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
         { label: '🎯 Improve CTA', prompt: 'Improve the call-to-action in my text' },
     ];
 
+    // Simple markdown renderer for bold text
+    const renderMarkdown = (text) => {
+        // Split by **bold** pattern and render with <strong> tags
+        const parts = text.split(/(\*\*[^*]+\*\*)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+            }
+            return part;
+        });
+    };
+
     // Scroll to bottom when new messages arrive
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -125,7 +137,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px] max-h-[400px]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ minHeight: '200px' }}>
                 {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center py-8">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mb-3">
@@ -157,13 +169,13 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                             >
                                 <div
                                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${msg.role === 'user'
-                                            ? 'bg-primary text-white rounded-br-md'
-                                            : msg.isError
-                                                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-bl-md'
-                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md'
+                                        ? 'bg-primary text-white rounded-br-md'
+                                        : msg.isError
+                                            ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-bl-md'
+                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md'
                                         }`}
                                 >
-                                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                    <p className="text-sm whitespace-pre-wrap">{msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content}</p>
 
                                     {/* Action buttons for AI messages */}
                                     {msg.role === 'assistant' && !msg.isError && (
