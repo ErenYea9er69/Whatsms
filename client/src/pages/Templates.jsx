@@ -374,43 +374,16 @@ const Templates = () => {
                             </div>
                         </div>
 
-                        {/* Preview & AI Side */}
-                        <div className="w-1/2 bg-gray-50 dark:bg-black/40 flex flex-col overflow-hidden">
-                            {/* Compact Preview */}
-                            <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-                                <h3 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Preview</h3>
-                                <div className="bg-[#E5DDD5] dark:bg-[#1f2c34] p-3 rounded-xl">
-                                    <div className="bg-white dark:bg-[#202c33] p-3 rounded-lg shadow-sm text-sm">
-                                        {formData.files.length > 0 && formData.files[0].mimetype?.startsWith('image/') && (
-                                            <div className="mb-2 py-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-center text-xs text-gray-400 flex items-center justify-center gap-2">
-                                                <Paperclip size={14} />
-                                                <span>{formData.files[0].filename}</span>
-                                            </div>
-                                        )}
-                                        {formData.header && (
-                                            <p className="font-bold text-gray-800 dark:text-gray-200 mb-1">{formData.header}</p>
-                                        )}
-                                        <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-snug">
-                                            {formData.body || <span className="text-gray-300 italic">Message body...</span>}
-                                        </p>
-                                        {formData.footer && (
-                                            <p className="text-[10px] text-gray-400 mt-2">{formData.footer}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* AI Chat Panel */}
-                            <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
-                                <AiChatPanel
-                                    currentContent={formData.body}
-                                    contentType="template"
-                                    onApplyText={(text) => {
-                                        setFormData(prev => ({ ...prev, body: text }));
-                                        setAnalysis(null);
-                                    }}
-                                />
-                            </div>
+                        {/* AI Chat Side */}
+                        <div className="w-1/2 bg-gray-50 dark:bg-black/40 flex flex-col overflow-hidden p-4">
+                            <AiChatPanel
+                                currentContent={formData.body}
+                                contentType="template"
+                                onApplyText={(text) => {
+                                    setFormData(prev => ({ ...prev, body: text }));
+                                    setAnalysis(null);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
