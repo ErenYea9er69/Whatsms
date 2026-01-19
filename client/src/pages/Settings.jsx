@@ -8,7 +8,8 @@ const Settings = () => {
     const toast = useToast();
     const [credentials, setCredentials] = useState({
         phoneNumberId: '',
-        accessToken: ''
+        accessToken: '',
+        verifyToken: 'whatsms_token'
     });
     const [loading, setLoading] = useState(true);
     const [showToken, setShowToken] = useState(false);
@@ -17,7 +18,7 @@ const Settings = () => {
     // In a real multi-tenant app, this would come from the backend.
     // For single user, we calculate based on current env
     const webhookUrl = `${import.meta.env.VITE_API_URL?.replace('localhost', 'YOUR_PUBLIC_IP') || window.location.origin}/webhooks`;
-    const verifyToken = 'whatsms_token'; // Hardcoded for this demo
+
 
     useEffect(() => {
         fetchSettings();
@@ -29,7 +30,8 @@ const Settings = () => {
             if (data) {
                 setCredentials({
                     phoneNumberId: data.phoneNumberId || '',
-                    accessToken: data.accessToken || ''
+                    accessToken: data.accessToken || '',
+                    verifyToken: data.verifyToken || 'whatsms_token'
                 });
             }
         } catch (error) {
@@ -186,11 +188,17 @@ const Settings = () => {
                         <div className="p-4 bg-gray-50 dark:bg-background-dark rounded-xl border border-gray-100 dark:border-gray-800">
                             <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Verify Token</p>
                             <div className="flex items-center gap-2">
-                                <code className="flex-1 text-sm font-mono text-gray-600 dark:text-gray-300">
-                                    {verifyToken}
-                                </code>
-                                <div className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-500">Fixed</div>
+                                <input
+                                    type="text"
+                                    name="verifyToken"
+                                    value={credentials.verifyToken}
+                                    onChange={handleChange}
+                                    placeholder="whatsms_token"
+                                    className="flex-1 w-full px-4 py-2 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all text-sm font-mono"
+                                />
+                                <div className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded">Editable</div>
                             </div>
+                            <p className="text-xs text-gray-400 mt-2">Must match the Verify Token in Meta Dashboard</p>
                         </div>
 
                         <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl text-sm text-emerald-800 dark:text-emerald-300">

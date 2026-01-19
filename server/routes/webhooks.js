@@ -9,17 +9,30 @@ const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'whatsms-webhook-verif
  * GET /api/webhooks/whatsapp
  * Webhook verification endpoint for Meta
  */
-router.get('/whatsapp', (req, res) => {
+router.get('/whatsapp', async (req, res) => {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        console.log('✅ Webhook verified successfully');
-        res.status(200).send(challenge);
-    } else {
-        console.warn('❌ Webhook verification failed');
-        res.sendStatus(403);
+    try {
+        // Fetch verify token from DB
+        const config = await prisma.systemConfig.findUnique({
+            where: { key: 'verifyToken' }
+        });
+
+        // Use DB value or fallback to env/default
+        const storedVerifyToken = config?.value || process.env.WHATSAPP_VERIFY_TOKEN || 'whatsms_token';
+
+        if (mode === 'subscribe' && token === storedVerifyToken) {
+            console.log('✅ Webhook verified successfully');
+            res.status(200).send(challenge);
+        } else {
+            console.warn(`❌ Webhook verification failed. Expected: ${storedVerifyToken}, Received: ${token}`);
+            res.sendStatus(403);
+        }
+    } catch (error) {
+        console.error('Webhook verification error:', error);
+        res.sendStatus(500);
     }
 });
 
