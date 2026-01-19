@@ -52,9 +52,9 @@ router.post('/', async (req, res) => {
 // Test WhatsApp connection configuration
 router.post('/test', async (req, res) => {
     try {
-        const { whatsappService } = require('../services/whatsapp');
-        // Reload credentials from DB to ensure we're testing latest
-        await whatsappService.loadCredentials();
+        const whatsappService = require('../services/whatsapp');
+        // Credentials are auto-loaded by the service methods
+
 
         // Use a lightweight API call (like getting phone number metrics) or send a self-message if possible
         // Since we don't have a simple 'ping', we'll rely on the fact that loadCredentials throws if config is missing
