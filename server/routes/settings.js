@@ -65,12 +65,22 @@ router.post('/test', async (req, res) => {
         // A better test would use axios to call a read-only endpoint.
 
         // Let's try to send a test message to the user's own number if provided, or just validate config presence.
-        const creds = whatsappService.getCredentials();
-        if (!creds.accessToken || !creds.phoneNumberId) {
-            return res.status(400).json({ error: 'Credentials incomplete' });
+        // Try to send a hello_world template message if a phone number is provided
+        const { targetPhone } = req.body;
+
+        if (targetPhone) {
+            try {
+                await whatsappService.sendTemplateMessage(targetPhone, 'hello_world');
+                return res.json({ message: 'Connection Validated: "hello_world" template sent successfully!' });
+            } catch (sendError) {
+                console.error('Test message failed:', sendError);
+                return res.status(500).json({
+                    error: `Credentials appear valid, but sending failed: ${sendError.message}. Ensure the "To" number is verified if using a Test Number.`
+                });
+            }
         }
 
-        res.json({ message: 'Configuration Validated Successfully' });
+        res.json({ message: 'Configuration Saved & Validated (No test message sent)' });
     } catch (error) {
         res.status(500).json({ error: 'Connection test failed: ' + error.message });
     }

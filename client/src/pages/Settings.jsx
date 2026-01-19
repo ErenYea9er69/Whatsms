@@ -14,6 +14,7 @@ const Settings = () => {
     const [loading, setLoading] = useState(true);
     const [showToken, setShowToken] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [testPhone, setTestPhone] = useState('');
 
     // In a real multi-tenant app, this would come from the backend.
     // For single user, we calculate based on current env
@@ -124,34 +125,44 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <div className="pt-4 flex gap-3">
-                            <button
-                                id="save-btn"
-                                onClick={handleSave}
-                                className="flex-1 py-2.5 btn-primary text-white rounded-xl font-medium shadow-glow flex items-center justify-center gap-2"
-                            >
-                                <Save size={18} />
-                                Save Configuration
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        await handleSave(); // Save first
-                                        const res = await apiClient.post('/settings/test');
-                                        toast.success(res.message || 'Connection Verified!');
-                                    } catch (err) {
-                                        toast.error(err.response?.data?.error || 'Test Connection Failed');
-                                    }
-                                }}
-                                className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-                                title="Test Connection"
-                            >
-                                <Globe size={18} />
-                                Test
-                            </button>
+                        <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <label className="block text-sm font-medium mb-2">Test Connectivity</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={testPhone}
+                                    onChange={(e) => setTestPhone(e.target.value)}
+                                    placeholder="Recipient Phone (e.g. 1555...)"
+                                    className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
+                                />
+                                <button
+                                    onClick={async () => {
+                                        if (!testPhone) {
+                                            toast.error('Please enter a phone number to test');
+                                            return;
+                                        }
+                                        try {
+                                            await handleSave(); // Save first
+                                            const res = await apiClient.post('/settings/test', { targetPhone: testPhone });
+                                            toast.success(res.message || 'Connection Verified!');
+                                        } catch (err) {
+                                            toast.error(err.message || 'Test Connection Failed');
+                                        }
+                                    }}
+                                    className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                                    title="Send 'hello_world' template"
+                                >
+                                    <Globe size={18} />
+                                    Send Test
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">
+                                Sends a standard "hello_world" template. <br />
+                                Note: If using a Meta Test Number, you can only send to <strong>Verified Numbers</strong>.
+                            </p>
                         </div>
-                        <p className="text-xs text-center text-gray-400 mt-3">
-                            Note: These credentials are now saved securely in your database.
+                        <p className="text-xs text-center text-gray-400 mt-1">
+                            Note: Credentials must be saved before testing.
                         </p>
                     </div>
                 </div>
