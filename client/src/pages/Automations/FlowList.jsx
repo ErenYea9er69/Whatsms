@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Play, Pause, Trash2, Edit, GitBranch } from 'lucide-react';
+import { Plus, Play, Pause, Trash2, Edit, GitBranch, Share2, Edit2 } from 'lucide-react';
 import api from '../../services/api';
 
 export default function FlowList() {
@@ -29,6 +29,25 @@ export default function FlowList() {
             fetchFlows();
         } catch (err) {
             console.error('Failed to delete flow', err);
+        }
+    };
+
+    const renameFlow = async (flow) => {
+        const newName = prompt('Enter new flow name:', flow.name);
+        if (newName && newName.trim() !== flow.name) {
+            try {
+                // Ensure we send all required fields or partial update if backend supports it
+                // Assuming backend supports partial update via PUT or PATCH for name
+                // If not, we might need to fetch full flow content or backend needs to handle partials.
+                // Assuming standard REST partial updates or specific endpoint for rename might be safer,
+                // but usually PUT with partial data is handled if backend allows, or we just send name.
+                // Let's try sending just the name update.
+                await api.put(`/flows/${flow.id}`, { ...flow, name: newName });
+                fetchFlows();
+            } catch (err) {
+                console.error('Failed to rename flow', err);
+                alert('Failed to rename flow');
+            }
         }
     };
 
@@ -85,6 +104,12 @@ export default function FlowList() {
                                         •••
                                     </button>
                                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl py-1 hidden group-hover:block z-10 border border-gray-200 dark:border-[#262626]">
+                                        <button
+                                            onClick={() => renameFlow(flow)}
+                                            className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2"
+                                        >
+                                            <Edit2 size={16} /> Rename
+                                        </button>
                                         <button
                                             onClick={() => deleteFlow(flow.id)}
                                             className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
