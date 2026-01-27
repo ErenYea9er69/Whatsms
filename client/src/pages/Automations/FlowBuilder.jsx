@@ -137,12 +137,10 @@ export default function FlowBuilder() {
 
     const fetchFlow = async () => {
         try {
-            const res = await fetch(`http://localhost:3000/api/flows/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            const data = await res.json();
+            const data = await api.get(`/flows/${id}`);
             setFlowName(data.name);
             setTriggerType(data.triggerType || 'NEW_CONVERSATION');
+            setTriggerData(data.triggerData || {});
             setIsActive(data.isActive);
 
             if (data.content && data.content.nodes) {
@@ -168,26 +166,22 @@ export default function FlowBuilder() {
             name: flowName,
             content: { nodes, edges },
             triggerType,
+            triggerData,
             isActive
         };
 
         try {
-            const url = isNew ? 'http://localhost:3000/api/flows' : `http://localhost:3000/api/flows/${id}`;
-            const method = isNew ? 'POST' : 'PUT';
+            let data;
+            if (isNew) {
+                data = await api.post('/flows', flowData);
+            } else {
+                data = await api.put(`/flows/${id}`, flowData);
+            }
 
-            const res = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(flowData)
-            });
-
-            const data = await res.json();
             if (isNew) navigate(`/automations/${data.id}`, { replace: true });
         } catch (err) {
             console.error('Failed to save', err);
+            alert(`Failed to save: ${err.message}`);
         } finally {
             setSaving(false);
         }
