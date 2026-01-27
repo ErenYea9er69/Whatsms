@@ -3,7 +3,7 @@ import { Handle, Position, useReactFlow } from '@xyflow/react';
 import {
     FileText, Image, MousePointerClick, List, LayoutTemplate,
     Users, UserMinus, Tag, Hash, Layout, Clock, Trash2, MoreVertical,
-    AlertCircle, Bold, Italic, Strikethrough, Code, Plus, Upload, X
+    AlertCircle, Bold, Italic, Strikethrough, Code, Plus, Upload, X, Copy, Edit2
 } from 'lucide-react';
 
 const icons = {
@@ -21,9 +21,40 @@ const icons = {
     delay: Clock
 };
 
+// --- Helper Functions ---
+
+const insertAtCursor = (input, textToInsert, wrap = false) => {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const text = input.value;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    const selection = text.substring(start, end);
+
+    let newText;
+    let newCursorPos;
+
+    if (wrap) {
+        newText = before + textToInsert + selection + textToInsert + after;
+        newCursorPos = start + textToInsert.length + selection.length + textToInsert.length;
+    } else {
+        newText = before + textToInsert + after;
+        newCursorPos = start + textToInsert.length;
+    }
+
+    // Set value and trigger change event manually for React
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+    nativeInputValueSetter.call(input, newText);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Restore focus and selection
+    input.focus();
+    input.setSelectionRange(newCursorPos, newCursorPos);
+};
+
 // --- Helper Components ---
 
-const NodeHeader = ({ label, icon: Icon, onDelete }) => {
+const NodeHeader = ({ label, icon: Icon, actions }) => {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
 
@@ -49,9 +80,22 @@ const NodeHeader = ({ label, icon: Icon, onDelete }) => {
                     <MoreVertical size={16} className="text-gray-400 dark:text-gray-500" />
                 </button>
                 {showMenu && (
-                    <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl border border-gray-100 dark:border-[#333] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl border border-gray-100 dark:border-[#333] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                         <button
-                            onClick={onDelete}
+                            onClick={(e) => { e.stopPropagation(); actions.onRename(); setShowMenu(false); }}
+                            className="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2 transition-colors"
+                        >
+                            <Edit2 size={14} /> Rename
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); actions.onDuplicate(); setShowMenu(false); }}
+                            className="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2 transition-colors"
+                        >
+                            <Copy size={14} /> Duplicate
+                        </button>
+                        <div className="h-px bg-gray-100 dark:bg-[#333] my-1" />
+                        <button
+                            onClick={(e) => { e.stopPropagation(); actions.onDelete(); setShowMenu(false); }}
                             className="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2 transition-colors"
                         >
                             <Trash2 size={14} /> Delete
@@ -79,25 +123,45 @@ const IconButton = ({ icon: Icon, onClick }) => (
     </button>
 );
 
-const Toolbar = () => (
-    <div className="flex items-center gap-2 mt-2">
-        <div className="flex items-center gap-1">
-            <IconButton icon={Bold} />
-            <IconButton icon={Italic} />
-            <IconButton icon={Strikethrough} />
-            <IconButton icon={Code} />
+const Toolbar = ({ inputRef }) => {
+    const handleFormat = (char, wrap = true) => {
+        if (inputRef.current) {
+            insertAtCursor(inputRef.current, char, wrap);
+        }
+    };
+
+    const handleVariable = () => {
+        // For now, just insert a generic variable placeholder. 
+        // In a real app, this might open a popover to select variables.
+        if (inputRef.current) {
+            insertAtCursor(inputRef.current, '{{variable_name}}', false);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1">
+                <IconButton icon={Bold} onClick={() => handleFormat('*')} />
+                <IconButton icon={Italic} onClick={() => handleFormat('_')} />
+                <IconButton icon={Strikethrough} onClick={() => handleFormat('~')} />
+                <IconButton icon={Code} onClick={() => handleFormat('```')} />
+            </div>
+            <div className="flex-1" />
+            <button
+                onClick={handleVariable}
+                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+            >
+                Add Variable
+            </button>
         </div>
-        <div className="flex-1" />
-        <button className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
-            Add Variable
-        </button>
-    </div>
-);
+    );
+};
 
 // --- Form Components ---
 
 const TextForm = ({ data, onChange }) => {
     const isValid = data.content && data.content.length > 0;
+    const textareaRef = useRef(null);
 
     return (
         <div>
@@ -109,6 +173,7 @@ const TextForm = ({ data, onChange }) => {
 
             <div className="relative">
                 <textarea
+                    ref={textareaRef}
                     className="nodrag w-full border border-gray-200 dark:border-[#333] bg-white dark:bg-[#0A0A0A] dark:text-gray-100 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px] resize-none"
                     placeholder="Enter text"
                     value={data.content || ''}
@@ -123,7 +188,7 @@ const TextForm = ({ data, onChange }) => {
                 <span>Characters: {(data.content || '').length}/1098</span>
             </div>
 
-            <Toolbar />
+            <Toolbar inputRef={textareaRef} />
         </div>
     );
 };
@@ -131,6 +196,7 @@ const TextForm = ({ data, onChange }) => {
 const MediaForm = ({ data, onChange }) => {
     const mediaTypes = ['Image', 'Video', 'Audio', 'Document'];
     const isValid = data.mediaType && data.file;
+    const captionRef = useRef(null);
 
     return (
         <div>
@@ -158,6 +224,7 @@ const MediaForm = ({ data, onChange }) => {
                     Caption (Optional)
                 </label>
                 <textarea
+                    ref={captionRef}
                     className="nodrag w-full border border-gray-200 dark:border-[#333] bg-white dark:bg-[#0A0A0A] dark:text-gray-100 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 resize-none min-h-[60px]"
                     placeholder="Enter text"
                     value={data.caption || ''}
@@ -166,7 +233,7 @@ const MediaForm = ({ data, onChange }) => {
                 <div className="flex justify-between items-center mt-1 text-xs text-gray-400 dark:text-gray-500 mb-2">
                     <span>Characters: {(data.caption || '').length}/1098</span>
                 </div>
-                <Toolbar />
+                <Toolbar inputRef={captionRef} />
             </div>
 
             <div>
@@ -222,7 +289,7 @@ const DefaultForm = ({ data, onChange }) => (
 // --- Main Node Component ---
 
 export default function GenericNode({ id, data }) {
-    const { setNodes, deleteElements } = useReactFlow();
+    const { setNodes, deleteElements, getNodes } = useReactFlow();
 
     const updateData = useCallback((field, value) => {
         setNodes((nds) => nds.map((node) => {
@@ -236,10 +303,30 @@ export default function GenericNode({ id, data }) {
         }));
     }, [id, setNodes]);
 
-    const handleDelete = useCallback((e) => {
-        e?.stopPropagation();
-        deleteElements({ nodes: [{ id }] });
-    }, [id, deleteElements]);
+    const handleActions = {
+        onDelete: () => {
+            deleteElements({ nodes: [{ id }] });
+        },
+        onDuplicate: () => {
+            const node = getNodes().find(n => n.id === id);
+            if (node) {
+                const newNode = {
+                    ...node,
+                    id: `${node.data.subType}-${Date.now()}`,
+                    position: { x: node.position.x + 50, y: node.position.y + 50 },
+                    data: { ...node.data },
+                    selected: false
+                };
+                setNodes(nds => nds.concat(newNode));
+            }
+        },
+        onRename: () => {
+            const newName = prompt("Enter new name:", data.label);
+            if (newName && newName.trim() !== "") {
+                updateData('label', newName);
+            }
+        }
+    };
 
     const Icon = icons[data.subType] || FileText;
 
@@ -249,7 +336,7 @@ export default function GenericNode({ id, data }) {
 
             {/* Container */}
             <div className="p-5">
-                <NodeHeader label={data.label} icon={Icon} onDelete={handleDelete} />
+                <NodeHeader label={data.label} icon={Icon} actions={handleActions} />
 
                 {data.subType === 'text' && <TextForm data={data} onChange={updateData} />}
                 {data.subType === 'media' && <MediaForm data={data} onChange={updateData} />}
