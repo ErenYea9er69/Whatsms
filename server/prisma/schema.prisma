@@ -25,6 +25,7 @@ model Contact {
   
   lists       ContactListMember[]
   messages    CampaignRecipient[]
+  flowExecutions FlowExecution[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
