@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Play, Pause, Trash2, Edit, GitBranch, Share2, Edit2, MoreVertical } from 'lucide-react';
+import { Plus, Play, Pause, Trash2, Edit, GitBranch, Share2, Edit2, MoreVertical, X, Check } from 'lucide-react';
 import api from '../../services/api';
 
 export default function FlowList() {
     const [flows, setFlows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openMenuId, setOpenMenuId] = useState(null);
+
+    // Inline renaming state
+    const [editingId, setEditingId] = useState(null);
+    const [editName, setEditName] = useState('');
 
     useEffect(() => {
         fetchFlows();
@@ -40,17 +44,31 @@ export default function FlowList() {
         }
     };
 
-    const renameFlow = async (flow) => {
-        const newName = prompt('Enter new flow name:', flow.name);
-        if (newName && newName.trim() !== flow.name) {
+    const startRename = (flow) => {
+        setEditingId(flow.id);
+        setEditName(flow.name);
+        setOpenMenuId(null); // Close the menu
+    };
+
+    const saveRename = async () => {
+        if (!editName.trim()) {
+            setEditingId(null); // Cancel if empty
+            return;
+        }
+
+        const flow = flows.find(f => f.id === editingId);
+        if (flow && flow.name !== editName) {
             try {
-                await api.put(`/flows/${flow.id}`, { ...flow, name: newName });
-                fetchFlows();
+                await api.put(`/flows/${flow.id}`, { ...flow, name: editName });
+                // Optimistic update
+                setFlows(flows.map(f => f.id === editingId ? { ...f, name: editName } : f));
             } catch (err) {
                 console.error('Failed to rename flow', err);
                 alert('Failed to rename flow');
+                fetchFlows(); // Revert on error
             }
         }
+        setEditingId(null);
     };
 
     const toggleStatus = async (flow) => {
@@ -118,8 +136,7 @@ export default function FlowList() {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setOpenMenuId(null);
-                                                    renameFlow(flow);
+                                                    startRename(flow);
                                                 }}
                                                 className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2"
                                             >
@@ -140,8 +157,34 @@ export default function FlowList() {
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-2">{flow.name}</h3>
-                            <p className="text-gray-500 dark:text-neutral-400 text-sm mb-4 line-clamp-2">{flow.description || 'No description provided.'}</p>
+                            {editingId === flow.id ? (
+                                <div className="mb-4">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        onBlur={saveRename}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') saveRename();
+                                            if (e.key === 'Escape') setEditingId(null);
+                                        }}
+                                        className="w-full text-lg font-semibold text-gray-900 dark:text-neutral-100 bg-white dark:bg-[#1A1A1A] border border-indigo-500 rounded px-2 py-1 outline-none shadow-sm"
+                                    />
+                                    <p className="text-xs text-indigo-500 mt-1">Press Enter to save</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <h3
+                                        className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-2 truncate cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                        onDoubleClick={() => startRename(flow)}
+                                        title="Double click to rename"
+                                    >
+                                        {flow.name}
+                                    </h3>
+                                    <p className="text-gray-500 dark:text-neutral-400 text-sm mb-4 line-clamp-2">{flow.description || 'No description provided.'}</p>
+                                </>
+                            )}
 
                             <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#262626]">
                                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-neutral-400">
