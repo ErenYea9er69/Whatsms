@@ -356,12 +356,16 @@ router.post('/import', upload.single('file'), async (req, res) => {
 
         const records = await new Promise((resolve, reject) => {
             parse(csvData, {
-                columns: header => {
-                    const h = header.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-                    if (['name', 'firstname', 'fullname', 'contact', 'customer'].includes(h)) return 'name';
-                    if (['phone', 'phonenumber', 'mobile', 'cell', 'tel', 'contactnumber'].includes(h)) return 'phone';
-                    if (['interests', 'tags', 'labels', 'keywords'].includes(h)) return 'interests';
-                    return h;
+                columns: headers => {
+                    if (!Array.isArray(headers)) return [];
+                    return headers.map(header => {
+                        if (header === null || header === undefined) return '';
+                        const h = String(header).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+                        if (['name', 'firstname', 'fullname', 'contact', 'customer'].includes(h)) return 'name';
+                        if (['phone', 'phonenumber', 'mobile', 'mobilenumber', 'cell', 'tel', 'contactnumber', 'number'].includes(h)) return 'phone';
+                        if (['interests', 'tags', 'labels', 'keywords'].includes(h)) return 'interests';
+                        return h;
+                    });
                 },
                 skip_empty_lines: true,
                 trim: true,
