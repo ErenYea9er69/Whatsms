@@ -90,35 +90,35 @@ const Conversation = () => {
     if (!conversation) return <div className="p-6 text-center">Conversation not found</div>;
 
     return (
-        <div className="conversation-page h-[calc(100vh-64px)] flex flex-col md:flex-row bg-white">
+        <div className="conversation-page h-[calc(100vh-64px)] flex flex-col md:flex-row bg-white dark:bg-gray-900">
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col border-r border-gray-200">
+            <div className="flex-1 flex flex-col border-r border-gray-200 dark:border-gray-700">
                 {/* Header */}
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => navigate('/inbox')} className="text-gray-500 hover:text-gray-700 mr-2 md:hidden">
+                        <button onClick={() => navigate('/inbox')} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mr-2 md:hidden">
                             &larr; Back
                         </button>
-                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-lg">
+                        <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-semibold text-lg">
                             {conversation.contact?.name?.[0] || 'C'}
                         </div>
                         <div>
-                            <h2 className="font-bold text-gray-800">{conversation.contact?.name}</h2>
-                            <p className="text-xs text-gray-500">{conversation.contact?.phone}</p>
+                            <h2 className="font-bold text-gray-800 dark:text-white">{conversation.contact?.name}</h2>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{conversation.contact?.phone}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
                         {conversation.status === 'OPEN' ? (
                             <button
                                 onClick={() => handleStatusChange('CLOSED')}
-                                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded"
+                                className="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1 rounded"
                             >
                                 Mark Closed
                             </button>
                         ) : (
                             <button
                                 onClick={() => handleStatusChange('OPEN')}
-                                className="text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-1 rounded"
+                                className="text-xs bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/20 text-green-700 dark:text-green-400 px-3 py-1 rounded"
                             >
                                 Reopen
                             </button>
@@ -127,17 +127,17 @@ const Conversation = () => {
                 </div>
 
                 {/* Messages List */}
-                <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 space-y-4">
                     {messages.map((msg) => {
                         const isOutbound = msg.direction === 'OUTBOUND';
                         return (
                             <div key={msg.id} className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[70%] rounded-lg p-3 ${isOutbound
-                                        ? 'bg-blue-600 text-white rounded-br-none'
-                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+                                    ? 'bg-blue-600 text-white rounded-br-none'
+                                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none'
                                     } shadow-sm`}>
                                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                    <div className={`text-[10px] mt-1 ${isOutbound ? 'text-blue-100' : 'text-gray-400'}`}>
+                                    <div className={`text-[10px] mt-1 ${isOutbound ? 'text-blue-100' : 'text-gray-400 dark:text-gray-500'}`}>
                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         {isOutbound && msg.sender && ` • ${msg.sender.name}`}
                                     </div>
@@ -149,19 +149,19 @@ const Conversation = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-white border-t border-gray-200">
+                <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                     <form onSubmit={handleSendMessage} className="flex gap-2">
                         <input
                             type="text"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder="Type a message..."
-                            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:placeholder-gray-400"
                         />
                         <button
                             type="submit"
                             disabled={!newMessage.trim()}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                         >
                             Send
                         </button>
@@ -170,13 +170,13 @@ const Conversation = () => {
             </div>
 
             {/* Sidebar (Details + Notes) */}
-            <div className="w-full md:w-80 bg-white p-4 overflow-y-auto border-l border-gray-200">
+            <div className="w-full md:w-80 bg-white dark:bg-gray-800 p-4 overflow-y-auto border-l border-gray-200 dark:border-gray-700">
                 <div className="mb-6">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Assignment</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Assignment</h3>
                     <select
                         value={conversation.assignedToId || ''}
                         onChange={handleAssign}
-                        className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">Unassigned</option>
                         {teamMembers.map(member => (
@@ -186,13 +186,13 @@ const Conversation = () => {
                 </div>
 
                 <div className="mb-6">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact Info</h3>
-                    <div className="bg-gray-50 p-3 rounded border border-gray-100">
-                        <p className="text-sm text-gray-800 mb-1"><span className="font-semibold">Name:</span> {conversation.contact?.name}</p>
-                        <p className="text-sm text-gray-800 mb-1"><span className="font-semibold">Phone:</span> {conversation.contact?.phone}</p>
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contact Info</h3>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-100 dark:border-gray-600">
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-1"><span className="font-semibold">Name:</span> {conversation.contact?.name}</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-1"><span className="font-semibold">Phone:</span> {conversation.contact?.phone}</p>
                         <div className="mt-2 flex flex-wrap gap-1">
                             {conversation.contact?.tags?.map((tag, i) => (
-                                <span key={i} className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">{tag}</span>
+                                <span key={i} className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-full">{tag}</span>
                             ))}
                         </div>
                     </div>
