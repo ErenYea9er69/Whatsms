@@ -56,7 +56,10 @@ const insertAtCursor = (input, textToInsert, wrap = false) => {
 
 const NodeHeader = ({ label, icon: Icon, actions }) => {
     const [showMenu, setShowMenu] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(label);
     const menuRef = useRef(null);
+    const inputRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -66,13 +69,54 @@ const NodeHeader = ({ label, icon: Icon, actions }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        if (isEditing && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isEditing]);
+
+    const handleSave = () => {
+        if (editValue.trim()) {
+            actions.onRename(editValue);
+        } else {
+            setEditValue(label); // Revert if empty
+        }
+        setIsEditing(false);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') handleSave();
+        if (e.key === 'Escape') {
+            setEditValue(label);
+            setIsEditing(false);
+        }
+    };
+
     return (
-        <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100">
-                {Icon && <Icon size={18} className="text-gray-500 dark:text-gray-400" />}
-                <span>{label}</span>
+        <div className="flex items-center justify-between mb-3 h-8">
+            <div className="flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100 flex-1 min-w-0">
+                {Icon && <Icon size={18} className="text-gray-500 dark:text-gray-400 flex-shrink-0" />}
+
+                {isEditing ? (
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        className="nodrag w-full bg-white dark:bg-[#1A1A1A] border border-indigo-500 rounded px-1 py-0.5 text-sm outline-none text-gray-800 dark:text-gray-100"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={handleSave}
+                        onKeyDown={handleKeyDown}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                ) : (
+                    <span className="truncate cursor-text" onDoubleClick={() => setIsEditing(true)} title="Double click to rename">
+                        {label}
+                    </span>
+                )}
             </div>
-            <div className="relative" ref={menuRef}>
+
+            <div className="relative flex-shrink-0 ml-2" ref={menuRef}>
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
                     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -82,7 +126,12 @@ const NodeHeader = ({ label, icon: Icon, actions }) => {
                 {showMenu && (
                     <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl border border-gray-100 dark:border-[#333] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                         <button
-                            onClick={(e) => { e.stopPropagation(); actions.onRename(); setShowMenu(false); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setEditValue(label);
+                                setIsEditing(true);
+                                setShowMenu(false);
+                            }}
                             className="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2 transition-colors"
                         >
                             <Edit2 size={14} /> Rename
@@ -320,8 +369,7 @@ export default function GenericNode({ id, data }) {
                 setNodes(nds => nds.concat(newNode));
             }
         },
-        onRename: () => {
-            const newName = prompt("Enter new name:", data.label);
+        onRename: (newName) => {
             if (newName && newName.trim() !== "") {
                 updateData('label', newName);
             }
