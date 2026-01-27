@@ -45,23 +45,23 @@ const InternalNotes = ({ contactId }) => {
     };
 
     return (
-        <div className="internal-notes bg-gray-50 dark:bg-slate-800/30 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Internal Notes</h3>
+        <div className="internal-notes bg-gray-50 dark:bg-zinc-900/30 p-4 rounded-lg border border-gray-200 dark:border-zinc-800">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-3">Internal Notes</h3>
 
             <div className="notes-list space-y-3 mb-4 max-h-60 overflow-y-auto">
                 {loading ? (
-                    <p className="text-xs text-gray-500 dark:text-slate-400">Loading notes...</p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400">Loading notes...</p>
                 ) : notes.length === 0 ? (
-                    <p className="text-xs text-gray-500 dark:text-slate-400 italic">No notes yet.</p>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 italic">No notes yet.</p>
                 ) : (
                     notes.map((note) => (
-                        <div key={note.id} className="note-item bg-white dark:bg-slate-800 p-2 rounded border border-gray-100 dark:border-slate-700 shadow-sm">
-                            <p className="text-xs text-gray-800 dark:text-slate-200 whitespace-pre-wrap">{note.content}</p>
+                        <div key={note.id} className="note-item bg-white dark:bg-zinc-900 p-2 rounded border border-gray-100 dark:border-zinc-800 shadow-sm">
+                            <p className="text-xs text-gray-800 dark:text-zinc-200 whitespace-pre-wrap">{note.content}</p>
                             <div className="flex justify-between items-center mt-1">
-                                <span className="text-[10px] text-gray-500 dark:text-slate-400">
+                                <span className="text-[10px] text-gray-500 dark:text-zinc-400">
                                     {note.author ? note.author.name : 'Unknown User'}
                                 </span>
-                                <span className="text-[10px] text-gray-400 dark:text-slate-500">
+                                <span className="text-[10px] text-gray-400 dark:text-zinc-500">
                                     {new Date(note.createdAt).toLocaleString()}
                                 </span>
                             </div>
@@ -75,13 +75,13 @@ const InternalNotes = ({ contactId }) => {
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     placeholder="Add an internal note..."
-                    className="w-full text-xs p-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded mb-2 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:placeholder-slate-500"
+                    className="w-full text-xs p-2 border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white rounded mb-2 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 dark:placeholder-zinc-500"
                     rows="2"
                 />
                 <button
                     type="submit"
                     disabled={!newNote.trim()}
-                    className="w-full bg-gray-600 dark:bg-slate-700 hover:bg-gray-700 dark:hover:bg-slate-600 text-white text-xs py-1 px-2 rounded disabled:opacity-50 transition-colors"
+                    className="w-full bg-gray-600 dark:bg-zinc-700 hover:bg-gray-700 dark:hover:bg-zinc-600 text-white text-xs py-1 px-2 rounded disabled:opacity-50 transition-colors"
                 >
                     Add Note
                 </button>
