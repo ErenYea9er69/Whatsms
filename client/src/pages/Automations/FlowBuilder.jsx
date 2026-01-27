@@ -22,6 +22,7 @@ import {
 import TriggerNode from '../../components/Flow/nodes/TriggerNode';
 import GenericNode from '../../components/Flow/nodes/GenericNode';
 import ConditionNode from '../../components/Flow/nodes/ConditionNode';
+import api from '../../services/api';
 
 const nodeTypes = {
     trigger: TriggerNode,
@@ -279,8 +280,8 @@ export default function FlowBuilder() {
                         <button
                             onClick={() => setIsActive(!isActive)}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${isActive
-                                    ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400'
-                                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-[#1A1A1A] dark:border-[#404040] dark:text-neutral-400 dark:hover:bg-[#262626]'
+                                ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-[#1A1A1A] dark:border-[#404040] dark:text-neutral-400 dark:hover:bg-[#262626]'
                                 }`}
                         >
                             {isActive ? <Pause size={16} /> : <Play size={16} />}
