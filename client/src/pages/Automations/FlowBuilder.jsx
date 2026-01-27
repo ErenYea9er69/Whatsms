@@ -12,61 +12,77 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {
-    Save, ArrowLeft, Play, Pause, MessageSquare, Clock,
-    GitBranch, UserPlus, Webhook, FormInput, Zap,
-    Trash2, Copy, Settings2, ChevronDown
+    Save, ArrowLeft, Play, Pause,
+    FileText, Image, MousePointerClick, List, LayoutTemplate,
+    Users, UserMinus, Tag, Hash, Layout, Trash2, Clock,
+    ChevronDown, ChevronRight, Search
 } from 'lucide-react';
 
 // Custom Nodes
 import TriggerNode from '../../components/Flow/nodes/TriggerNode';
-import MessageNode from '../../components/Flow/nodes/MessageNode';
-import DelayNode from '../../components/Flow/nodes/DelayNode';
-import ConditionNode from '../../components/Flow/nodes/ConditionNode';
-import AssignNode from '../../components/Flow/nodes/AssignNode';
-import WebhookNode from '../../components/Flow/nodes/WebhookNode';
-import CollectInputNode from '../../components/Flow/nodes/CollectInputNode';
+import GenericNode from '../../components/Flow/nodes/GenericNode';
+import ConditionNode from '../../components/Flow/nodes/ConditionNode'; // Keep condition node distinct for now
 
 const nodeTypes = {
     trigger: TriggerNode,
-    message: MessageNode,
-    delay: DelayNode,
     condition: ConditionNode,
-    assign: AssignNode,
-    webhook: WebhookNode,
-    collectInput: CollectInputNode,
+    // We map all action types to GenericNode for visual consistency, 
+    // but distinguishing them by 'type' or 'data.subType'
+    action: GenericNode,
 };
 
-const nodeCategories = [
+// Sidebar Categories configuration based on user request
+const sidebarCategories = [
     {
-        name: 'Triggers',
+        id: 'messages',
+        title: 'Messages',
         items: [
-            { type: 'trigger', icon: Zap, label: 'Start Trigger', color: 'emerald' }
+            { id: 'text', label: 'Simple text', icon: FileText, subType: 'text' },
+            { id: 'media', label: 'Media files', icon: Image, subType: 'media' },
+            { id: 'buttons', label: 'Interactive buttons', icon: MousePointerClick, subType: 'buttons' },
+            { id: 'list', label: 'Interactive list', icon: List, subType: 'list' },
+            { id: 'template', label: 'Template', icon: LayoutTemplate, subType: 'template' },
         ]
     },
     {
-        name: 'Actions',
+        id: 'groups',
+        title: 'Group Actions',
         items: [
-            { type: 'message', icon: MessageSquare, label: 'Send Message', color: 'blue' },
-            { type: 'delay', icon: Clock, label: 'Wait/Delay', color: 'yellow' },
-            { type: 'collectInput', icon: FormInput, label: 'Collect Input', color: 'orange' },
-            { type: 'assign', icon: UserPlus, label: 'Assign Agent', color: 'pink' },
-            { type: 'webhook', icon: Webhook, label: 'Webhook', color: 'teal' },
+            { id: 'addGroup', label: 'Add to group', icon: Users, subType: 'addGroup' },
+            { id: 'removeGroup', label: 'Remove from Group', icon: UserMinus, subType: 'removeGroup' },
         ]
     },
     {
-        name: 'Logic',
+        id: 'tags',
+        title: 'Tag',
         items: [
-            { type: 'condition', icon: GitBranch, label: 'Condition', color: 'purple' },
+            { id: 'addTag', label: 'Add Tags', icon: Tag, subType: 'addTag' },
+            { id: 'removeTag', label: 'Remove Tags', icon: Hash, subType: 'removeTag' },
+        ]
+    },
+    {
+        id: 'funnel',
+        title: 'Funnel',
+        items: [
+            { id: 'addPipeline', label: 'Add/Edit to Pipeline', icon: Layout, subType: 'addPipeline' },
+            { id: 'removePipeline', label: 'Remove from Pipeline', icon: Trash2, subType: 'removePipeline' },
+        ]
+    },
+    {
+        id: 'others',
+        title: 'Others',
+        items: [
+            { id: 'delay', label: 'Delay', icon: Clock, subType: 'delay' },
         ]
     }
 ];
 
 const triggerOptions = [
-    { value: 'NEW_CONTACT', label: 'New Contact Added' },
-    { value: 'KEYWORD', label: 'Keyword Match' },
-    { value: 'NO_REPLY', label: 'No Reply After...' },
-    { value: 'WEBHOOK', label: 'Webhook Event' },
-    { value: 'SCHEDULE', label: 'Scheduled Time' },
+    { value: 'NEW_CONVERSATION', label: 'New conversation' },
+    { value: 'KEYWORDS', label: 'Text contains specific keywords' },
+    { value: 'HAS_TAGS', label: 'Contact has specific tags' },
+    { value: 'PIPELINE_UPDATE', label: 'Contact has been affected to a pipeline' },
+    { value: 'SHORT_RESPONSE', label: 'Advanced Short response' },
 ];
 
 export default function FlowBuilder() {
@@ -77,31 +93,50 @@ export default function FlowBuilder() {
 
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+    // Flow State
     const [flowName, setFlowName] = useState('Untitled Flow');
-    const [flowDescription, setFlowDescription] = useState('');
-    const [triggerType, setTriggerType] = useState('NEW_CONTACT');
-    const [triggerKeyword, setTriggerKeyword] = useState('');
-    const [saving, setSaving] = useState(false);
+    const [triggerType, setTriggerType] = useState('NEW_CONVERSATION');
+    const [triggerData, setTriggerData] = useState({});
     const [isActive, setIsActive] = useState(false);
+
+    // UI State
+    const [saving, setSaving] = useState(false);
+    const [expandedCategories, setExpandedCategories] = useState({
+        messages: true,
+        groups: true,
+        tags: true,
+        funnel: false,
+        others: true
+    });
     const [selectedNode, setSelectedNode] = useState(null);
-    const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
         if (!isNew) {
             fetchFlow();
         } else {
-            // Initial state for new flow with styled trigger
+            // Initial Trigger Node
             setNodes([
                 {
                     id: 'trigger-1',
                     type: 'trigger',
-                    data: { label: 'New Contact Added', triggerType: 'NEW_CONTACT' },
-                    position: { x: 250, y: 50 },
-                    deletable: false
+                    data: { triggerType: 'NEW_CONVERSATION' },
+                    position: { x: 100, y: 300 },
+                    deletable: false,
                 }
             ]);
         }
     }, [id]);
+
+    useEffect(() => {
+        // Update trigger node data when triggerType changes
+        setNodes(nds => nds.map(node => {
+            if (node.type === 'trigger') {
+                return { ...node, data: { ...node.data, triggerType, ...triggerData } };
+            }
+            return node;
+        }));
+    }, [triggerType, triggerData, setNodes]);
 
     const fetchFlow = async () => {
         try {
@@ -110,9 +145,7 @@ export default function FlowBuilder() {
             });
             const data = await res.json();
             setFlowName(data.name);
-            setFlowDescription(data.description || '');
-            setTriggerType(data.triggerType || 'NEW_CONTACT');
-            setTriggerKeyword(data.triggerKeyword || '');
+            setTriggerType(data.triggerType || 'NEW_CONVERSATION');
             setIsActive(data.isActive);
 
             if (data.content && data.content.nodes) {
@@ -128,22 +161,16 @@ export default function FlowBuilder() {
         setEdges((eds) => addEdge({
             ...params,
             animated: true,
-            style: { stroke: '#6366f1', strokeWidth: 2 }
+            style: { stroke: '#94a3b8', strokeWidth: 2 }
         }, eds));
-    }, []);
-
-    const onNodeClick = useCallback((event, node) => {
-        setSelectedNode(node);
-    }, []);
+    }, [setEdges]);
 
     const saveFlow = async () => {
         setSaving(true);
         const flowData = {
             name: flowName,
-            description: flowDescription,
             content: { nodes, edges },
             triggerType,
-            triggerKeyword: triggerType === 'KEYWORD' ? triggerKeyword : null,
             isActive
         };
 
@@ -161,266 +188,187 @@ export default function FlowBuilder() {
             });
 
             const data = await res.json();
-            if (isNew) {
-                navigate(`/automations/${data.id}`, { replace: true });
-            }
+            if (isNew) navigate(`/automations/${data.id}`, { replace: true });
         } catch (err) {
-            console.error('Failed to save flow', err);
+            console.error('Failed to save', err);
         } finally {
             setSaving(false);
         }
     };
 
-    const addNode = (type) => {
-        const nodeId = `${type}-${Date.now()}`;
-        const labels = {
-            trigger: 'New Trigger',
-            message: 'Send Message',
-            delay: 'Wait 1 hour',
-            condition: 'Check Condition',
-            assign: 'Assign to Agent',
-            webhook: 'Call Webhook',
-            collectInput: 'Collect User Input'
-        };
-
+    const addNode = (item) => {
         const newNode = {
-            id: nodeId,
-            type,
-            data: { label: labels[type] || 'New Node' },
-            position: { x: 250, y: nodes.length * 120 + 100 }
+            id: `${item.subType}-${Date.now()}`,
+            type: 'action', // generic action type
+            data: {
+                label: item.label,
+                subType: item.subType,
+                description: 'Click to configure'
+            },
+            position: { x: 500, y: 300 } // Default position, usually better to calculate center of viewport
         };
         setNodes((nds) => nds.concat(newNode));
     };
 
-    const deleteSelectedNode = () => {
-        if (selectedNode && selectedNode.deletable !== false) {
-            setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
-            setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id));
-            setSelectedNode(null);
-        }
-    };
-
-    const duplicateSelectedNode = () => {
-        if (selectedNode) {
-            const newNode = {
-                ...selectedNode,
-                id: `${selectedNode.type}-${Date.now()}`,
-                position: {
-                    x: selectedNode.position.x + 50,
-                    y: selectedNode.position.y + 50
-                }
-            };
-            setNodes((nds) => nds.concat(newNode));
-        }
-    };
-
-    const toggleActive = async () => {
-        const newStatus = !isActive;
-        setIsActive(newStatus);
-
-        if (!isNew) {
-            try {
-                await fetch(`http://localhost:3000/api/flows/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ isActive: newStatus })
-                });
-            } catch (err) {
-                console.error('Failed to toggle status', err);
-                setIsActive(!newStatus);
-            }
-        }
+    const toggleCategory = (id) => {
+        setExpandedCategories(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
     return (
-        <div className="h-screen flex bg-gray-950">
-            {/* Left Sidebar - Node Palette */}
-            <div className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
-                <div className="p-4 border-b border-gray-800">
-                    <button
-                        onClick={() => navigate('/automations')}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-4"
-                    >
-                        <ArrowLeft size={16} />
-                        Back to Automations
+        <div className="h-screen flex bg-gray-50 font-sans text-gray-900">
+
+            {/* Sidebar Palette */}
+            <div className="w-72 bg-white border-r border-gray-200 flex flex-col shadow-sm z-10">
+                {/* Header Back Button */}
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <button onClick={() => navigate('/automations')} className="text-gray-500 hover:text-gray-800">
+                        <ArrowLeft size={18} />
                     </button>
-                    <input
-                        type="text"
-                        value={flowName}
-                        onChange={(e) => setFlowName(e.target.value)}
-                        className="w-full bg-gray-800 text-white font-semibold text-lg px-3 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 focus:outline-none"
-                        placeholder="Flow name..."
-                    />
+                    <span className="font-semibold text-gray-700">Components</span>
+                    <div className="w-5" />
                 </div>
 
-                {/* Node Palette */}
-                <div className="flex-1 overflow-y-auto p-4">
-                    <p className="text-xs text-gray-500 uppercase font-bold mb-3">Drag to add nodes</p>
+                {/* Categories */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    {sidebarCategories.map((cat) => (
+                        <div key={cat.id} className="border-b border-gray-100">
+                            <button
+                                onClick={() => toggleCategory(cat.id)}
+                                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                            >
+                                <span className="font-semibold text-sm text-gray-800">{cat.title}</span>
+                                {expandedCategories[cat.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            </button>
 
-                    {nodeCategories.map((category) => (
-                        <div key={category.name} className="mb-6">
-                            <h3 className="text-xs text-gray-400 font-semibold mb-2">{category.name}</h3>
-                            <div className="space-y-2">
-                                {category.items.map((item) => (
-                                    <button
-                                        key={item.type}
-                                        onClick={() => addNode(item.type)}
-                                        className="w-full flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-left group"
-                                    >
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${item.color}-500/20`}
-                                            style={{ backgroundColor: `var(--${item.color}-bg, rgba(99, 102, 241, 0.2))` }}>
-                                            <item.icon size={20} className={`text-${item.color}-400`} style={{ color: `var(--${item.color}-text, #818cf8)` }} />
+                            {expandedCategories[cat.id] && (
+                                <div className="pb-2">
+                                    {cat.items.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => addNode(item)}
+                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3 group transition-colors"
+                                        >
+                                            <item.icon size={18} className="text-gray-400 group-hover:text-indigo-600" />
+                                            <span className="text-sm text-gray-600 group-hover:text-gray-900">{item.label}</span>
+                                            <div className="flex-1" />
+                                            <span className="opacity-0 group-hover:opacity-100 text-gray-400">
+                                                <div className="grid grid-cols-2 gap-0.5">
+                                                    <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                    <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                    <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                    <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                </div>
+                                            </span>
                                         </div>
-                                        <div>
-                                            <div className="text-sm font-medium text-white">{item.label}</div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Flow Settings */}
-                <div className="p-4 border-t border-gray-800">
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-sm"
-                    >
-                        <div className="flex items-center gap-2">
-                            <Settings2 size={16} />
-                            Flow Settings
-                        </div>
-                        <ChevronDown size={16} className={`transition-transform ${showSettings ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {showSettings && (
-                        <div className="mt-3 space-y-3">
-                            <div>
-                                <label className="text-xs text-gray-400 block mb-1">Trigger Type</label>
-                                <select
-                                    value={triggerType}
-                                    onChange={(e) => setTriggerType(e.target.value)}
-                                    className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded-lg border border-gray-700"
-                                >
-                                    {triggerOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
-                                </select>
-                            </div>
-
-                            {triggerType === 'KEYWORD' && (
-                                <div>
-                                    <label className="text-xs text-gray-400 block mb-1">Keyword</label>
-                                    <input
-                                        type="text"
-                                        value={triggerKeyword}
-                                        onChange={(e) => setTriggerKeyword(e.target.value)}
-                                        placeholder="e.g., hello, pricing"
-                                        className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded-lg border border-gray-700"
-                                    />
                                 </div>
                             )}
                         </div>
-                    )}
+                    ))}
                 </div>
             </div>
 
-            {/* Main Canvas Area */}
-            <div className="flex-1 flex flex-col">
-                {/* Top Bar */}
-                <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4">
+            {/* Main Canvas */}
+            <div className="flex-1 flex flex-col relative">
+                {/* Top Navbar */}
+                <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
                     <div className="flex items-center gap-4">
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${isActive ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
-                            }`}>
-                            <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
-                            {isActive ? 'Active' : 'Inactive'}
-                        </div>
+                        <input
+                            value={flowName}
+                            onChange={(e) => setFlowName(e.target.value)}
+                            className="text-lg font-bold text-gray-800 bg-transparent border-none focus:ring-0 placeholder-gray-400"
+                            placeholder="Untitled Flow"
+                        />
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                         <button
-                            onClick={toggleActive}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                    : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                            onClick={() => setIsActive(!isActive)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border ${isActive
+                                    ? 'bg-green-50 border-green-200 text-green-700'
+                                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                                 }`}
                         >
                             {isActive ? <Pause size={16} /> : <Play size={16} />}
-                            {isActive ? 'Pause Flow' : 'Activate Flow'}
+                            {isActive ? 'Active' : 'Draft'}
                         </button>
 
                         <button
                             onClick={saveFlow}
                             disabled={saving}
-                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow"
                         >
-                            <Save size={16} />
-                            {saving ? 'Saving...' : 'Save'}
+                            <Save size={18} />
+                            {saving ? 'Saving...' : 'Save Flow'}
                         </button>
                     </div>
                 </div>
 
-                {/* React Flow Canvas */}
-                <div className="flex-1" ref={reactFlowWrapper}>
+                {/* Toolbar / Settings Overlay */}
+                <div className="absolute top-20 right-6 z-20 w-80">
+                    {selectedNode?.type === 'trigger' ? (
+                        <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200">
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                <span className="font-semibold text-gray-700 text-sm">Configure Trigger</span>
+                            </div>
+                            <div className="p-4 space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1">Trigger Event</label>
+                                    <select
+                                        value={triggerType}
+                                        onChange={(e) => setTriggerType(e.target.value)}
+                                        className="w-full text-sm border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                    >
+                                        {triggerOptions.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {triggerType === 'KEYWORDS' && (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 mb-1">Keywords</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. hello, pricing"
+                                            className="w-full text-sm border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                            value={triggerData.keyword || ''}
+                                            onChange={(e) => setTriggerData({ ...triggerData, keyword: e.target.value })}
+                                        />
+                                        <p className="text-xs text-gray-400 mt-1">Comma separated</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Canvas */}
+                <div className="flex-1 bg-slate-50 relative" ref={reactFlowWrapper}>
+                    {/* Dot Grid Background */}
+                    <div
+                        className="absolute inset-0 pointer-events-none opacity-[0.4]"
+                        style={{
+                            backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
+                            backgroundSize: '20px 20px'
+                        }}
+                    />
+
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
-                        onNodeClick={onNodeClick}
+                        onNodeClick={(e, node) => setSelectedNode(node)}
+                        onPaneClick={() => setSelectedNode(null)}
                         nodeTypes={nodeTypes}
                         fitView
-                        className="bg-gray-950"
-                        defaultEdgeOptions={{
-                            animated: true,
-                            style: { stroke: '#6366f1', strokeWidth: 2 }
-                        }}
+                        attributionPosition="bottom-right"
                     >
-                        <Background color="#374151" gap={20} size={1} />
-                        <Controls className="!bg-gray-800 !border-gray-700 !rounded-lg [&>button]:!bg-gray-800 [&>button]:!border-gray-700 [&>button]:!text-white [&>button:hover]:!bg-gray-700" />
-                        <MiniMap
-                            nodeColor={(node) => {
-                                const colors = {
-                                    trigger: '#10b981',
-                                    message: '#3b82f6',
-                                    delay: '#eab308',
-                                    condition: '#a855f7',
-                                    assign: '#ec4899',
-                                    webhook: '#14b8a6',
-                                    collectInput: '#f97316'
-                                };
-                                return colors[node.type] || '#6366f1';
-                            }}
-                            className="!bg-gray-800 !border-gray-700"
-                            maskColor="rgba(0,0,0,0.8)"
-                        />
-
-                        {/* Selected Node Actions */}
-                        {selectedNode && (
-                            <Panel position="top-right" className="bg-gray-800 p-2 rounded-lg border border-gray-700 flex gap-2">
-                                <button
-                                    onClick={duplicateSelectedNode}
-                                    className="p-2 hover:bg-gray-700 rounded text-gray-300"
-                                    title="Duplicate"
-                                >
-                                    <Copy size={16} />
-                                </button>
-                                {selectedNode.deletable !== false && (
-                                    <button
-                                        onClick={deleteSelectedNode}
-                                        className="p-2 hover:bg-red-500/20 rounded text-red-400"
-                                        title="Delete"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                )}
-                            </Panel>
-                        )}
+                        <Background color="#cbd5e1" gap={20} size={1} />
+                        <Controls className="!bg-white !border-gray-200 !shadow-sm [&>button]:!text-gray-600 hover:[&>button]:!bg-gray-50" />
+                        <MiniMap className="!bg-white !border-gray-200 !shadow-sm" nodeColor="#e2e8f0" maskColor="rgba(248, 250, 252, 0.7)" />
                     </ReactFlow>
                 </div>
             </div>

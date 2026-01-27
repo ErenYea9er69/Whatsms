@@ -1,35 +1,55 @@
 import { Handle, Position } from '@xyflow/react';
-import { Play } from 'lucide-react';
+import { Play, ChevronDown } from 'lucide-react';
 
 export default function TriggerNode({ data }) {
-    const triggerTypes = {
-        NEW_CONTACT: { label: 'New Contact', color: 'emerald' },
-        KEYWORD: { label: 'Keyword Match', color: 'blue' },
-        WEBHOOK: { label: 'Webhook Event', color: 'purple' },
-        NO_REPLY: { label: 'No Reply After', color: 'orange' }
+    const triggerOptions = {
+        NEW_CONVERSATION: 'New conversation',
+        KEYWORDS: 'Text contains specific keywords',
+        HAS_TAGS: 'Contact has specific tags',
+        PIPELINE_UPDATE: 'Contact has been affected to a pipeline',
+        SHORT_RESPONSE: 'Advanced Short response'
     };
 
-    const trigger = triggerTypes[data.triggerType] || triggerTypes.NEW_CONTACT;
+    const label = triggerOptions[data.triggerType] || 'Select option';
 
     return (
-        <div className={`px-4 py-3 rounded-xl bg-${trigger.color}-500/10 border-2 border-${trigger.color}-500/50 min-w-[180px]`}
-            style={{
-                backgroundColor: `rgba(16, 185, 129, 0.1)`,
-                borderColor: `rgba(16, 185, 129, 0.5)`
-            }}>
-            <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                    <Play size={16} className="text-emerald-400" />
+        <div className="min-w-[280px] bg-white rounded-lg shadow-md border border-gray-200 font-sans">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="bg-indigo-600 rounded p-1">
+                        <Play size={14} className="text-white" fill="white" />
+                    </div>
+                    <span className="text-gray-700 font-semibold text-sm">Trigger</span>
                 </div>
-                <span className="text-xs font-bold text-emerald-400 uppercase">Trigger</span>
+                <p className="text-xs text-gray-500 leading-snug">
+                    Define the input parameters to trigger the workflow, to ensure that accurate information is captured in the conversation flow.
+                </p>
             </div>
-            <div className="text-sm font-medium text-white">{data.label || trigger.label}</div>
-            {data.keyword && (
-                <div className="mt-2 text-xs text-gray-400">
-                    Keyword: <span className="text-emerald-300">"{data.keyword}"</span>
+
+            {/* Body */}
+            <div className="p-4">
+                <div className="text-xs font-semibold text-gray-700 mb-2">Starting Step</div>
+                <div className="relative">
+                    <div className="w-full bg-gray-50 text-gray-700 text-sm px-3 py-2.5 rounded border border-gray-200 flex items-center justify-between">
+                        <span className="truncate">{label}</span>
+                        <ChevronDown size={16} className="text-gray-400" />
+                    </div>
                 </div>
-            )}
-            <Handle type="source" position={Position.Bottom} className="!bg-emerald-500 !w-3 !h-3" />
+
+                {/* Keyword Input Display */}
+                {data.triggerType === 'KEYWORDS' && data.keyword && (
+                    <div className="mt-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                        Contains: "{data.keyword}"
+                    </div>
+                )}
+            </div>
+
+            <Handle
+                type="source"
+                position={Position.Right}
+                className="!bg-emerald-400 !w-4 !h-4 !border-4 !border-white !-right-2"
+            />
         </div>
     );
 }
