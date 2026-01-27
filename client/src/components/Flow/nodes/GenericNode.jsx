@@ -1,7 +1,8 @@
-import { Handle, Position } from '@xyflow/react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
 import {
     FileText, Image, MousePointerClick, List, LayoutTemplate,
-    Users, UserMinus, Tag, Hash, Layout, Clock, Trash2
+    Users, UserMinus, Tag, Hash, Layout, Clock, Trash2, MoreVertical
 } from 'lucide-react';
 
 const icons = {
@@ -19,11 +20,31 @@ const icons = {
     delay: Clock
 };
 
-export default function GenericNode({ data, type }) {
+export default function GenericNode({ id, data }) {
+    const { deleteElements } = useReactFlow();
     const Icon = icons[data.subType] || FileText;
+    const [showMenu, setShowMenu] = useState(false);
+    const menuRef = useRef(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleDelete = useCallback((e) => {
+        e.stopPropagation();
+        deleteElements({ nodes: [{ id }] });
+        setShowMenu(false);
+    }, [id, deleteElements]);
 
     return (
-        <div className="min-w-[240px] bg-white dark:bg-[#0F0F0F] rounded-lg shadow-sm border border-gray-200 dark:border-[#262626] hover:shadow-md transition-all duration-200 group">
+        <div className="min-w-[240px] bg-white dark:bg-[#0F0F0F] rounded-lg shadow-sm border border-gray-200 dark:border-[#262626] hover:shadow-md transition-all duration-200 group relative">
             <Handle type="target" position={Position.Left} className="!bg-gray-400 dark:!bg-neutral-600 !w-3 !h-3 !-left-1.5" />
 
             <div className="p-3 flex items-center gap-3">
@@ -31,16 +52,38 @@ export default function GenericNode({ data, type }) {
                     <Icon size={20} className="text-gray-600 dark:text-neutral-300" />
                 </div>
 
-                <div className="flex-1">
-                    <div className="text-sm font-semibold text-gray-800 dark:text-neutral-100">{data.label}</div>
-                    <div className="text-xs text-gray-500 dark:text-neutral-500 truncate max-w-[150px]">
+                <div className="flex-1 overflow-hidden">
+                    <div className="text-sm font-semibold text-gray-800 dark:text-neutral-100 truncate">{data.label}</div>
+                    <div className="text-xs text-gray-500 dark:text-neutral-500 truncate">
                         {data.description || 'Configure...'}
                     </div>
                 </div>
 
-                <button className="text-gray-300 dark:text-neutral-600 hover:text-gray-600 dark:hover:text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" /></svg>
-                </button>
+                {/* Menu Button */}
+                <div className="relative" ref={menuRef}>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowMenu(!showMenu);
+                        }}
+                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300 transition-colors"
+                    >
+                        <MoreVertical size={16} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl border border-gray-100 dark:border-[#262626] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                            <button
+                                onClick={handleDelete}
+                                className="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2 transition-colors"
+                            >
+                                <Trash2 size={14} />
+                                Delete Node
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <Handle type="source" position={Position.Right} className="!bg-gray-400 dark:!bg-neutral-600 !w-3 !h-3 !-right-1.5" />
