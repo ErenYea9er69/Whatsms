@@ -15,6 +15,8 @@ import Templates from './pages/Templates';
 import Settings from './pages/Settings';
 import FlowList from './pages/Automations/FlowList';
 import FlowBuilder from './pages/Automations/FlowBuilder';
+import Inbox from './pages/Inbox';
+import Conversation from './pages/Conversation';
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="automations" element={<FlowList />} />
               <Route path="automations/:id" element={<FlowBuilder />} />
+              <Route path="inbox" element={<Inbox />} />
+              <Route path="inbox/:id" element={<Conversation />} />
             </Route>
           </Routes>
         </BrowserRouter>

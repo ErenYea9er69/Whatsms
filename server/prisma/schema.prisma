@@ -26,6 +26,8 @@ model Contact {
   lists       ContactListMember[]
   messages    CampaignRecipient[]
   flowExecutions FlowExecution[]
+  conversations Conversation[]
+  notes       ContactNote[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -159,4 +161,69 @@ model FlowExecution {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model TeamMember {
+  id            Int      @id @default(autoincrement())
+  name          String
+  email         String   @unique
+  role          String   @default("AGENT") // ADMIN, AGENT, MANAGER
+  avatar        String?
+  
+  conversations Conversation[]
+  messages      ConversationMessage[]
+  notes         ContactNote[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Conversation {
+  id           Int      @id @default(autoincrement())
+  contactId    Int
+  
+  assignedToId Int?
+  status       String   @default("OPEN") // OPEN, CLOSED, PENDING
+  lastMessage  String?
+  lastMessageAt DateTime?
+  unreadCount  Int      @default(0)
+  
+  contact      Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignedTo   TeamMember? @relation(fields: [assignedToId], references: [id])
+  
+  messages     ConversationMessage[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ConversationMessage {
+  id             Int      @id @default(autoincrement())
+  conversationId Int
+  
+  content        String
+  type           String   @default("TEXT") // TEXT, MEDIA, TEMPLATE
+  direction      String   // INBOUND, OUTBOUND
+  status         String   @default("SENT") // SENT, DELIVERED, READ, FAILED
+  
+  senderId       Int?     // If OUTBOUND, which TeamMember sent it?
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         TeamMember?  @relation(fields: [senderId], references: [id])
+  
+  createdAt      DateTime @default(now())
+}
+
+model ContactNote {
+  id        Int      @id @default(autoincrement())
+  contactId Int
+  authorId  Int?
+  
+  content   String
+  
+  contact   Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  author    TeamMember? @relation(fields: [authorId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

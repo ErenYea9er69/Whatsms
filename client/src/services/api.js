@@ -321,6 +321,74 @@ class ApiClient {
             method: 'DELETE',
         });
     }
+
+    // Team
+    async getTeamMembers() {
+        return this.request('/team');
+    }
+
+    async addTeamMember(data) {
+        return this.request('/team', {
+            method: 'POST',
+            body: data,
+        });
+    }
+
+    async updateTeamMember(id, data) {
+        return this.request(`/team/${id}`, {
+            method: 'PUT',
+            body: data,
+        });
+    }
+
+    async deleteTeamMember(id) {
+        return this.request(`/team/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Conversations
+    async getConversations(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.request(`/conversations${query ? `?${query}` : ''}`);
+    }
+
+    async getConversation(id) {
+        return this.request(`/conversations/${id}`);
+    }
+
+    async sendMessage(conversationId, data) {
+        return this.request(`/conversations/${conversationId}/messages`, {
+            method: 'POST',
+            body: data,
+        });
+    }
+
+    async assignConversation(conversationId, assignedToId) {
+        return this.request(`/conversations/${conversationId}/assign`, {
+            method: 'PUT',
+            body: { assignedToId },
+        });
+    }
+
+    async updateConversationStatus(conversationId, status) {
+        return this.request(`/conversations/${conversationId}/status`, {
+            method: 'PUT',
+            body: { status },
+        });
+    }
+
+    // Notes
+    async getNotes(contactId) {
+        return this.request(`/notes/contact/${contactId}`);
+    }
+
+    async addNote(data) {
+        return this.request('/notes', {
+            method: 'POST',
+            body: data,
+        });
+    }
 }
 
 // Export singleton instance
