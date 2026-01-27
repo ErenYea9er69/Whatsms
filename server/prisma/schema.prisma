@@ -127,3 +127,35 @@ model SystemConfig {
   description String?
   updatedAt   DateTime @updatedAt
 }
+
+model Flow {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  isActive    Boolean  @default(false)
+  triggerType String   // e.g., "KEYWORD", "NEW_CONTACT", "NO_REPLY"
+  triggerKeyword String? // If triggerType is KEYWORD
+  
+  // The visual state of the flow (nodes, edges, viewport)
+  content     Json
+  
+  executions  FlowExecution[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FlowExecution {
+  id          Int      @id @default(autoincrement())
+  flowId      Int
+  contactId   Int
+  status      String   // PENDING, IN_PROGRESS, COMPLETED, FAILED
+  currentStep String?  // ID of the current node
+  variables   Json?    // Store current state/variables for this execution
+  
+  flow        Flow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -13,7 +13,8 @@ import {
   Moon,
   Sun,
   X,
-  Image
+  Image,
+  GitBranch
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -54,6 +55,7 @@ const Layout = () => {
     { to: '/campaigns/new', icon: MessageSquarePlus, label: 'New Campaign' },
     { to: '/campaigns', icon: History, label: 'History', end: true },
     { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
+    { to: '/automations', icon: GitBranch, label: 'Automations' },
     { to: '/media', icon: Image, label: 'Media Library' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];

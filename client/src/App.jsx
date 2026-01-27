@@ -13,6 +13,8 @@ import CampaignHistory from './pages/CampaignHistory';
 import MediaLibrary from './pages/MediaLibrary';
 import Templates from './pages/Templates';
 import Settings from './pages/Settings';
+import FlowList from './pages/Automations/FlowList';
+import FlowBuilder from './pages/Automations/FlowBuilder';
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
               <Route path="templates" element={<Templates />} />
               <Route path="media" element={<MediaLibrary />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="automations" element={<FlowList />} />
+              <Route path="automations/:id" element={<FlowBuilder />} />
             </Route>
           </Routes>
         </BrowserRouter>
