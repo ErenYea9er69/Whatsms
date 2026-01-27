@@ -417,7 +417,9 @@ router.post('/import', upload.single('file'), async (req, res) => {
         console.error('Import error:', error);
         res.status(500).json({
             error: 'Internal Server Error',
-            message: 'Failed to import contacts'
+            message: 'Failed to import contacts',
+            details: error.message, // Temporary for debugging
+            stack: error.stack // Temporary for debugging
         });
     }
 });
