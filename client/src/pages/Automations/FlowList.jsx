@@ -59,12 +59,12 @@ export default function FlowList() {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-white mb-2">Automations</h1>
-                    <p className="text-gray-400">Build automated message flows and chatbots</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Automations</h1>
+                    <p className="text-gray-500 dark:text-gray-400">Build automated message flows and chatbots</p>
                 </div>
                 <Link
                     to="/automations/new"
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                 >
                     <Plus size={20} />
                     Create Flow
@@ -72,13 +72,13 @@ export default function FlowList() {
             </div>
 
             {flows.length === 0 ? (
-                <div className="text-center py-16 bg-gray-900 rounded-xl border border-gray-800">
-                    <GitBranch size={48} className="mx-auto text-gray-600 mb-4" />
-                    <h3 className="text-xl font-medium text-white mb-2">No automations yet</h3>
-                    <p className="text-gray-400 mb-6">Create your first automated workflow to engage customers 24/7.</p>
+                <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-colors">
+                    <GitBranch size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+                    <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No automations yet</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first automated workflow to engage customers 24/7.</p>
                     <Link
                         to="/automations/new"
-                        className="text-indigo-400 hover:text-indigo-300 font-medium"
+                        className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
                     >
                         Get Started &rarr;
                     </Link>
@@ -86,20 +86,20 @@ export default function FlowList() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {flows.map(flow => (
-                        <div key={flow.id} className="bg-gray-900 rounded-xl border border-gray-800 p-6 hover:border-indigo-500/50 transition-colors">
+                        <div key={flow.id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200">
                             <div className="flex justify-between items-start mb-4">
-                                <div className={`p-2 rounded-lg ${flow.isActive ? 'bg-green-500/10 text-green-400' : 'bg-gray-800 text-gray-400'}`}>
+                                <div className={`p-2 rounded-lg ${flow.isActive ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'}`}>
                                     <GitBranch size={24} />
                                 </div>
                                 <div className="relative group">
-                                    <button className="text-gray-400 hover:text-white p-1">
+                                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1">
                                         <span className="sr-only">Menu</span>
                                         •••
                                     </button>
-                                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl py-1 hidden group-hover:block z-10 border border-gray-700">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1 hidden group-hover:block z-10 border border-gray-200 dark:border-gray-700">
                                         <button
                                             onClick={() => deleteFlow(flow.id)}
-                                            className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-700 flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                                         >
                                             <Trash2 size={16} /> Delete
                                         </button>
@@ -107,11 +107,11 @@ export default function FlowList() {
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-semibold text-white mb-2">{flow.name}</h3>
-                            <p className="text-gray-400 text-sm mb-4 line-clamp-2">{flow.description || 'No description provided.'}</p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{flow.name}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">{flow.description || 'No description provided.'}</p>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
+                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                     <span>{flow._count?.executions || 0} runs</span>
                                 </div>
 
@@ -119,8 +119,8 @@ export default function FlowList() {
                                     <button
                                         onClick={() => toggleStatus(flow)}
                                         className={`p-2 rounded-lg transition-colors ${flow.isActive
-                                                ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
                                             }`}
                                         title={flow.isActive ? 'Pause' : 'Activate'}
                                     >
@@ -128,8 +128,8 @@ export default function FlowList() {
                                     </button>
                                     <Link
                                         to={`/automations/${flow.id}`}
-                                        className="p-2 bg-indigo-600/10 text-indigo-400 rounded-lg hover:bg-indigo-600/20 transition-colors"
-                                        title="Edit Status"
+                                        className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50"
+                                        title="Edit"
                                     >
                                         <Edit size={18} />
                                     </Link>
