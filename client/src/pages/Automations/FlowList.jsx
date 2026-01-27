@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Play, Pause, Trash2, Edit, GitBranch, Share2, Edit2 } from 'lucide-react';
+import { Plus, Play, Pause, Trash2, Edit, GitBranch, Share2, Edit2, MoreVertical } from 'lucide-react';
 import api from '../../services/api';
 
 export default function FlowList() {
     const [flows, setFlows] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [openMenuId, setOpenMenuId] = useState(null);
 
     useEffect(() => {
         fetchFlows();
+    }, []);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null);
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
     const fetchFlows = async () => {
@@ -36,12 +44,6 @@ export default function FlowList() {
         const newName = prompt('Enter new flow name:', flow.name);
         if (newName && newName.trim() !== flow.name) {
             try {
-                // Ensure we send all required fields or partial update if backend supports it
-                // Assuming backend supports partial update via PUT or PATCH for name
-                // If not, we might need to fetch full flow content or backend needs to handle partials.
-                // Assuming standard REST partial updates or specific endpoint for rename might be safer,
-                // but usually PUT with partial data is handled if backend allows, or we just send name.
-                // Let's try sending just the name update.
                 await api.put(`/flows/${flow.id}`, { ...flow, name: newName });
                 fetchFlows();
             } catch (err) {
@@ -63,7 +65,7 @@ export default function FlowList() {
     if (loading) return <div className="p-8 text-center text-gray-400">Loading automations...</div>;
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-6 max-w-7xl mx-auto min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-2">Automations</h1>
@@ -98,25 +100,43 @@ export default function FlowList() {
                                 <div className={`p-2 rounded-lg ${flow.isActive ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-[#1A1A1A] dark:text-neutral-400'}`}>
                                     <GitBranch size={24} />
                                 </div>
-                                <div className="relative group">
-                                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1">
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            setOpenMenuId(openMenuId === flow.id ? null : flow.id);
+                                        }}
+                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#262626] transition-colors"
+                                    >
                                         <span className="sr-only">Menu</span>
-                                        •••
+                                        <MoreVertical size={20} />
                                     </button>
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl py-1 hidden group-hover:block z-10 border border-gray-200 dark:border-[#262626]">
-                                        <button
-                                            onClick={() => renameFlow(flow)}
-                                            className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2"
-                                        >
-                                            <Edit2 size={16} /> Rename
-                                        </button>
-                                        <button
-                                            onClick={() => deleteFlow(flow.id)}
-                                            className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                                        >
-                                            <Trash2 size={16} /> Delete
-                                        </button>
-                                    </div>
+
+                                    {openMenuId === flow.id && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1A1A1A] rounded-lg shadow-xl py-1 z-50 border border-gray-200 dark:border-[#333] animate-in fade-in zoom-in-95 duration-100">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setOpenMenuId(null);
+                                                    renameFlow(flow);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] flex items-center gap-2"
+                                            >
+                                                <Edit2 size={16} /> Rename
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setOpenMenuId(null);
+                                                    deleteFlow(flow.id);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                                            >
+                                                <Trash2 size={16} /> Delete
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
