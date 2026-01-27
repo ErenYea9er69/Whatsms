@@ -235,6 +235,14 @@ router.post('/', async (req, res) => {
             }
         });
 
+        // Trigger automation flows
+        try {
+            const flowService = require('../services/FlowService');
+            flowService.triggerFlow('NEW_CONTACT', { contact });
+        } catch (flowError) {
+            console.error('Flow trigger error:', flowError);
+        }
+
         res.status(201).json({
             message: 'Contact created successfully',
             contact

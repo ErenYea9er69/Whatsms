@@ -214,6 +214,25 @@ async function processIncomingMessage(message, contacts) {
         console.error('Failed to auto-create contact:', err);
     }
 
+
+    // Trigger Flow Automation (KEYWORD)
+    try {
+        const flowService = require('../services/FlowService');
+        // Find the contact object either from existing or created
+        const contact = await prisma.contact.findFirst({
+            where: { phone: { endsWith: from.slice(-10) } }
+        });
+
+        if (contact) {
+            flowService.triggerFlow('KEYWORD', {
+                contact,
+                message: { body: text?.body || '' }
+            });
+        }
+    } catch (flowError) {
+        console.error('Flow keyword trigger error:', flowError);
+    }
+
     // Find recent recipient
     const recipient = await prisma.campaignRecipient.findFirst({
         where: {

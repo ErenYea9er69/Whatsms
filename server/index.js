@@ -132,6 +132,13 @@ async function startServer() {
         await prisma.$connect();
         console.log('✅ Connected to Database (Neon/Postgres)');
 
+        // Initialize Flow Poller
+        const flowService = require('./services/FlowService');
+        setInterval(() => {
+            flowService.processDelays();
+        }, 60000); // Check every minute
+        console.log('✅ Flow Engine Started');
+
         // Start server
         app.listen(PORT, () => {
             console.log(`
