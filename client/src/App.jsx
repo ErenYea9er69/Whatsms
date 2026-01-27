@@ -17,6 +17,7 @@ import FlowList from './pages/Automations/FlowList';
 import FlowBuilder from './pages/Automations/FlowBuilder';
 import Inbox from './pages/Inbox';
 import Conversation from './pages/Conversation';
+import Team from './pages/Team';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
               <Route path="automations/:id" element={<FlowBuilder />} />
               <Route path="inbox" element={<Inbox />} />
               <Route path="inbox/:id" element={<Conversation />} />
+              <Route path="team" element={<Team />} />
             </Route>
           </Routes>
         </BrowserRouter>

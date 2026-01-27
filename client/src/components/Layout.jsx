@@ -14,7 +14,9 @@ import {
   Sun,
   X,
   Image,
-  GitBranch
+  GitBranch,
+  Inbox as InboxIcon,
+  UserCog
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -50,6 +52,8 @@ const Layout = () => {
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    { to: '/inbox', icon: InboxIcon, label: 'Inbox' },
+    { to: '/team', icon: UserCog, label: 'Team' },
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/lists', icon: List, label: 'Lists' },
     { to: '/campaigns/new', icon: MessageSquarePlus, label: 'New Campaign' },
