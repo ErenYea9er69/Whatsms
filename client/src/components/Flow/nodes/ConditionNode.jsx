@@ -3,19 +3,19 @@ import { GitBranch } from 'lucide-react';
 
 export default function ConditionNode({ data }) {
     return (
-        <div className="min-w-[240px] bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200">
-            <Handle type="target" position={Position.Top} className="!bg-gray-400 dark:!bg-gray-500 !w-3 !h-3" />
+        <div className="min-w-[240px] bg-white dark:bg-[#0F0F0F] rounded-lg shadow-sm border border-gray-200 dark:border-[#262626] transition-colors duration-200">
+            <Handle type="target" position={Position.Top} className="!bg-gray-400 dark:!bg-neutral-600 !w-3 !h-3" />
 
-            <div className="p-3 border-b border-gray-50 dark:border-gray-700 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center border border-purple-100 dark:border-purple-800/50">
+            <div className="p-3 border-b border-gray-50 dark:border-[#262626] flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/10 flex items-center justify-center border border-purple-100 dark:border-purple-900/30">
                     <GitBranch size={16} className="text-purple-600 dark:text-purple-400" />
                 </div>
-                <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">Condition</span>
+                <span className="text-sm font-semibold text-gray-800 dark:text-neutral-100">Condition</span>
             </div>
 
             <div className="p-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Check if...</div>
-                <div className="text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900 p-2 rounded border border-gray-100 dark:border-gray-700">
+                <div className="text-xs text-gray-500 dark:text-neutral-500 mb-2">Check if...</div>
+                <div className="text-sm font-medium text-gray-700 dark:text-neutral-200 bg-gray-50 dark:bg-[#1A1A1A] p-2 rounded border border-gray-100 dark:border-[#262626]">
                     {data.condition || 'User replies "Yes"'}
                 </div>
 
@@ -25,7 +25,7 @@ export default function ConditionNode({ data }) {
                 </div>
             </div>
 
-            {/* Two output handles for branching */}
+            {/* Two output handles for branching relative to the container */}
             <Handle
                 type="source"
                 position={Position.Bottom}
