@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Play, Pause, Trash2, Edit, GitBranch } from 'lucide-react';
+import api from '../../services/api';
 
 export default function FlowList() {
     const [flows, setFlows] = useState([]);
@@ -12,10 +13,7 @@ export default function FlowList() {
 
     const fetchFlows = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/flows', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            const data = await res.json();
+            const data = await api.get('/flows');
             setFlows(data);
         } catch (err) {
             console.error('Failed to fetch flows', err);
@@ -27,10 +25,7 @@ export default function FlowList() {
     const deleteFlow = async (id) => {
         if (!confirm('Are you sure? This will stop any active executions.')) return;
         try {
-            await fetch(`http://localhost:3000/api/flows/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
+            await api.delete(`/flows/${id}`);
             fetchFlows();
         } catch (err) {
             console.error('Failed to delete flow', err);
@@ -39,14 +34,7 @@ export default function FlowList() {
 
     const toggleStatus = async (flow) => {
         try {
-            await fetch(`http://localhost:3000/api/flows/${flow.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ isActive: !flow.isActive })
-            });
+            await api.put(`/flows/${flow.id}`, { isActive: !flow.isActive });
             fetchFlows();
         } catch (err) {
             console.error('Failed to update status', err);
@@ -119,8 +107,8 @@ export default function FlowList() {
                                     <button
                                         onClick={() => toggleStatus(flow)}
                                         className={`p-2 rounded-lg transition-colors ${flow.isActive
-                                                ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
-                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-[#1A1A1A] dark:text-neutral-400 dark:hover:bg-[#262626]'
+                                            ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-[#1A1A1A] dark:text-neutral-400 dark:hover:bg-[#262626]'
                                             }`}
                                         title={flow.isActive ? 'Pause' : 'Activate'}
                                     >
