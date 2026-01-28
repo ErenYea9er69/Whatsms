@@ -101,6 +101,24 @@ router.post('/test', async (req, res) => {
     }
 });
 
+// Disconnect WhatsApp - Clear all WhatsApp credentials from database
+router.delete('/whatsapp', async (req, res) => {
+    try {
+        // Delete all WhatsApp-related config from database
+        await prisma.systemConfig.deleteMany({
+            where: {
+                key: { in: ['accessToken', 'wabaId', 'phoneNumberId'] }
+            }
+        });
+
+        console.log('[Settings] WhatsApp credentials cleared from database');
+        res.json({ success: true, message: 'WhatsApp disconnected successfully' });
+    } catch (error) {
+        console.error('Error disconnecting WhatsApp:', error);
+        res.status(500).json({ error: 'Failed to disconnect: ' + error.message });
+    }
+});
+
 // Embedded Signup Callback - Exchange code for token
 router.post('/fb-callback', async (req, res) => {
     // Accept all data from frontend including any direct IDs from embedded signup
