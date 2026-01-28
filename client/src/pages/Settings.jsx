@@ -62,17 +62,20 @@ const Settings = () => {
 
             try {
                 const data = JSON.parse(event.data);
-                console.log('[Embedded Signup] Session Info Event:', data);
+                // Log ALL messages from Facebook for debugging
+                console.log('[Embedded Signup] Message from Facebook:', data);
 
-                if (data.type === 'WA_EMBEDDED_SIGNUP') {
+                // Handle both possible event type formats from Meta
+                if (data.type === 'WA_EMBEDDED_SIGNUP' || data.type === 'WA_EMBEDDED_SIGNUP_EVENT') {
                     // Handle different event types from embedded signup
                     if (data.event === 'FINISH') {
-                        console.log('[Embedded Signup] Flow completed:', data.data);
+                        console.log('[Embedded Signup] Flow completed! Data:', data.data);
                         // Store the IDs from the embedded signup using ref
                         embeddedSignupDataRef.current = {
-                            waba_id: data.data?.waba_id,
+                            waba_id: data.data?.waba_id || data.data?.whatsapp_business_account_id,
                             phone_number_id: data.data?.phone_number_id
                         };
+                        console.log('[Embedded Signup] Stored IDs:', embeddedSignupDataRef.current);
                     } else if (data.event === 'CANCEL') {
                         console.log('[Embedded Signup] User cancelled');
                     } else if (data.event === 'ERROR') {
@@ -80,7 +83,10 @@ const Settings = () => {
                     }
                 }
             } catch (e) {
-                // Ignore non-JSON messages
+                // Check if it's a non-JSON string message from Facebook
+                if (typeof event.data === 'string' && event.data.length < 200) {
+                    console.log('[Embedded Signup] Non-JSON message:', event.data);
+                }
             }
         };
 
@@ -183,6 +189,8 @@ const Settings = () => {
                 config_id: fbConfigId,
                 // Use default response_type (token) instead of 'code' to avoid redirect_uri mismatch
                 // The SDK will return accessToken directly in the authResponse
+                // Request whatsapp_business_management scope for WABA ID access
+                scope: 'whatsapp_business_management,whatsapp_business_messaging',
                 extras: {
                     setup: {},
                     featureType: '',
