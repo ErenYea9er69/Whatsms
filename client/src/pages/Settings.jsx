@@ -85,6 +85,7 @@ const Settings = () => {
                             await apiClient.post('/settings/fb-callback', {
                                 accessToken: response.authResponse.accessToken,
                                 code: response.authResponse.code,
+                                redirectUri: window.location.origin + window.location.pathname, // Send current URL for validation
                                 // Include any extra data from embedded signup
                                 signedRequest: response.authResponse.signedRequest,
                                 graphDomain: response.authResponse.graphDomain,

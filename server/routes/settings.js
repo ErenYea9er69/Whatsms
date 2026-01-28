@@ -122,14 +122,15 @@ router.delete('/whatsapp', async (req, res) => {
 // Embedded Signup Callback - Exchange code for token
 router.post('/fb-callback', async (req, res) => {
     // Accept all data from frontend including any direct IDs from embedded signup
-    const { code, phone_number_id: directPhoneId, waba_id: directWabaId } = req.body;
+    const { code, phone_number_id: directPhoneId, waba_id: directWabaId, redirectUri } = req.body;
     let step = 'init';
 
     // Log incoming data for debugging
     console.log('[FB-Callback] Received data:', {
         code: code ? 'present' : 'missing',
         directPhoneId: directPhoneId || 'not provided',
-        directWabaId: directWabaId || 'not provided'
+        directWabaId: directWabaId || 'not provided',
+        redirectUri: redirectUri || 'not provided'
     });
 
     try {
@@ -160,7 +161,8 @@ router.post('/fb-callback', async (req, res) => {
             params: {
                 client_id: FB_APP_ID,
                 client_secret: FB_APP_SECRET,
-                code: code
+                code: code,
+                redirect_uri: redirectUri // Required for code validation
             }
         });
 
