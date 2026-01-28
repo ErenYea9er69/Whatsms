@@ -13,6 +13,10 @@ router.get('/', async (req, res) => {
             return acc;
         }, {});
 
+        // Inject Platform Config from Environment (for multi-tenant SaaS mode)
+        configMap.fbAppId = process.env.FB_APP_ID || configMap.fbAppId || '';
+        configMap.fbConfigId = process.env.FB_CONFIG_ID || configMap.fbConfigId || '';
+
         // Determine the webhook URL dynamically if looking for it (optional helper)
         // but for now just return what's in DB
 
@@ -83,6 +87,98 @@ router.post('/test', async (req, res) => {
         res.json({ message: 'Configuration Saved & Validated (No test message sent)' });
     } catch (error) {
         res.status(500).json({ error: 'Connection test failed: ' + error.message });
+    }
+});
+
+// Embedded Signup Callback - Exchange code for token
+router.post('/fb-callback', async (req, res) => {
+    const { code } = req.body;
+
+    if (!code) {
+        return res.status(400).json({ error: 'Authorization code is required' });
+    }
+
+    const FB_APP_ID = process.env.FB_APP_ID;
+    const FB_APP_SECRET = process.env.FB_APP_SECRET;
+
+    if (!FB_APP_ID || !FB_APP_SECRET) {
+        console.error('Missing FB_APP_ID or FB_APP_SECRET in server environment');
+        return res.status(500).json({ error: 'Server configuration error (Missing App ID/Secret)' });
+    }
+
+    try {
+        const axios = require('axios');
+
+        // 1. Exchange Code for Access Token
+        console.log('Exchanging code for token...');
+        const tokenResponse = await axios.get('https://graph.facebook.com/v21.0/oauth/access_token', {
+            params: {
+                client_id: FB_APP_ID,
+                client_secret: FB_APP_SECRET,
+                code: code
+            }
+        });
+
+        const accessToken = tokenResponse.data.access_token;
+        console.log('Access Token received');
+
+        // 2. Identify WABA ID
+        // We debug the token to find the WABA ID it has access to
+        const debugResponse = await axios.get('https://graph.facebook.com/v21.0/debug_token', {
+            params: {
+                input_token: accessToken,
+                access_token: `${FB_APP_ID}|${FB_APP_SECRET}` // App Token for debug
+            }
+        });
+
+        const granularScopes = debugResponse.data.data.granular_scopes || [];
+        const whatsappScope = granularScopes.find(s => s.scope === 'whatsapp_business_management');
+
+        let wabaId = null;
+        if (whatsappScope && whatsappScope.target_ids && whatsappScope.target_ids.length > 0) {
+            wabaId = whatsappScope.target_ids[0];
+        }
+
+        // Fallback: If no granular scope, maybe check 'shared_waba_id' if present in debug data
+        // For now, assume wabaId is found. If not, we can't proceed.
+        if (!wabaId) {
+            // Try fetching via /me/accounts logic if needed, but granular scopes is the modern way for System Users
+            throw new Error('Could not identify WABA ID from token scopes');
+        }
+        console.log('Identified WABA ID:', wabaId);
+
+        // 3. Get Phone Number ID
+        const phoneResponse = await axios.get(`https://graph.facebook.com/v21.0/${wabaId}/phone_numbers`, {
+            params: { access_token: accessToken }
+        });
+
+        const phones = phoneResponse.data.data;
+        if (!phones || phones.length === 0) {
+            throw new Error('No phone numbers found in this WhatsApp Business Account');
+        }
+
+        // Prefer the first one, or maybe one that is verified?
+        const phoneNumberId = phones[0].id;
+        console.log('Identified Phone Number ID:', phoneNumberId);
+
+
+        // 4. Save to Database
+        await prisma.$transaction([
+            prisma.systemConfig.upsert({ where: { key: 'accessToken' }, update: { value: accessToken }, create: { key: 'accessToken', value: accessToken, description: 'Facebook System User Token' } }),
+            prisma.systemConfig.upsert({ where: { key: 'wabaId' }, update: { value: wabaId }, create: { key: 'wabaId', value: wabaId, description: 'WhatsApp Business Account ID' } }),
+            prisma.systemConfig.upsert({ where: { key: 'phoneNumberId' }, update: { value: phoneNumberId }, create: { key: 'phoneNumberId', value: phoneNumberId, description: 'WhatsApp Phone Number ID' } }),
+            // Also ensure verifyToken exists if not set
+            prisma.systemConfig.upsert({ where: { key: 'verifyToken' }, update: {}, create: { key: 'verifyToken', value: 'whatsms_token', description: 'Webhook Verification Token' } })
+        ]);
+
+        res.json({ success: true, message: 'WhatsApp Connected Successfully', wabaId, phoneNumberId });
+
+    } catch (error) {
+        console.error('Facebook Auth Error:', error.response?.data || error.message);
+        res.status(500).json({
+            error: 'Failed to complete Facebook Login',
+            details: error.response?.data?.error?.message || error.message
+        });
     }
 });
 
