@@ -148,6 +148,7 @@ router.post('/fb-callback', async (req, res) => {
         console.log('Identified WABA ID:', wabaId);
 
         // 3. Get Phone Number ID
+        // Note: We use the discovered wabaId to list numbers
         const phoneResponse = await axios.get(`https://graph.facebook.com/v21.0/${wabaId}/phone_numbers`, {
             params: { access_token: accessToken }
         });
@@ -157,21 +158,34 @@ router.post('/fb-callback', async (req, res) => {
             throw new Error('No phone numbers found in this WhatsApp Business Account');
         }
 
-        // Prefer the first one, or maybe one that is verified?
-        const phoneNumberId = phones[0].id;
+        // Prefer the first one
+        const selectedPhone = phones[0];
+        const phoneNumberId = selectedPhone.id;
         console.log('Identified Phone Number ID:', phoneNumberId);
 
+        // 3.5 Verify WABA ID from the Phone Number (Source of Truth)
+        // Sometimes granular scopes might point to a container, but the phone number knows its true owner.
+        // Also helps if wabaId from scope was somehow different.
+        const phoneDetailsResponse = await axios.get(`https://graph.facebook.com/v21.0/${phoneNumberId}`, {
+            params: {
+                fields: 'whatsapp_business_account',
+                access_token: accessToken
+            }
+        });
 
-        // 4. Save to Database
+        const confirmedWabaId = phoneDetailsResponse.data?.whatsapp_business_account?.id || wabaId;
+        console.log('Confirmed WABA ID:', confirmedWabaId);
+
+        // 4. Save to Database (Ensure all values are Strings)
         await prisma.$transaction([
             prisma.systemConfig.upsert({ where: { key: 'accessToken' }, update: { value: accessToken }, create: { key: 'accessToken', value: accessToken, description: 'Facebook System User Token' } }),
-            prisma.systemConfig.upsert({ where: { key: 'wabaId' }, update: { value: wabaId }, create: { key: 'wabaId', value: wabaId, description: 'WhatsApp Business Account ID' } }),
-            prisma.systemConfig.upsert({ where: { key: 'phoneNumberId' }, update: { value: phoneNumberId }, create: { key: 'phoneNumberId', value: phoneNumberId, description: 'WhatsApp Phone Number ID' } }),
+            prisma.systemConfig.upsert({ where: { key: 'wabaId' }, update: { value: String(confirmedWabaId) }, create: { key: 'wabaId', value: String(confirmedWabaId), description: 'WhatsApp Business Account ID' } }),
+            prisma.systemConfig.upsert({ where: { key: 'phoneNumberId' }, update: { value: String(phoneNumberId) }, create: { key: 'phoneNumberId', value: String(phoneNumberId), description: 'WhatsApp Phone Number ID' } }),
             // Also ensure verifyToken exists if not set
             prisma.systemConfig.upsert({ where: { key: 'verifyToken' }, update: {}, create: { key: 'verifyToken', value: 'whatsms_token', description: 'Webhook Verification Token' } })
         ]);
 
-        res.json({ success: true, message: 'WhatsApp Connected Successfully', wabaId, phoneNumberId });
+        res.json({ success: true, message: 'WhatsApp Connected Successfully', wabaId: confirmedWabaId, phoneNumberId });
 
     } catch (error) {
         console.error('Facebook Auth Error:', error.response?.data || error.message);
