@@ -249,7 +249,46 @@ router.post('/fb-callback', async (req, res) => {
             }
         }
 
+        // Method 4: Try to find WABA via client_waba_ids in debug response
+        if (!wabaId && debugResponse.data.data) {
+            console.log('[FB-Callback] Full debug_token response:', JSON.stringify(debugResponse.data.data, null, 2));
+
+            // Check for client_waba_ids
+            if (debugResponse.data.data.client_waba_ids && debugResponse.data.data.client_waba_ids.length > 0) {
+                wabaId = debugResponse.data.data.client_waba_ids[0];
+                console.log('[FB-Callback] Found WABA from client_waba_ids:', wabaId);
+            }
+
+            // Check messaging scope target_ids as well
+            const messagingScope = granularScopes.find(s => s.scope === 'whatsapp_business_messaging');
+            if (messagingScope && messagingScope.target_ids && messagingScope.target_ids.length > 0) {
+                // messaging scope target_ids might be phone_number_ids, try to get WABA from there
+                const possiblePhoneId = messagingScope.target_ids[0];
+                console.log('[FB-Callback] Found possible phone ID from messaging scope:', possiblePhoneId);
+
+                try {
+                    // Try to get WABA from this phone number
+                    const phoneWabaResponse = await axios.get(`https://graph.facebook.com/v21.0/${possiblePhoneId}`, {
+                        params: {
+                            fields: 'id,whatsapp_business_account',
+                            access_token: accessToken
+                        }
+                    });
+
+                    if (phoneWabaResponse.data?.whatsapp_business_account?.id) {
+                        wabaId = phoneWabaResponse.data.whatsapp_business_account.id;
+                        if (!phoneNumberId) phoneNumberId = possiblePhoneId;
+                        console.log('[FB-Callback] Found WABA from messaging scope phone:', wabaId);
+                    }
+                } catch (phoneErr) {
+                    console.log('[FB-Callback] Could not get WABA from messaging scope target:', phoneErr.message);
+                }
+            }
+        }
+
         if (!wabaId) {
+            // Log full debug data when failing
+            console.error('[FB-Callback] FAILED - Full debug data:', JSON.stringify(debugResponse.data, null, 2));
             throw new Error('Could not identify WABA ID. Please ensure you completed the WhatsApp Business setup in the popup. Scopes found: ' + JSON.stringify(granularScopes.map(s => s.scope)));
         }
         console.log('[FB-Callback] Step 2 SUCCESS: WABA ID =', wabaId);
