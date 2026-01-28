@@ -191,6 +191,10 @@ const Settings = () => {
                 // The SDK will return accessToken directly in the authResponse
                 // Request whatsapp_business_management scope for WABA ID access
                 scope: 'whatsapp_business_management,whatsapp_business_messaging',
+                // Force re-authentication to ensure user selects business/phone again
+                // This is critical to populate target_ids in the token
+                auth_type: 'reauthenticate',
+                return_scopes: true,
                 extras: {
                     setup: {},
                     featureType: '',
