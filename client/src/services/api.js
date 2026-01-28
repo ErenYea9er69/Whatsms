@@ -68,7 +68,14 @@ class ApiClient {
         }
 
         if (!response.ok) {
-            throw new Error(data.message || 'An error occurred');
+            // Create an error with full backend response data
+            const errorMessage = data.message || data.error || data.details || 'An error occurred';
+            const error = new Error(errorMessage);
+            // Attach the full response data to the error object for detailed debugging
+            error.data = data;
+            error.response = { data, status: response.status };
+            error.status = response.status;
+            throw error;
         }
 
         return data;
