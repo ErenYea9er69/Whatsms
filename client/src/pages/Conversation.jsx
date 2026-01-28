@@ -11,7 +11,7 @@ const Conversation = () => {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [teamMembers, setTeamMembers] = useState([]);
-    const [teamMembers, setTeamMembers] = useState([]);
+
     const messagesEndRef = useRef(null);
 
     // Canned Replies State
