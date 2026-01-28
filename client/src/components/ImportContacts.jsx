@@ -111,7 +111,7 @@ const ImportContacts = ({ onClose, onSuccess }) => {
                                             <Upload size={24} />
                                         </div>
                                         <p className="font-medium text-gray-900 dark:text-white">Click or drag CSV here</p>
-                                        <p className="text-sm text-gray-500 mt-1">Columns: name, phone, interests</p>
+                                        <p className="text-sm text-gray-500 mt-1">Columns: name, phone, interests, tags</p>
                                     </div>
                                 )}
                             </div>

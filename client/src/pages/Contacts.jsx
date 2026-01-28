@@ -203,60 +203,83 @@ const Contacts = () => {
             {/* Main Table Card */}
             <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 overflow-hidden">
                 {/* Filters */}
-                <div className="p-4 border-b border-gray-100 dark:border-gray-800/80 flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
+                <div className="p-4 border-b border-gray-100 dark:border-gray-800/80 flex flex-col md:flex-row gap-4 items-end md:items-center">
+                    <div className="flex-1 relative w-full">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 icon-gray" size={18} strokeWidth={1.75} />
                         <input
                             type="text"
-                            placeholder="Search contacts by name or phone..."
+                            placeholder="Search contacts..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:border-primary outline-none transition-all text-sm text-gray-900 dark:text-white placeholder:text-gray-400"
                         />
                     </div>
 
-                    {/* Tag Filter Dropdown */}
-                    <div className="relative">
+                    <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                        {/* Tag Filter */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowTagDropdown(!showTagDropdown)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium border whitespace-nowrap ${selectedTag ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+                            >
+                                <Tag size={16} strokeWidth={1.75} />
+                                <span>{selectedTag || 'Tag'}</span>
+                                <ChevronDown size={14} />
+                            </button>
+                            {showTagDropdown && (
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-surface-dark rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 z-50 py-2 max-h-60 overflow-y-auto">
+                                    <button onClick={() => { handleTagFilter(''); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">All Tags</button>
+                                    {allTags.map(tag => (
+                                        <button key={tag} onClick={() => { handleTagFilter(tag); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">{tag}</button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Engagement Filter */}
                         <button
-                            onClick={() => setShowTagDropdown(!showTagDropdown)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium border ${selectedTag ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+                            onClick={() => {
+                                const val = prompt('Show contacts with at least 1 reply? (Type "yes" to filter)');
+                                if (val === 'yes') {
+                                    // Hacky way to update query without full state refactor in this step
+                                    api.getContacts({ page: 1, minEngagement: 'true' }).then(d => { setContacts(d.contacts); setPagination(d.pagination); });
+                                    toast.success('Filtered by Engagement: Has Replies');
+                                } else {
+                                    fetchContacts();
+                                }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700 whitespace-nowrap"
+                            title="Filter by Engagement"
                         >
-                            <Tag size={16} strokeWidth={1.75} />
-                            <span>{selectedTag || 'Filter by Tag'}</span>
-                            <ChevronDown size={14} />
+                            <Filter size={16} className="icon-gray" strokeWidth={1.75} />
+                            <span>Engagement</span>
                         </button>
 
-                        {showTagDropdown && (
-                            <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-surface-dark rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 z-50 py-2 max-h-60 overflow-y-auto">
-                                <button
-                                    onClick={() => handleTagFilter('')}
-                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-emerald-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
-                                >
-                                    All Contacts
-                                </button>
-                                {allTags.map(tag => (
-                                    <button
-                                        key={tag}
-                                        onClick={() => handleTagFilter(tag)}
-                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedTag === tag ? 'text-emerald-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
-                                    >
-                                        {tag}
-                                    </button>
-                                ))}
-                                {allTags.length === 0 && (
-                                    <p className="px-4 py-2 text-xs text-gray-400">No tags created yet</p>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                        {/* Inactive Filter */}
+                        <button
+                            onClick={() => {
+                                const days = prompt('Show contacts inactive for more than X days (e.g., 30):');
+                                if (days) {
+                                    api.getContacts({ page: 1, daysInactive: days }).then(d => { setContacts(d.contacts); setPagination(d.pagination); });
+                                    toast.success(`Filtered: Inactive > ${days} days`);
+                                } else {
+                                    fetchContacts();
+                                }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700 whitespace-nowrap"
+                            title="Filter by Inactivity"
+                        >
+                            <History size={16} className="icon-gray" strokeWidth={1.75} />
+                            <span>Inactive</span>
+                        </button>
 
-                    <button
-                        onClick={() => fetchContacts(pagination.page, searchQuery, selectedTag)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700"
-                    >
-                        <RefreshCw size={16} className="icon-gray" strokeWidth={1.75} />
-                        <span>Refresh</span>
-                    </button>
+                        <button
+                            onClick={() => fetchContacts(pagination.page, searchQuery, selectedTag)}
+                            className="flex items-center gap-2 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700"
+                        >
+                            <RefreshCw size={16} className="icon-gray" strokeWidth={1.75} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Error State */}

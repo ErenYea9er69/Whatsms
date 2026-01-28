@@ -33,6 +33,8 @@ router.get('/', async (req, res) => {
             limit = 20,
             search = '',
             tag = '',
+            daysInactive = '', // Filter by "last interaction > X days ago"
+            minEngagement = '', // Filter by "has replied at least X times"
             sortBy = 'createdAt',
             sortOrder = 'desc'
         } = req.query;
@@ -54,6 +56,20 @@ router.get('/', async (req, res) => {
             where.tags = { has: tag };
         }
 
+        // Filter by Inactivity (Last Interaction)
+        if (daysInactive) {
+            const date = new Date();
+            date.setDate(date.getDate() - parseInt(daysInactive));
+            where.updatedAt = { lte: date };
+        }
+
+        // Filter by Engagement (Has replied > X times)
+        // Complex filter: requires aggregation or relation count. 
+        // For simplicity/performance in this iteration, we check if they have ANY replies if param is set
+        if (minEngagement) {
+            where.messages = { some: { replied: true } };
+        }
+
         const [contacts, total] = await Promise.all([
             prisma.contact.findMany({
                 where,
@@ -67,6 +83,10 @@ router.get('/', async (req, res) => {
                                 select: { id: true, name: true }
                             }
                         }
+                    },
+                    // Include stats for the UI
+                    _count: {
+                        select: { messages: true }
                     }
                 }
             }),
