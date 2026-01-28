@@ -389,6 +389,23 @@ class ApiClient {
             body: data,
         });
     }
+    // Canned Replies
+    async getCannedReplies() {
+        return this.request('/canned');
+    }
+
+    async createCannedReply(data) {
+        return this.request('/canned', {
+            method: 'POST',
+            body: data,
+        });
+    }
+
+    async deleteCannedReply(id) {
+        return this.request(`/canned/${id}`, {
+            method: 'DELETE',
+        });
+    }
 }
 
 // Export singleton instance

@@ -227,3 +227,13 @@ model ContactNote {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model CannedReply {
+  id        Int      @id @default(autoincrement())
+  title     String
+  shortcut  String   @unique
+  content   String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
