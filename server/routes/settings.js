@@ -103,8 +103,16 @@ router.post('/test', async (req, res) => {
 
 // Embedded Signup Callback - Exchange code for token
 router.post('/fb-callback', async (req, res) => {
-    const { code } = req.body;
+    // Accept all data from frontend including any direct IDs from embedded signup
+    const { code, phone_number_id: directPhoneId, waba_id: directWabaId } = req.body;
     let step = 'init';
+
+    // Log incoming data for debugging
+    console.log('[FB-Callback] Received data:', {
+        code: code ? 'present' : 'missing',
+        directPhoneId: directPhoneId || 'not provided',
+        directWabaId: directWabaId || 'not provided'
+    });
 
     try {
         step = 'validate_input';
@@ -160,9 +168,20 @@ router.post('/fb-callback', async (req, res) => {
         const whatsappScope = granularScopes.find(s => s.scope === 'whatsapp_business_management');
 
         let wabaId = null;
+        let phoneNumberId = null;
+
+        // Method 0: Use direct IDs from frontend if provided by embedded signup
+        if (directWabaId) {
+            wabaId = directWabaId;
+            console.log('[FB-Callback] Using direct WABA ID from frontend:', wabaId);
+        }
+        if (directPhoneId) {
+            phoneNumberId = directPhoneId;
+            console.log('[FB-Callback] Using direct Phone ID from frontend:', phoneNumberId);
+        }
 
         // Method 1: Try to get WABA ID from granular scopes target_ids
-        if (whatsappScope && whatsappScope.target_ids && whatsappScope.target_ids.length > 0) {
+        if (!wabaId && whatsappScope && whatsappScope.target_ids && whatsappScope.target_ids.length > 0) {
             wabaId = whatsappScope.target_ids[0];
             console.log('[FB-Callback] Found WABA ID from granular scopes:', wabaId);
         }
@@ -217,21 +236,25 @@ router.post('/fb-callback', async (req, res) => {
         }
         console.log('[FB-Callback] Step 2 SUCCESS: WABA ID =', wabaId);
 
-        // 3. Get Phone Number ID
-        step = 'get_phone_numbers';
-        console.log('[FB-Callback] Step 3: Fetching phone numbers for WABA', wabaId);
-        const phoneResponse = await axios.get(`https://graph.facebook.com/v21.0/${wabaId}/phone_numbers`, {
-            params: { access_token: accessToken }
-        });
+        // 3. Get Phone Number ID (skip if already provided from frontend)
+        if (!phoneNumberId) {
+            step = 'get_phone_numbers';
+            console.log('[FB-Callback] Step 3: Fetching phone numbers for WABA', wabaId);
+            const phoneResponse = await axios.get(`https://graph.facebook.com/v21.0/${wabaId}/phone_numbers`, {
+                params: { access_token: accessToken }
+            });
 
-        const phones = phoneResponse.data.data;
-        if (!phones || phones.length === 0) {
-            throw new Error('No phone numbers found in this WhatsApp Business Account');
+            const phones = phoneResponse.data.data;
+            if (!phones || phones.length === 0) {
+                throw new Error('No phone numbers found in this WhatsApp Business Account');
+            }
+
+            const selectedPhone = phones[0];
+            phoneNumberId = selectedPhone.id;
+            console.log('[FB-Callback] Step 3 SUCCESS: Phone Number ID =', phoneNumberId);
+        } else {
+            console.log('[FB-Callback] Step 3 SKIPPED: Using direct Phone ID from frontend');
         }
-
-        const selectedPhone = phones[0];
-        const phoneNumberId = selectedPhone.id;
-        console.log('[FB-Callback] Step 3 SUCCESS: Phone Number ID =', phoneNumberId);
 
         // 3.5 Confirm WABA ID from phone number details
         step = 'confirm_waba';

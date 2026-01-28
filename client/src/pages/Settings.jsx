@@ -71,16 +71,26 @@ const Settings = () => {
 
             // Launch Embedded Signup
             window.FB.login(function (response) {
+                // Log the FULL response for debugging
+                console.log('FB FULL Response:', response);
+                console.log('FB Auth Response:', response.authResponse);
+
                 if (response.authResponse) {
-                    console.log('FB Auth Response:', response.authResponse);
                     toast.success('WhatsApp Connected! Saving credentials...');
 
                     // Save the token to backend
                     const saveCredentials = async () => {
                         try {
+                            // Pass all available data from the popup
                             await apiClient.post('/settings/fb-callback', {
                                 accessToken: response.authResponse.accessToken,
-                                code: response.authResponse.code
+                                code: response.authResponse.code,
+                                // Include any extra data from embedded signup
+                                signedRequest: response.authResponse.signedRequest,
+                                graphDomain: response.authResponse.graphDomain,
+                                // Sometimes FB includes these in the response directly
+                                phone_number_id: response.phone_number_id,
+                                waba_id: response.waba_id
                             });
                             toast.success('WhatsApp connected successfully!');
                             fetchSettings(); // Refresh to show connected status
