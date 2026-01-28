@@ -82,10 +82,15 @@ const Settings = () => {
                                 accessToken: response.authResponse.accessToken,
                                 code: response.authResponse.code
                             });
+                            toast.success('WhatsApp connected successfully!');
                             fetchSettings(); // Refresh to show connected status
                         } catch (err) {
                             console.error('Failed to save credentials:', err);
-                            toast.error('Failed to save connection. Please try again.');
+                            // Try to extract detailed error from backend
+                            const errorData = err.response?.data || err.data || {};
+                            const errorMsg = errorData.details || errorData.error || err.message || 'Unknown error';
+                            const errorStep = errorData.step ? ` (Step: ${errorData.step})` : '';
+                            toast.error(`Connection failed${errorStep}: ${errorMsg}`);
                         }
                     };
                     saveCredentials();

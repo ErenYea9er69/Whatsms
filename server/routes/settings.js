@@ -93,24 +93,32 @@ router.post('/test', async (req, res) => {
 // Embedded Signup Callback - Exchange code for token
 router.post('/fb-callback', async (req, res) => {
     const { code } = req.body;
-
-    if (!code) {
-        return res.status(400).json({ error: 'Authorization code is required' });
-    }
-
-    const FB_APP_ID = process.env.FB_APP_ID;
-    const FB_APP_SECRET = process.env.FB_APP_SECRET;
-
-    if (!FB_APP_ID || !FB_APP_SECRET) {
-        console.error('Missing FB_APP_ID or FB_APP_SECRET in server environment');
-        return res.status(500).json({ error: 'Server configuration error (Missing App ID/Secret)' });
-    }
+    let step = 'init';
 
     try {
+        step = 'validate_input';
+        if (!code) {
+            return res.status(400).json({ error: 'Authorization code is required', step });
+        }
+
+        step = 'check_env';
+        const FB_APP_ID = process.env.FB_APP_ID;
+        const FB_APP_SECRET = process.env.FB_APP_SECRET;
+
+        if (!FB_APP_ID || !FB_APP_SECRET) {
+            console.error('Missing FB_APP_ID or FB_APP_SECRET in server environment');
+            return res.status(500).json({
+                error: 'Server configuration error',
+                step,
+                details: `FB_APP_ID: ${FB_APP_ID ? 'SET' : 'MISSING'}, FB_APP_SECRET: ${FB_APP_SECRET ? 'SET' : 'MISSING'}`
+            });
+        }
+
         const axios = require('axios');
 
         // 1. Exchange Code for Access Token
-        console.log('Exchanging code for token...');
+        step = 'exchange_code';
+        console.log('[FB-Callback] Step 1: Exchanging code for token...');
         const tokenResponse = await axios.get('https://graph.facebook.com/v21.0/oauth/access_token', {
             params: {
                 client_id: FB_APP_ID,
@@ -120,18 +128,24 @@ router.post('/fb-callback', async (req, res) => {
         });
 
         const accessToken = tokenResponse.data.access_token;
-        console.log('Access Token received');
+        if (!accessToken) {
+            throw new Error('No access token returned from Facebook');
+        }
+        console.log('[FB-Callback] Step 1 SUCCESS: Access Token received');
 
-        // 2. Identify WABA ID
-        // We debug the token to find the WABA ID it has access to
+        // 2. Identify WABA ID via debug_token
+        step = 'debug_token';
+        console.log('[FB-Callback] Step 2: Debugging token to find WABA ID...');
         const debugResponse = await axios.get('https://graph.facebook.com/v21.0/debug_token', {
             params: {
                 input_token: accessToken,
-                access_token: `${FB_APP_ID}|${FB_APP_SECRET}` // App Token for debug
+                access_token: `${FB_APP_ID}|${FB_APP_SECRET}`
             }
         });
 
-        const granularScopes = debugResponse.data.data.granular_scopes || [];
+        const granularScopes = debugResponse.data.data?.granular_scopes || [];
+        console.log('[FB-Callback] Granular scopes:', JSON.stringify(granularScopes));
+
         const whatsappScope = granularScopes.find(s => s.scope === 'whatsapp_business_management');
 
         let wabaId = null;
@@ -139,16 +153,14 @@ router.post('/fb-callback', async (req, res) => {
             wabaId = whatsappScope.target_ids[0];
         }
 
-        // Fallback: If no granular scope, maybe check 'shared_waba_id' if present in debug data
-        // For now, assume wabaId is found. If not, we can't proceed.
         if (!wabaId) {
-            // Try fetching via /me/accounts logic if needed, but granular scopes is the modern way for System Users
-            throw new Error('Could not identify WABA ID from token scopes');
+            throw new Error('Could not identify WABA ID from token scopes. Scopes found: ' + JSON.stringify(granularScopes.map(s => s.scope)));
         }
-        console.log('Identified WABA ID:', wabaId);
+        console.log('[FB-Callback] Step 2 SUCCESS: WABA ID =', wabaId);
 
         // 3. Get Phone Number ID
-        // Note: We use the discovered wabaId to list numbers
+        step = 'get_phone_numbers';
+        console.log('[FB-Callback] Step 3: Fetching phone numbers for WABA', wabaId);
         const phoneResponse = await axios.get(`https://graph.facebook.com/v21.0/${wabaId}/phone_numbers`, {
             params: { access_token: accessToken }
         });
@@ -158,14 +170,13 @@ router.post('/fb-callback', async (req, res) => {
             throw new Error('No phone numbers found in this WhatsApp Business Account');
         }
 
-        // Prefer the first one
         const selectedPhone = phones[0];
         const phoneNumberId = selectedPhone.id;
-        console.log('Identified Phone Number ID:', phoneNumberId);
+        console.log('[FB-Callback] Step 3 SUCCESS: Phone Number ID =', phoneNumberId);
 
-        // 3.5 Verify WABA ID from the Phone Number (Source of Truth)
-        // Sometimes granular scopes might point to a container, but the phone number knows its true owner.
-        // Also helps if wabaId from scope was somehow different.
+        // 3.5 Confirm WABA ID from phone number details
+        step = 'confirm_waba';
+        console.log('[FB-Callback] Step 3.5: Confirming WABA ID from phone number...');
         const phoneDetailsResponse = await axios.get(`https://graph.facebook.com/v21.0/${phoneNumberId}`, {
             params: {
                 fields: 'whatsapp_business_account',
@@ -174,24 +185,28 @@ router.post('/fb-callback', async (req, res) => {
         });
 
         const confirmedWabaId = phoneDetailsResponse.data?.whatsapp_business_account?.id || wabaId;
-        console.log('Confirmed WABA ID:', confirmedWabaId);
+        console.log('[FB-Callback] Step 3.5 SUCCESS: Confirmed WABA ID =', confirmedWabaId);
 
-        // 4. Save to Database (Ensure all values are Strings)
+        // 4. Save to Database
+        step = 'save_db';
+        console.log('[FB-Callback] Step 4: Saving to database...');
         await prisma.$transaction([
             prisma.systemConfig.upsert({ where: { key: 'accessToken' }, update: { value: accessToken }, create: { key: 'accessToken', value: accessToken, description: 'Facebook System User Token' } }),
             prisma.systemConfig.upsert({ where: { key: 'wabaId' }, update: { value: String(confirmedWabaId) }, create: { key: 'wabaId', value: String(confirmedWabaId), description: 'WhatsApp Business Account ID' } }),
             prisma.systemConfig.upsert({ where: { key: 'phoneNumberId' }, update: { value: String(phoneNumberId) }, create: { key: 'phoneNumberId', value: String(phoneNumberId), description: 'WhatsApp Phone Number ID' } }),
-            // Also ensure verifyToken exists if not set
             prisma.systemConfig.upsert({ where: { key: 'verifyToken' }, update: {}, create: { key: 'verifyToken', value: 'whatsms_token', description: 'Webhook Verification Token' } })
         ]);
+        console.log('[FB-Callback] Step 4 SUCCESS: Database updated');
 
         res.json({ success: true, message: 'WhatsApp Connected Successfully', wabaId: confirmedWabaId, phoneNumberId });
 
     } catch (error) {
-        console.error('Facebook Auth Error:', error.response?.data || error.message);
+        const errorDetails = error.response?.data?.error?.message || error.response?.data || error.message;
+        console.error(`[FB-Callback] FAILED at step "${step}":`, errorDetails);
         res.status(500).json({
             error: 'Failed to complete Facebook Login',
-            details: error.response?.data?.error?.message || error.message
+            step: step,
+            details: typeof errorDetails === 'object' ? JSON.stringify(errorDetails) : errorDetails
         });
     }
 });
