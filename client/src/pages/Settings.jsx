@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import apiClient from '../services/api';
@@ -49,6 +49,45 @@ const Settings = () => {
         }
     };
 
+    // Ref to store embedded signup data - using ref instead of state to avoid closure issues
+    const embeddedSignupDataRef = useRef(null);
+
+    // Set up Meta's sessionInfoListener to capture WABA ID and Phone ID
+    useEffect(() => {
+        const sessionInfoListener = (event) => {
+            // Only accept messages from Facebook
+            if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") {
+                return;
+            }
+
+            try {
+                const data = JSON.parse(event.data);
+                console.log('[Embedded Signup] Session Info Event:', data);
+
+                if (data.type === 'WA_EMBEDDED_SIGNUP') {
+                    // Handle different event types from embedded signup
+                    if (data.event === 'FINISH') {
+                        console.log('[Embedded Signup] Flow completed:', data.data);
+                        // Store the IDs from the embedded signup using ref
+                        embeddedSignupDataRef.current = {
+                            waba_id: data.data?.waba_id,
+                            phone_number_id: data.data?.phone_number_id
+                        };
+                    } else if (data.event === 'CANCEL') {
+                        console.log('[Embedded Signup] User cancelled');
+                    } else if (data.event === 'ERROR') {
+                        console.error('[Embedded Signup] Error:', data.data);
+                    }
+                }
+            } catch (e) {
+                // Ignore non-JSON messages
+            }
+        };
+
+        window.addEventListener('message', sessionInfoListener);
+        return () => window.removeEventListener('message', sessionInfoListener);
+    }, []);
+
     const launchWhatsAppSignup = () => {
         // Use credentials from backend (Environment or DB)
         const fbAppId = credentials.fbAppId;
@@ -59,6 +98,9 @@ const Settings = () => {
             console.error('Missing fbAppId or fbConfigId in settings response');
             return;
         }
+
+        // Reset embedded signup data for fresh flow
+        embeddedSignupDataRef.current = null;
 
         // Load FB SDK if not already loaded
         const initAndLogin = () => {
@@ -81,17 +123,24 @@ const Settings = () => {
                     // Save the token to backend
                     const saveCredentials = async () => {
                         try {
+                            // Get the embedded signup data from session info listener
+                            // We may need a slight delay for the message event to arrive
+                            await new Promise(resolve => setTimeout(resolve, 500));
+
+                            // Capture current embedded signup data from ref (was set by sessionInfoListener)
+                            const currentEmbeddedData = embeddedSignupDataRef.current;
+                            console.log('[FB-Callback] Embedded Signup Data:', currentEmbeddedData);
+
                             // Pass all available data from the popup
                             await apiClient.post('/settings/fb-callback', {
                                 accessToken: response.authResponse.accessToken,
                                 code: response.authResponse.code,
-                                redirectUri: window.location.origin + window.location.pathname, // Send current URL for validation
-                                // Include any extra data from embedded signup
+                                // Include any extra data from embedded signup session listener
                                 signedRequest: response.authResponse.signedRequest,
                                 graphDomain: response.authResponse.graphDomain,
-                                // Sometimes FB includes these in the response directly
-                                phone_number_id: response.phone_number_id,
-                                waba_id: response.waba_id
+                                // Pass IDs from session info listener if available
+                                phone_number_id: currentEmbeddedData?.phone_number_id || response.phone_number_id,
+                                waba_id: currentEmbeddedData?.waba_id || response.waba_id
                             });
                             toast.success('WhatsApp connected successfully!');
                             fetchSettings(); // Refresh to show connected status
