@@ -161,8 +161,8 @@ router.post('/fb-callback', async (req, res) => {
             params: {
                 client_id: FB_APP_ID,
                 client_secret: FB_APP_SECRET,
-                code: code,
-                redirect_uri: redirectUri // Required for code validation
+                code: code
+                // Note: redirect_uri not needed for JS SDK Embedded Signup flow
             }
         });
 
