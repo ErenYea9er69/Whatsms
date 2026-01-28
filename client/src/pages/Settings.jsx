@@ -181,8 +181,8 @@ const Settings = () => {
                 }
             }, {
                 config_id: fbConfigId,
-                response_type: 'code',
-                override_default_response_type: true,
+                // Use default response_type (token) instead of 'code' to avoid redirect_uri mismatch
+                // The SDK will return accessToken directly in the authResponse
                 extras: {
                     setup: {},
                     featureType: '',
