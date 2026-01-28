@@ -27,6 +27,17 @@ router.get('/', async (req, res) => {
     }
 });
 
+// DEBUG: Check environment variables (remove in production)
+router.get('/debug-env', async (req, res) => {
+    res.json({
+        FB_APP_ID: process.env.FB_APP_ID ? 'SET (' + process.env.FB_APP_ID.substring(0, 8) + '...)' : 'NOT SET',
+        FB_APP_SECRET: process.env.FB_APP_SECRET ? 'SET (' + process.env.FB_APP_SECRET.substring(0, 4) + '...)' : 'NOT SET',
+        FB_CONFIG_ID: process.env.FB_CONFIG_ID ? 'SET (' + process.env.FB_CONFIG_ID.substring(0, 8) + '...)' : 'NOT SET',
+        DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT SET',
+        NODE_ENV: process.env.NODE_ENV || 'not set'
+    });
+});
+
 // Update system settings (upsert)
 router.post('/', async (req, res) => {
     const settings = req.body; // Expecting { key: value, key2: value2 }
