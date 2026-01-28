@@ -63,6 +63,38 @@ const Settings = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    /** Canned Replies Logic */
+    const [cannedReplies, setCannedReplies] = useState([]);
+    const [newReply, setNewReply] = useState({ title: '', shortcut: '', content: '' });
+
+    useEffect(() => {
+        apiClient.getCannedReplies().then(setCannedReplies).catch(console.error);
+    }, []);
+
+    const handleCreateReply = async (e) => {
+        e.preventDefault();
+        try {
+            const saved = await apiClient.createCannedReply(newReply);
+            setCannedReplies([...cannedReplies, saved]);
+            setNewReply({ title: '', shortcut: '', content: '' });
+            toast.success('Canned reply created!');
+        } catch (error) {
+            toast.error(error.message || 'Failed to create canned reply');
+        }
+    };
+
+    const handleDeleteReply = async (id) => {
+        if (!window.confirm('Delete this canned reply?')) return;
+        try {
+            await apiClient.deleteCannedReply(id);
+            setCannedReplies(cannedReplies.filter(r => r.id !== id));
+            toast.success('Deleted canned reply');
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">

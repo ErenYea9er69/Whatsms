@@ -11,7 +11,25 @@ const Conversation = () => {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [teamMembers, setTeamMembers] = useState([]);
+    const [teamMembers, setTeamMembers] = useState([]);
     const messagesEndRef = useRef(null);
+
+    // Canned Replies State
+    const [cannedReplies, setCannedReplies] = useState([]);
+    const [showCannedPopup, setShowCannedPopup] = useState(false);
+    const [filteredCannedReplies, setFilteredCannedReplies] = useState([]);
+
+    useEffect(() => {
+        api.getCannedReplies().then(setCannedReplies).catch(console.error);
+    }, []);
+
+    const confirmCannedReply = (reply) => {
+        // Replace the last word (which is likely the shortcut) with the content
+        const words = newMessage.split(' ');
+        words.pop(); // Remove the shortcut trigger
+        setNewMessage(words.join(' ') + (words.length > 0 ? ' ' : '') + reply.content);
+        setShowCannedPopup(false);
+    };
 
     useEffect(() => {
         if (id) {
@@ -149,13 +167,62 @@ const Conversation = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 relative">
+                    {/* Canned Reply Popup */}
+                    {showCannedPopup && (
+                        <div className="absolute bottom-full left-4 mb-2 w-72 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-10">
+                            <div className="p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 uppercase">
+                                Quick Replies
+                            </div>
+                            <div className="max-h-60 overflow-y-auto">
+                                {filteredCannedReplies.map((reply) => (
+                                    <button
+                                        key={reply.id}
+                                        onClick={() => confirmCannedReply(reply)}
+                                        className="w-full text-left px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0"
+                                    >
+                                        <div className="flex justify-between">
+                                            <span className="font-medium text-sm text-gray-800 dark:text-gray-200">{reply.title}</span>
+                                            <code className="text-xs text-blue-500">{reply.shortcut}</code>
+                                        </div>
+                                        <p className="text-xs text-gray-500 truncate mt-0.5">{reply.content}</p>
+                                    </button>
+                                ))}
+                                {filteredCannedReplies.length === 0 && (
+                                    <div className="p-3 text-center text-xs text-gray-400">No matching replies</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSendMessage} className="flex gap-2">
                         <input
                             type="text"
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Type a message..."
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setNewMessage(val);
+
+                                // Check for trigger
+                                if (val.includes('/')) {
+                                    const lastPart = val.split(' ').pop(); // Get last word
+                                    if (lastPart.startsWith('/')) {
+                                        setShowCannedPopup(true);
+                                        const query = lastPart.toLowerCase(); // keep the / for filtering
+                                        setFilteredCannedReplies(
+                                            cannedReplies.filter(r =>
+                                                r.shortcut.toLowerCase().includes(query) ||
+                                                r.title.toLowerCase().includes(query.replace('/', ''))
+                                            )
+                                        );
+                                    } else {
+                                        setShowCannedPopup(false);
+                                    }
+                                } else {
+                                    setShowCannedPopup(false);
+                                }
+                            }}
+                            placeholder="Type a message... (Type / for quick replies)"
                             className="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:placeholder-gray-400"
                         />
                         <button
