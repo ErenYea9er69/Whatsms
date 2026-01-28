@@ -146,10 +146,31 @@ const Settings = () => {
                             fetchSettings(); // Refresh to show connected status
                         } catch (err) {
                             console.error('Failed to save credentials:', err);
+                            console.error('Full error object:', JSON.stringify(err, null, 2));
+
                             // Try to extract detailed error from backend
                             const errorData = err.response?.data || err.data || {};
-                            const errorMsg = errorData.details || errorData.error || err.message || 'Unknown error';
+                            console.error('Backend error data:', JSON.stringify(errorData, null, 2));
+
+                            // Build a detailed error message
+                            let errorMsg = errorData.details || errorData.error || err.message || 'Unknown error';
                             const errorStep = errorData.step ? ` (Step: ${errorData.step})` : '';
+
+                            // If it's a Facebook error, show the full details
+                            if (errorData.full_fb_error) {
+                                const fbErr = errorData.full_fb_error.error || {};
+                                console.error('Facebook API Error:', {
+                                    message: fbErr.message,
+                                    code: fbErr.code,
+                                    type: fbErr.type,
+                                    subcode: fbErr.error_subcode,
+                                    trace_id: fbErr.fbtrace_id
+                                });
+
+                                // Create a more readable error message
+                                errorMsg = `${fbErr.message || errorMsg} [Code: ${fbErr.code || 'N/A'}, Type: ${fbErr.type || 'N/A'}]`;
+                            }
+
                             toast.error(`Connection failed${errorStep}: ${errorMsg}`);
                         }
                     };

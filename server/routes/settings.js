@@ -161,24 +161,57 @@ router.post('/fb-callback', async (req, res) => {
         if (req.body.accessToken) {
             accessToken = req.body.accessToken;
             console.log('[FB-Callback] Using accessToken provided by JS SDK directly');
+            console.log('[FB-Callback] accessToken length:', accessToken.length);
         } else if (code) {
             // Fallback: Exchange Code for Access Token (server-side OAuth flow)
             step = 'exchange_code';
             console.log('[FB-Callback] Step 1: Exchanging code for token...');
-            const tokenResponse = await axios.get('https://graph.facebook.com/v21.0/oauth/access_token', {
-                params: {
-                    client_id: FB_APP_ID,
-                    client_secret: FB_APP_SECRET,
-                    code: code
-                    // Note: redirect_uri not needed for JS SDK Embedded Signup flow
-                }
-            });
+            console.log('[FB-Callback] Code length:', code.length);
+            console.log('[FB-Callback] Code prefix:', code.substring(0, 20) + '...');
+            console.log('[FB-Callback] FB_APP_ID:', FB_APP_ID);
+            console.log('[FB-Callback] FB_APP_SECRET length:', FB_APP_SECRET.length);
 
-            accessToken = tokenResponse.data.access_token;
-            if (!accessToken) {
-                throw new Error('No access token returned from Facebook');
+            try {
+                const tokenResponse = await axios.get('https://graph.facebook.com/v21.0/oauth/access_token', {
+                    params: {
+                        client_id: FB_APP_ID,
+                        client_secret: FB_APP_SECRET,
+                        code: code
+                        // Note: redirect_uri not needed for JS SDK Embedded Signup flow
+                    }
+                });
+
+                accessToken = tokenResponse.data.access_token;
+                if (!accessToken) {
+                    console.error('[FB-Callback] Token response data:', JSON.stringify(tokenResponse.data));
+                    throw new Error('No access token returned from Facebook');
+                }
+                console.log('[FB-Callback] Step 1 SUCCESS: Access Token received, length:', accessToken.length);
+            } catch (tokenError) {
+                // Capture detailed error from Facebook
+                console.error('[FB-Callback] Token exchange FAILED');
+                console.error('[FB-Callback] Error message:', tokenError.message);
+
+                if (tokenError.response) {
+                    console.error('[FB-Callback] Facebook Error Status:', tokenError.response.status);
+                    console.error('[FB-Callback] Facebook Error Data:', JSON.stringify(tokenError.response.data, null, 2));
+
+                    // Return the EXACT Facebook error to the frontend
+                    const fbError = tokenError.response.data?.error || {};
+                    return res.status(400).json({
+                        error: 'Facebook token exchange failed',
+                        step: 'exchange_code',
+                        details: fbError.message || tokenError.message,
+                        fb_error_code: fbError.code,
+                        fb_error_type: fbError.type,
+                        fb_error_subcode: fbError.error_subcode,
+                        fb_trace_id: fbError.fbtrace_id,
+                        full_fb_error: tokenError.response.data
+                    });
+                }
+
+                throw tokenError;
             }
-            console.log('[FB-Callback] Step 1 SUCCESS: Access Token received');
         } else {
             throw new Error('Neither accessToken nor code provided');
         }
