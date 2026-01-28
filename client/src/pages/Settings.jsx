@@ -50,69 +50,79 @@ const Settings = () => {
     };
 
     const launchWhatsAppSignup = () => {
-        if (!credentials.fbAppId || !credentials.fbConfigId) {
-            toast.error('App ID and Config ID are required');
+        // Use environment variables for App ID and Config ID
+        const fbAppId = import.meta.env.VITE_FB_APP_ID;
+        const fbConfigId = import.meta.env.VITE_FB_CONFIG_ID;
+
+        if (!fbAppId || !fbConfigId) {
+            toast.error('WhatsApp setup not configured. Please contact support.');
+            console.error('Missing VITE_FB_APP_ID or VITE_FB_CONFIG_ID in environment');
             return;
         }
 
-        // Load FB SDK
-        window.fbAsyncInit = function () {
+        // Load FB SDK if not already loaded
+        const initAndLogin = () => {
             window.FB.init({
-                appId: credentials.fbAppId,
+                appId: fbAppId,
                 cookie: true,
                 xfbml: true,
                 version: 'v21.0'
             });
 
-            // Launch Login
+            // Launch Embedded Signup
             window.FB.login(function (response) {
                 if (response.authResponse) {
-                    const code = response.authResponse.code;
-                    // Exchange code for token on backend
-                    // Or if using simple flow, we might get accessToken directly depending on config
-                    // Ideally we send this code to backend to exchange for long-lived system user token
                     console.log('FB Auth Response:', response.authResponse);
+                    toast.success('WhatsApp Connected! Saving credentials...');
 
-                    /* 
-                       NOTE: Real implementation requires passing this 'code' to your backend 
-                       to exchange for a System User Access Token via Graph API.
-                       For now, we'll try to capture what we can from client-side just to show flow.
-                    */
-
-                    // Temporarily saving what we have (this is likely a User Token, not System User)
-                    // But for Embedded Signup, the recommended flow returns a code.
-                    toast.success('Facebook Connected! Processing...');
-
-                    // Example of saving (in real app, use backend exchange)
-                    setCredentials(prev => ({
-                        ...prev,
-                        accessToken: response.authResponse.accessToken // Temporary
-                        // WABA ID comes from subsequent API calls using this token
-                    }));
-
+                    // Save the token to backend
+                    const saveCredentials = async () => {
+                        try {
+                            await apiClient.post('/settings/fb-callback', {
+                                accessToken: response.authResponse.accessToken,
+                                code: response.authResponse.code
+                            });
+                            fetchSettings(); // Refresh to show connected status
+                        } catch (err) {
+                            console.error('Failed to save credentials:', err);
+                            toast.error('Failed to save connection. Please try again.');
+                        }
+                    };
+                    saveCredentials();
                 } else {
                     console.log('User cancelled login or did not fully authorize.');
+                    toast.error('Connection cancelled');
                 }
             }, {
-                config_id: credentials.fbConfigId, // The config ID from FB Login for Business
-                response_type: 'code', // Recommended for security
+                config_id: fbConfigId,
+                response_type: 'code',
                 override_default_response_type: true,
                 extras: {
-                    setup: {
-                        // Prefill data if available
-                    }
+                    setup: {},
+                    featureType: '',
+                    sessionInfoVersion: '3'
                 }
             });
         };
 
-        // Inject SDK
-        (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) { return; }
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
+        // Check if SDK is already loaded
+        if (window.FB) {
+            initAndLogin();
+        } else {
+            window.fbAsyncInit = initAndLogin;
+
+            // Inject SDK script
+            (function (d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {
+                    initAndLogin();
+                    return;
+                }
+                js = d.createElement(s); js.id = id;
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+        }
     };
 
     const handleChange = (e) => {
@@ -183,92 +193,70 @@ const Settings = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Embedded Signup Card */}
+                {/* WhatsApp Setup Card */}
                 <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                        <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center">
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.197 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                             </svg>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg">Facebook Connection</h3>
-                            <p className="text-sm text-gray-400">Connect your WhatsApp Business Account</p>
+                            <h3 className="font-semibold text-lg">WhatsApp Business API</h3>
+                            <p className="text-sm text-gray-400">Connect your business phone number</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
-                            <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 text-sm">Setup Instructions</h4>
-                            <ol className="list-decimal pl-4 space-y-1 text-xs text-blue-700 dark:text-blue-400">
-                                <li>Create a <strong>Meta App</strong> (Type: Business).</li>
-                                <li>Add <strong>WhatsApp</strong> product.</li>
-                                <li>Create a <strong>Configuration</strong> in "Facebook Login for Business".</li>
-                                <li>Enter your App ID and Config ID below.</li>
-                                <li>Click "Connect with Facebook" to onboard.</li>
-                            </ol>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Facebook App ID</label>
-                            <input
-                                type="text"
-                                name="fbAppId"
-                                value={credentials.fbAppId || ''}
-                                onChange={handleChange}
-                                placeholder="e.g. 1234567890..."
-                                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Configuration ID</label>
-                            <input
-                                type="text"
-                                name="fbConfigId"
-                                value={credentials.fbConfigId || ''}
-                                onChange={handleChange}
-                                placeholder="e.g. 112233..."
-                                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
-                            />
-                        </div>
-
-                        {/* Connected Data (ReadOnly) */}
-                        {credentials.accessToken && (
-                            <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">WABA ID</label>
-                                    <div className="font-mono text-sm">{credentials.wabaId || 'Not set'}</div>
+                        {/* Status Indicator */}
+                        {credentials.accessToken ? (
+                            <div className="p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-200 dark:border-green-900/30">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                                    <span className="font-semibold text-green-700 dark:text-green-400">Connected</span>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">Phone Number ID</label>
-                                    <div className="font-mono text-sm">{credentials.phoneNumberId || 'Not set'}</div>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">WABA ID</span>
+                                        <span className="font-mono text-gray-700 dark:text-gray-300">{credentials.wabaId || 'Pending...'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Phone Number ID</span>
+                                        <span className="font-mono text-gray-700 dark:text-gray-300">{credentials.phoneNumberId || 'Pending...'}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">Access Token</label>
-                                    <div className="text-xs text-gray-400 truncate">••••••••••••••••••••••••</div>
-                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                    Click the button below to connect your WhatsApp Business Account. You'll be guided through Meta's verification process.
+                                </p>
+                                <ul className="text-xs text-gray-500 space-y-1">
+                                    <li className="flex items-center gap-2">
+                                        <Check size={14} className="text-green-500" /> One-click setup
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <Check size={14} className="text-green-500" /> Secure OAuth connection
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <Check size={14} className="text-green-500" /> No manual API keys needed
+                                    </li>
+                                </ul>
                             </div>
                         )}
 
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                onClick={handleSave}
-                                className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors"
-                            >
-                                <Save size={18} className="inline mr-2" />
-                                Save Config
-                            </button>
-
-                            <button
-                                onClick={launchWhatsAppSignup}
-                                disabled={!credentials.fbAppId || !credentials.fbConfigId}
-                                className="flex-1 px-4 py-2.5 bg-[#1877F2] hover:bg-[#166fe5] text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-                                Connect with Facebook
-                            </button>
-                        </div>
+                        <button
+                            onClick={launchWhatsAppSignup}
+                            className="w-full px-6 py-3.5 bg-[#25D366] hover:bg-[#1fb855] text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                        >
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.197 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                            </svg>
+                            {credentials.accessToken ? 'Reconnect WhatsApp' : 'Setup WhatsApp'}
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
