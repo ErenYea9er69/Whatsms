@@ -196,6 +196,7 @@ const Settings = () => {
                 auth_type: 'reauthenticate',
                 return_scopes: true,
                 extras: {
+                    feature: 'whatsapp_embedded_signup',
                     setup: {},
                     featureType: '',
                     sessionInfoVersion: '3'
