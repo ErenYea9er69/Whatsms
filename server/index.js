@@ -87,7 +87,9 @@ app.use('/api/flows', require('./routes/flows'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/team', require('./routes/team'));
 app.use('/api/conversations', require('./routes/conversations'));
+app.use('/api/conversations', require('./routes/conversations'));
 app.use('/api/notes', require('./routes/notes'));
+app.use('/api/canned', require('./routes/canned'));
 
 // 404 handler for API routes
 app.use((req, res, next) => {
