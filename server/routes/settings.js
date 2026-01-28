@@ -154,23 +154,34 @@ router.post('/fb-callback', async (req, res) => {
 
         const axios = require('axios');
 
-        // 1. Exchange Code for Access Token
-        step = 'exchange_code';
-        console.log('[FB-Callback] Step 1: Exchanging code for token...');
-        const tokenResponse = await axios.get('https://graph.facebook.com/v21.0/oauth/access_token', {
-            params: {
-                client_id: FB_APP_ID,
-                client_secret: FB_APP_SECRET,
-                code: code
-                // Note: redirect_uri not needed for JS SDK Embedded Signup flow
-            }
-        });
+        let accessToken;
 
-        const accessToken = tokenResponse.data.access_token;
-        if (!accessToken) {
-            throw new Error('No access token returned from Facebook');
+        // For JS SDK, we receive the accessToken directly in the response
+        // Check if accessToken is already provided (skip code exchange)
+        if (req.body.accessToken) {
+            accessToken = req.body.accessToken;
+            console.log('[FB-Callback] Using accessToken provided by JS SDK directly');
+        } else if (code) {
+            // Fallback: Exchange Code for Access Token (server-side OAuth flow)
+            step = 'exchange_code';
+            console.log('[FB-Callback] Step 1: Exchanging code for token...');
+            const tokenResponse = await axios.get('https://graph.facebook.com/v21.0/oauth/access_token', {
+                params: {
+                    client_id: FB_APP_ID,
+                    client_secret: FB_APP_SECRET,
+                    code: code
+                    // Note: redirect_uri not needed for JS SDK Embedded Signup flow
+                }
+            });
+
+            accessToken = tokenResponse.data.access_token;
+            if (!accessToken) {
+                throw new Error('No access token returned from Facebook');
+            }
+            console.log('[FB-Callback] Step 1 SUCCESS: Access Token received');
+        } else {
+            throw new Error('Neither accessToken nor code provided');
         }
-        console.log('[FB-Callback] Step 1 SUCCESS: Access Token received');
 
         // 2. Identify WABA ID via debug_token
         step = 'debug_token';
