@@ -160,12 +160,60 @@ router.post('/fb-callback', async (req, res) => {
         const whatsappScope = granularScopes.find(s => s.scope === 'whatsapp_business_management');
 
         let wabaId = null;
+
+        // Method 1: Try to get WABA ID from granular scopes target_ids
         if (whatsappScope && whatsappScope.target_ids && whatsappScope.target_ids.length > 0) {
             wabaId = whatsappScope.target_ids[0];
+            console.log('[FB-Callback] Found WABA ID from granular scopes:', wabaId);
+        }
+
+        // Method 2: If no target_ids, try fetching via businesses API
+        if (!wabaId) {
+            step = 'discover_waba';
+            console.log('[FB-Callback] Step 2b: No target_ids found, trying businesses API...');
+
+            try {
+                // First, get the user's businesses
+                const businessesResponse = await axios.get('https://graph.facebook.com/v21.0/me/businesses', {
+                    params: { access_token: accessToken }
+                });
+
+                const businesses = businessesResponse.data.data || [];
+                console.log('[FB-Callback] Found businesses:', businesses.map(b => b.id));
+
+                // For each business, check for owned WABAs
+                for (const business of businesses) {
+                    try {
+                        const wabaResponse = await axios.get(`https://graph.facebook.com/v21.0/${business.id}/owned_whatsapp_business_accounts`, {
+                            params: { access_token: accessToken }
+                        });
+
+                        const wabas = wabaResponse.data.data || [];
+                        if (wabas.length > 0) {
+                            wabaId = wabas[0].id;
+                            console.log('[FB-Callback] Found WABA from business', business.id, ':', wabaId);
+                            break;
+                        }
+                    } catch (wabaErr) {
+                        console.log('[FB-Callback] Could not get WABAs for business', business.id);
+                    }
+                }
+            } catch (bizErr) {
+                console.log('[FB-Callback] Could not fetch businesses:', bizErr.message);
+            }
+        }
+
+        // Method 3: If still no WABA, try shared_wabas from debug response
+        if (!wabaId && debugResponse.data.data?.shared_wabas) {
+            const sharedWabas = debugResponse.data.data.shared_wabas;
+            if (sharedWabas.length > 0) {
+                wabaId = sharedWabas[0];
+                console.log('[FB-Callback] Found WABA from shared_wabas:', wabaId);
+            }
         }
 
         if (!wabaId) {
-            throw new Error('Could not identify WABA ID from token scopes. Scopes found: ' + JSON.stringify(granularScopes.map(s => s.scope)));
+            throw new Error('Could not identify WABA ID. Please ensure you completed the WhatsApp Business setup in the popup. Scopes found: ' + JSON.stringify(granularScopes.map(s => s.scope)));
         }
         console.log('[FB-Callback] Step 2 SUCCESS: WABA ID =', wabaId);
 
