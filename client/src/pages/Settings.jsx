@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe, Moon, Sun } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { useTheme } from '../context/ThemeContext';
 import apiClient from '../services/api';
 
 const Settings = () => {
+    const { isDark, toggleTheme } = useTheme();
     const toast = useToast();
     const [credentials, setCredentials] = useState({
         phoneNumberId: '',
@@ -81,6 +83,32 @@ const Settings = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
+                {/* Appearance Card */}
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 lg:col-span-2">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 flex items-center justify-center">
+                                <SettingsIcon size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg">Appearance</h3>
+                                <p className="text-sm text-gray-400">Customize the look and feel</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={toggleTheme}
+                            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${isDark ? 'bg-emerald-600' : 'bg-gray-200'}`}
+                        >
+                            <span className="sr-only">Toggle theme</span>
+                            <span
+                                className={`${isDark ? 'translate-x-7' : 'translate-x-1'} inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 flex items-center justify-center`}
+                            >
+                                {isDark ? <Moon size={14} className="text-emerald-600" /> : <Sun size={14} className="text-orange-400" />}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
                 {/* Credentials Card */}
                 <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
                     <div className="flex items-center gap-3 mb-6">
