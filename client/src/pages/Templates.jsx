@@ -179,11 +179,11 @@ const Templates = () => {
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-48 bg-gray-100 dark:bg-gray-800 rounded-2xl skeleton" />
+                        <div key={i} className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl skeleton" />
                     ))}
                 </div>
             ) : templates.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-surface-dark rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+                <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-surface-dark rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
                     <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
                         <LayoutTemplate size={32} className="text-blue-500" />
                     </div>
@@ -200,7 +200,7 @@ const Templates = () => {
                         }
 
                         return (
-                            <div key={tpl.id} className="bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 p-5 card-hover">
+                            <div key={tpl.id} className="bg-white dark:bg-surface-dark rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 p-5 card-hover">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
                                         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
@@ -235,7 +235,7 @@ const Templates = () => {
             {/* Editor Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-surface-dark w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex animate-slide-up">
+                    <div className="bg-white dark:bg-surface-dark w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl overflow-hidden flex animate-slide-up">
                         {/* Editor Side */}
                         <div className="w-1/2 p-6 overflow-y-auto border-r border-gray-200 dark:border-gray-800">
                             <h2 className="text-xl font-bold mb-6">{editingId ? 'Edit Template' : 'New Template'}</h2>

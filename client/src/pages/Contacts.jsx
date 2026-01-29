@@ -201,7 +201,7 @@ const Contacts = () => {
             </div>
 
             {/* Main Table Card */}
-            <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 overflow-hidden">
+            <div className="bg-white dark:bg-surface-dark rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 overflow-hidden">
                 {/* Filters */}
                 <div className="p-4 border-b border-gray-100 dark:border-gray-800/80 flex flex-col md:flex-row gap-4">
                     <div className="flex-1 relative">
@@ -406,7 +406,7 @@ const Contacts = () => {
             {/* Add Contact Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full p-6 animate-slide-up" style={{ opacity: 0, animationDelay: '0s' }}>
+                    <div className="bg-white dark:bg-surface-dark rounded-xl shadow-xl max-w-md w-full p-6 animate-slide-up" style={{ opacity: 0, animationDelay: '0s' }}>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold">Add Contact</h2>
                             <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">

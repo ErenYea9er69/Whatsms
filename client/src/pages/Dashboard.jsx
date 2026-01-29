@@ -212,7 +212,7 @@ const Dashboard = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
+                        <div key={i} className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80">
                             <div className="h-12 w-12 bg-gray-200 dark:bg-gray-800 rounded-xl skeleton" />
                             <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded mt-4 skeleton" />
                             <div className="h-8 w-16 bg-gray-200 dark:bg-gray-800 rounded mt-2 skeleton" />
@@ -267,7 +267,7 @@ const Dashboard = () => {
             </div>
 
             {/* AI Insights Widget */}
-            <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-gray-800/80 relative overflow-hidden animate-slide-up">
+            <div className="bg-white dark:bg-surface-dark rounded-xl p-6 shadow-soft border border-gray-100 dark:border-gray-800/80 relative overflow-hidden animate-slide-up">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 dark:bg-primary/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
                 <div className="relative z-10">
@@ -320,7 +320,7 @@ const Dashboard = () => {
             {/* Analysis Modal */}
             {showAnalysisModal && (
                 <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 animate-fade-in backdrop-blur-sm">
-                    <div className="bg-white dark:bg-surface-dark w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-gray-100 dark:border-gray-800">
+                    <div className="bg-white dark:bg-surface-dark w-full max-w-lg rounded-xl shadow-2xl p-6 border border-gray-100 dark:border-gray-800">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-bold">Configure Analysis</h3>
                             <button onClick={() => setShowAnalysisModal(false)} className="text-gray-400 hover:text-gray-600">
@@ -423,7 +423,7 @@ const Dashboard = () => {
                 {statCards.map((stat, index) => (
                     <div
                         key={index}
-                        className={`stat-card bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 card-hover animate-slide-up stagger-${index + 1}`}
+                        className={`stat-card bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 card-hover animate-slide-up stagger-${index + 1}`}
                         style={{ opacity: 0 }}
                     >
                         <div className="flex items-start justify-between mb-4">
@@ -447,7 +447,7 @@ const Dashboard = () => {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Message Trends Chart */}
-                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-5" style={{ opacity: 0 }}>
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-5" style={{ opacity: 0 }}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -503,7 +503,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Campaign Comparison Chart */}
-                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-6" style={{ opacity: 0 }}>
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-6" style={{ opacity: 0 }}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
@@ -554,7 +554,7 @@ const Dashboard = () => {
             {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Performance Stats */}
-                <div className="lg:col-span-2 bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-7" style={{ opacity: 0 }}>
+                <div className="lg:col-span-2 bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-7" style={{ opacity: 0 }}>
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center">
                             <TrendingUp size={20} className="icon-gray" strokeWidth={1.75} />
@@ -615,7 +615,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-8" style={{ opacity: 0 }}>
+                <div className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 animate-slide-up stagger-8" style={{ opacity: 0 }}>
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center">
                             <Activity size={20} className="icon-gray" strokeWidth={1.75} />

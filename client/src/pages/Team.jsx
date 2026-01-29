@@ -171,7 +171,7 @@ const Team = () => {
             {/* Add Member Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/20 dark:bg-black/70 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-                    <div className="relative p-6 border dark:border-zinc-800 w-96 shadow-2xl rounded-2xl bg-white dark:bg-[#09090b] animate-fade-in up">
+                    <div className="relative p-6 border dark:border-zinc-800 w-96 shadow-2xl rounded-xl bg-white dark:bg-[#09090b] animate-fade-in up">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Invite Team Member</h3>
                         <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">Send an invitation to join your team.</p>
                         <form onSubmit={handleSubmit}>

@@ -197,7 +197,7 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-background-dark m-0 md:m-4 md:ml-0 md:rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-800 relative z-0">
+      <main className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-background-dark m-0 md:m-4 md:ml-0 md:rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 relative z-0">
         {/* Mobile Header */}
         <header className="md:hidden bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3.5 flex items-center justify-between shadow-soft">
           <h1 className="text-xl font-bold flex items-center gap-2">

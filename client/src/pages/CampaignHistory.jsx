@@ -199,7 +199,7 @@ const CampaignHistory = () => {
             {loading ? (
                 <div className="grid gap-4 md:grid-cols-2">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80">
+                        <div key={i} className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-xl skeleton" />
                                 <div className="flex-1">
@@ -212,8 +212,8 @@ const CampaignHistory = () => {
                     ))}
                 </div>
             ) : campaigns.length === 0 ? (
-                <div className="bg-white dark:bg-surface-dark p-12 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 text-center">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="bg-white dark:bg-surface-dark p-12 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 text-center">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <BarChart3 size={28} className="icon-gray" />
                     </div>
                     <h3 className="text-lg font-semibold mb-2">No Campaigns Yet</h3>
@@ -237,7 +237,7 @@ const CampaignHistory = () => {
                         return (
                             <div
                                 key={campaign.id}
-                                className="bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 card-hover animate-slide-up group"
+                                className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 card-hover animate-slide-up group"
                                 style={{ animationDelay: `${index * 0.05}s`, opacity: 0 }}
                             >
                                 {/* Header */}
