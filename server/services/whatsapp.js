@@ -6,29 +6,42 @@ const WHATSAPP_API_URL = 'https://graph.facebook.com/v22.0';
 
 /**
  * Get WhatsApp Credentials
- * Check DB first, then environment variables
+ * If userId is provided, fetch from WhatsAppCredential table
+ * Otherwise, fall back to environment variables (for webhooks/system calls)
  */
-async function getCredentials() {
+async function getCredentials(userId = null) {
     let accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
     let phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
     try {
-        const settings = await prisma.systemConfig.findMany({
-            where: {
-                key: { in: ['accessToken', 'phoneNumberId'] }
+        if (userId) {
+            // Multi-tenant: fetch user-specific credentials
+            const userCreds = await prisma.whatsAppCredential.findUnique({
+                where: { userId: parseInt(userId) }
+            });
+
+            if (userCreds) {
+                accessToken = userCreds.accessToken;
+                phoneNumberId = userCreds.phoneNumberId;
             }
-        });
+        } else {
+            // Fallback: check SystemConfig (legacy single-tenant mode)
+            const settings = await prisma.systemConfig.findMany({
+                where: {
+                    key: { in: ['accessToken', 'phoneNumberId'] }
+                }
+            });
 
-        const dbConfig = settings.reduce((acc, curr) => {
-            acc[curr.key] = curr.value;
-            return acc;
-        }, {});
+            const dbConfig = settings.reduce((acc, curr) => {
+                acc[curr.key] = curr.value;
+                return acc;
+            }, {});
 
-        if (dbConfig.accessToken) accessToken = dbConfig.accessToken;
-        if (dbConfig.phoneNumberId) phoneNumberId = dbConfig.phoneNumberId;
-
+            if (dbConfig.accessToken) accessToken = dbConfig.accessToken;
+            if (dbConfig.phoneNumberId) phoneNumberId = dbConfig.phoneNumberId;
+        }
     } catch (error) {
-        console.error('Failed to fetch settings from DB, using fallback env vars', error);
+        console.error('Failed to fetch credentials', error);
     }
 
     return {
@@ -41,8 +54,8 @@ async function getCredentials() {
 /**
  * Send a text message via WhatsApp
  */
-async function sendTextMessage(phone, message) {
-    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
+async function sendTextMessage(phone, message, userId = null) {
+    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials(userId);
     const normalizedPhone = phone.replace(/[\s+\-]/g, '');
 
     if (isMockMode) {
@@ -88,8 +101,8 @@ async function sendTextMessage(phone, message) {
  * Upload media to WhatsApp API
  * Returns the media ID
  */
-async function uploadMedia(filePath, mimeType) {
-    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
+async function uploadMedia(filePath, mimeType, userId = null) {
+    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials(userId);
     const fs = require('fs');
     const FormData = require('form-data');
 
@@ -124,8 +137,8 @@ async function uploadMedia(filePath, mimeType) {
 /**
  * Send a media message via WhatsApp
  */
-async function sendMediaMessage(phone, mediaInput, type = 'image', caption = '') {
-    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
+async function sendMediaMessage(phone, mediaInput, type = 'image', caption = '', userId = null) {
+    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials(userId);
     const normalizedPhone = phone.replace(/[\s+\-]/g, '');
 
     if (isMockMode) {
@@ -183,8 +196,8 @@ async function sendMediaMessage(phone, mediaInput, type = 'image', caption = '')
 /**
  * Send a template message via WhatsApp
  */
-async function sendTemplateMessage(phone, templateName, languageCode = 'en_US', components = []) {
-    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
+async function sendTemplateMessage(phone, templateName, languageCode = 'en_US', components = [], userId = null) {
+    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials(userId);
     const normalizedPhone = phone.replace(/[\s+\-]/g, '');
 
     if (isMockMode) {
@@ -227,8 +240,8 @@ async function sendTemplateMessage(phone, templateName, languageCode = 'en_US', 
 /**
  * Mark a message as read
  */
-async function markAsRead(messageId) {
-    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials();
+async function markAsRead(messageId, userId = null) {
+    const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials(userId);
 
     if (isMockMode) {
         console.log(`📱 [MOCK] Marking message ${messageId} as read`);
@@ -260,9 +273,16 @@ async function markAsRead(messageId) {
 /**
  * Check if running in mock mode (no credentials configured)
  */
-async function checkMockMode() {
-    const { isMockMode } = await getCredentials();
+async function checkMockMode(userId = null) {
+    const { isMockMode } = await getCredentials(userId);
     return isMockMode;
+}
+
+/**
+ * Get credentials for a user - exposed for settings test
+ */
+async function getCredentialsForUser(userId) {
+    return getCredentials(userId);
 }
 
 module.exports = {
@@ -271,5 +291,6 @@ module.exports = {
     sendTemplateMessage,
     markAsRead,
     uploadMedia,
-    checkMockMode
+    checkMockMode,
+    getCredentialsForUser
 };

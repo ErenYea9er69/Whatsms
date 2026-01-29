@@ -9,6 +9,7 @@ const Settings = () => {
     const [credentials, setCredentials] = useState({
         phoneNumberId: '',
         accessToken: '',
+        wabaId: '',
         verifyToken: 'whatsms_token'
     });
     const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ const Settings = () => {
                 setCredentials({
                     phoneNumberId: data.phoneNumberId || '',
                     accessToken: data.accessToken || '',
+                    wabaId: data.wabaId || '',
                     verifyToken: data.verifyToken || 'whatsms_token'
                 });
             }
@@ -123,6 +125,29 @@ const Settings = () => {
                                     {showToken ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">WABA ID <span className="text-gray-400 text-xs">(Optional)</span></label>
+                            <input
+                                type="text"
+                                name="wabaId"
+                                value={credentials.wabaId}
+                                onChange={handleChange}
+                                placeholder="e.g. 123456789..."
+                                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
+                            />
+                            <p className="text-xs text-gray-400 mt-1">WhatsApp Business Account ID (for reference)</p>
+                        </div>
+
+                        <div className="pt-4">
+                            <button
+                                onClick={handleSave}
+                                className="w-full px-6 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Save size={18} />
+                                Save Credentials
+                            </button>
                         </div>
 
                         <div className="pt-4 border-t border-gray-100 dark:border-gray-800">

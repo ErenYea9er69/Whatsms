@@ -13,6 +13,23 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  whatsAppCredential WhatsAppCredential?
+}
+
+model WhatsAppCredential {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  phoneNumberId String   // Meta's Phone Number ID
+  wabaId        String?  // WhatsApp Business Account ID (optional, for display)
+  accessToken   String   // Access Token
+  verifyToken   String   @default("whatsms_token")
+  displayName   String?  // User-friendly label
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Contact {

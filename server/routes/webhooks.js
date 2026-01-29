@@ -8,6 +8,7 @@ const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'whatsms-webhook-verif
 /**
  * GET /api/webhooks/whatsapp
  * Webhook verification endpoint for Meta
+ * In multi-tenant mode, we accept any valid verifyToken from any user's WhatsAppCredential
  */
 router.get('/whatsapp', async (req, res) => {
     const mode = req.query['hub.mode'];
@@ -15,19 +16,26 @@ router.get('/whatsapp', async (req, res) => {
     const challenge = req.query['hub.challenge'];
 
     try {
-        // Fetch verify token from DB
-        const config = await prisma.systemConfig.findUnique({
-            where: { key: 'verifyToken' }
+        // Check if the token matches any user's verifyToken in WhatsAppCredential
+        const matchingCredential = await prisma.whatsAppCredential.findFirst({
+            where: { verifyToken: token }
         });
 
-        // Use DB value or fallback to env/default
-        const storedVerifyToken = config?.value || process.env.WHATSAPP_VERIFY_TOKEN || 'whatsms_token';
+        // Also check legacy SystemConfig for backward compatibility
+        let legacyMatch = false;
+        if (!matchingCredential) {
+            const config = await prisma.systemConfig.findUnique({
+                where: { key: 'verifyToken' }
+            });
+            const storedVerifyToken = config?.value || process.env.WHATSAPP_VERIFY_TOKEN || 'whatsms_token';
+            legacyMatch = (token === storedVerifyToken);
+        }
 
-        if (mode === 'subscribe' && token === storedVerifyToken) {
+        if (mode === 'subscribe' && (matchingCredential || legacyMatch)) {
             console.log('✅ Webhook verified successfully');
             res.status(200).send(challenge);
         } else {
-            console.warn(`❌ Webhook verification failed. Expected: ${storedVerifyToken}, Received: ${token}`);
+            console.warn(`❌ Webhook verification failed. Received token: ${token}`);
             res.sendStatus(403);
         }
     } catch (error) {
@@ -90,6 +98,22 @@ router.post('/whatsapp', verifySignature, async (req, res) => {
 
                 const value = change.value;
 
+                // Extract phone_number_id to identify which user this belongs to
+                const phoneNumberId = value.metadata?.phone_number_id;
+                let ownerUserId = null;
+
+                if (phoneNumberId) {
+                    const credential = await prisma.whatsAppCredential.findFirst({
+                        where: { phoneNumberId: phoneNumberId }
+                    });
+                    if (credential) {
+                        ownerUserId = credential.userId;
+                        console.log(`📱 Webhook for user ID: ${ownerUserId} (phone: ${phoneNumberId})`);
+                    } else {
+                        console.log(`⚠️ No user found for phoneNumberId: ${phoneNumberId}`);
+                    }
+                }
+
                 // Process status updates (delivered, read, failed)
                 if (value.statuses) {
                     for (const status of value.statuses) {
@@ -100,7 +124,7 @@ router.post('/whatsapp', verifySignature, async (req, res) => {
                 // Process incoming messages (replies)
                 if (value.messages) {
                     for (const message of value.messages) {
-                        await processIncomingMessage(message, value.contacts);
+                        await processIncomingMessage(message, value.contacts, ownerUserId);
                     }
                 }
             }
@@ -180,11 +204,14 @@ async function processStatusUpdate(status) {
 /**
  * Process incoming messages (replies)
  * Also auto-creates contacts if they don't exist
+ * @param {object} message - The incoming message object
+ * @param {array} contacts - Contact info from WhatsApp
+ * @param {number} ownerUserId - The user ID who owns this phone number (for future data isolation)
  */
-async function processIncomingMessage(message, contacts) {
+async function processIncomingMessage(message, contacts, ownerUserId = null) {
     const { from, timestamp, type, text } = message;
 
-    console.log(`📥 Incoming message from ${from}: ${type}`);
+    console.log(`📥 Incoming message from ${from}: ${type}${ownerUserId ? ` (User: ${ownerUserId})` : ''}`);
 
     // Get contact name from WhatsApp if available
     const waContact = contacts?.find(c => c.wa_id === from);
