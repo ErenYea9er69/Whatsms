@@ -2,6 +2,7 @@ const prisma = require('../config/prisma');
 
 /**
  * Service to simulate WhatsApp message delivery and status updates
+ * 
  * Used when running in development/mock mode
  */
 class MockService {
