@@ -20,7 +20,10 @@ router.get('/', async (req, res) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
-        const where = status ? { status } : {};
+        const where = {
+            userId: req.user.id,
+            ...(status && { status })
+        };
 
         const [campaigns, total] = await Promise.all([
             prisma.campaign.findMany({
@@ -82,9 +85,10 @@ router.get('/stats', async (req, res) => {
             activeCampaigns,
             stats
         ] = await Promise.all([
-            prisma.campaign.count(),
-            prisma.campaign.count({ where: { status: 'IN_PROGRESS' } }),
+            prisma.campaign.count({ where: { userId: req.user.id } }),
+            prisma.campaign.count({ where: { status: 'IN_PROGRESS', userId: req.user.id } }),
             prisma.campaign.aggregate({
+                where: { userId: req.user.id },
                 _sum: {
                     statsDelivered: true,
                     statsRead: true,
@@ -130,8 +134,8 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const campaign = await prisma.campaign.findUnique({
-            where: { id: parseInt(id) },
+        const campaign = await prisma.campaign.findFirst({
+            where: { id: parseInt(id), userId: req.user.id },
             include: {
                 attachments: {
                     include: {
@@ -180,6 +184,7 @@ router.get('/:id/recipients', async (req, res) => {
         const take = parseInt(limit);
 
         const where = {
+            campaign: { userId: req.user.id },
             campaignId: parseInt(id),
             ...(status && { status })
         };
@@ -237,6 +242,7 @@ router.post('/', async (req, res) => {
             data: {
                 name,
                 messageBody,
+                userId: req.user.id,
                 status: 'DRAFT',
                 scheduledAt: scheduledAt ? new Date(scheduledAt) : null
             }
@@ -246,7 +252,8 @@ router.post('/', async (req, res) => {
         if (listIds.length > 0) {
             const listMembers = await prisma.contactListMember.findMany({
                 where: {
-                    contactListId: { in: listIds.map(id => parseInt(id)) }
+                    contactListId: { in: listIds.map(id => parseInt(id)) },
+                    contactList: { userId: req.user.id }
                 },
                 select: { contactId: true }
             });
@@ -308,8 +315,8 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
         const { name, messageBody, scheduledAt } = req.body;
 
-        const existing = await prisma.campaign.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.campaign.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -358,8 +365,8 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const existing = await prisma.campaign.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.campaign.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -398,8 +405,8 @@ router.post('/:id/send', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const campaign = await prisma.campaign.findUnique({
-            where: { id: parseInt(id) },
+        const campaign = await prisma.campaign.findFirst({
+            where: { id: parseInt(id), userId: req.user.id },
             include: {
                 recipients: {
                     where: { status: 'PENDING' },
@@ -472,8 +479,8 @@ router.post('/:id/stop', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const campaign = await prisma.campaign.findUnique({
-            where: { id: parseInt(id) }
+        const campaign = await prisma.campaign.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!campaign) {

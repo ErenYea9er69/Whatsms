@@ -14,6 +14,7 @@ router.use(authenticate);
 router.get('/', async (req, res) => {
     try {
         const templates = await prisma.messageTemplate.findMany({
+            where: { userId: req.user.id },
             orderBy: { updatedAt: 'desc' }
         });
 
@@ -35,8 +36,8 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const template = await prisma.messageTemplate.findUnique({
-            where: { id: parseInt(id) }
+        const template = await prisma.messageTemplate.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!template) {
@@ -72,7 +73,7 @@ router.post('/', async (req, res) => {
         }
 
         const template = await prisma.messageTemplate.create({
-            data: { name, content }
+            data: { name, content, userId: req.user.id }
         });
 
         res.status(201).json({
@@ -97,8 +98,8 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
         const { name, content } = req.body;
 
-        const existing = await prisma.messageTemplate.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.messageTemplate.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -137,8 +138,8 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const existing = await prisma.messageTemplate.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.messageTemplate.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {

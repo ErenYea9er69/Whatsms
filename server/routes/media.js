@@ -64,11 +64,12 @@ router.get('/', async (req, res) => {
 
         const [media, total] = await Promise.all([
             prisma.media.findMany({
+                where: { userId: req.user.id },
                 skip,
                 take,
                 orderBy: { createdAt: 'desc' }
             }),
-            prisma.media.count()
+            prisma.media.count({ where: { userId: req.user.id } })
         ]);
 
         res.json({
@@ -107,7 +108,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
                 filename: req.file.originalname,
                 path: req.file.filename,
                 mimetype: req.file.mimetype,
-                size: req.file.size
+                size: req.file.size,
+                userId: req.user.id
             }
         });
 
@@ -132,8 +134,8 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const media = await prisma.media.findUnique({
-            where: { id: parseInt(id) }
+        const media = await prisma.media.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!media) {
@@ -172,8 +174,8 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const media = await prisma.media.findUnique({
-            where: { id: parseInt(id) }
+        const media = await prisma.media.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!media) {

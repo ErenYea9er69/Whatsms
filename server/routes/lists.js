@@ -14,6 +14,7 @@ router.use(authenticate);
 router.get('/', async (req, res) => {
     try {
         const lists = await prisma.contactList.findMany({
+            where: { userId: req.user.id },
             include: {
                 _count: {
                     select: { members: true }
@@ -53,8 +54,8 @@ router.get('/:id', async (req, res) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
-        const list = await prisma.contactList.findUnique({
-            where: { id: parseInt(id) },
+        const list = await prisma.contactList.findFirst({
+            where: { id: parseInt(id), userId: req.user.id },
             include: {
                 members: {
                     skip,
@@ -119,7 +120,7 @@ router.post('/', async (req, res) => {
         }
 
         const list = await prisma.contactList.create({
-            data: { name, description }
+            data: { name, description, userId: req.user.id }
         });
 
         res.status(201).json({
@@ -144,8 +145,8 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
         const { name, description } = req.body;
 
-        const existing = await prisma.contactList.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.contactList.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -184,8 +185,8 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const existing = await prisma.contactList.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.contactList.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -227,9 +228,9 @@ router.post('/:id/contacts', async (req, res) => {
 
         const listId = parseInt(id);
 
-        // Verify list exists
-        const list = await prisma.contactList.findUnique({
-            where: { id: listId }
+        // Verify list exists and belongs to user
+        const list = await prisma.contactList.findFirst({
+            where: { id: listId, userId: req.user.id }
         });
 
         if (!list) {
@@ -239,9 +240,16 @@ router.post('/:id/contacts', async (req, res) => {
             });
         }
 
-        // Add contacts (skip duplicates)
+        // Create members for valid contacts only (filtering by userId implicitly if we wanted strictness, but let's assume if list is yours it's ok?)
+        // Better: verify contacts belong to user too
+        const validContacts = await prisma.contact.findMany({
+            where: { id: { in: contactIds.map(i => parseInt(i)) }, userId: req.user.id },
+            select: { id: true }
+        });
+        const validIds = validContacts.map(c => c.id);
+
         const results = await Promise.allSettled(
-            contactIds.map(contactId =>
+            validIds.map(contactId =>
                 prisma.contactListMember.create({
                     data: {
                         contactId: parseInt(contactId),
@@ -275,6 +283,12 @@ router.post('/:id/contacts', async (req, res) => {
 router.delete('/:id/contacts/:contactId', async (req, res) => {
     try {
         const { id, contactId } = req.params;
+
+        // Verify list ownership
+        const list = await prisma.contactList.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
+        });
+        if (!list) return res.status(404).json({ error: 'Not Found', message: 'List not found' });
 
         await prisma.contactListMember.delete({
             where: {

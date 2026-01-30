@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
-        let where = {};
+        let where = { userId: req.user.id };
 
         if (search) {
             where.OR = [
@@ -104,15 +104,16 @@ router.get('/', async (req, res) => {
 router.get('/stats', async (req, res) => {
     try {
         const [total, thisWeek, listsCount] = await Promise.all([
-            prisma.contact.count(),
+            prisma.contact.count({ where: { userId: req.user.id } }),
             prisma.contact.count({
                 where: {
+                    userId: req.user.id,
                     createdAt: {
                         gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
                     }
                 }
             }),
-            prisma.contactList.count()
+            prisma.contactList.count({ where: { userId: req.user.id } })
         ]);
 
         res.json({
@@ -136,6 +137,7 @@ router.get('/stats', async (req, res) => {
 router.get('/tags', async (req, res) => {
     try {
         const contacts = await prisma.contact.findMany({
+            where: { userId: req.user.id },
             select: { tags: true }
         });
 
@@ -161,8 +163,8 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const contact = await prisma.contact.findUnique({
-            where: { id: parseInt(id) },
+        const contact = await prisma.contact.findFirst({
+            where: { id: parseInt(id), userId: req.user.id },
             include: {
                 lists: {
                     include: {
@@ -215,7 +217,7 @@ router.post('/', async (req, res) => {
 
         // Check for duplicate phone
         const existing = await prisma.contact.findUnique({
-            where: { phone }
+            where: { userId_phone: { userId: req.user.id, phone } }
         });
 
         if (existing) {
@@ -227,6 +229,7 @@ router.post('/', async (req, res) => {
 
         const contact = await prisma.contact.create({
             data: {
+                userId: req.user.id,
                 name,
                 phone,
                 interests,
@@ -265,8 +268,8 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
         const { name, phone, interests, tags, preferences } = req.body;
 
-        const existing = await prisma.contact.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.contact.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -279,7 +282,7 @@ router.put('/:id', async (req, res) => {
         // Check for duplicate phone if changing
         if (phone && phone !== existing.phone) {
             const duplicate = await prisma.contact.findUnique({
-                where: { phone }
+                where: { userId_phone: { userId: req.user.id, phone } }
             });
             if (duplicate) {
                 return res.status(409).json({
@@ -321,8 +324,8 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const existing = await prisma.contact.findUnique({
-            where: { id: parseInt(id) }
+        const existing = await prisma.contact.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!existing) {
@@ -407,8 +410,8 @@ router.post('/import', upload.single('file'), async (req, res) => {
 
             try {
                 await prisma.contact.upsert({
-                    where: { phone },
-                    create: { name, phone, interests },
+                    where: { userId_phone: { userId: req.user.id, phone } },
+                    create: { userId: req.user.id, name, phone, interests },
                     update: { name, interests }
                 });
                 imported++;
@@ -498,13 +501,14 @@ router.post('/fetch-whatsapp', async (req, res) => {
 
                 // Check if contact exists
                 const existing = await prisma.contact.findFirst({
-                    where: { phone: { endsWith: phone.slice(-10) } }
+                    where: { userId: req.user.id, phone: { endsWith: phone.slice(-10) } }
                 });
 
                 if (!existing) {
                     try {
                         await prisma.contact.create({
                             data: {
+                                userId: req.user.id,
                                 name,
                                 phone,
                                 tags: ['whatsapp-import'],
@@ -525,7 +529,7 @@ router.post('/fetch-whatsapp', async (req, res) => {
 
             // Fallback: try to get contacts from campaign recipients who replied
             const recentRepliers = await prisma.campaignRecipient.findMany({
-                where: { replied: true },
+                where: { replied: true, contact: { userId: req.user.id } },
                 include: { contact: true },
                 distinct: ['contactId']
             });

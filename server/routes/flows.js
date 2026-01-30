@@ -14,6 +14,7 @@ router.use(authenticate);
 router.get('/', async (req, res) => {
     try {
         const flows = await prisma.flow.findMany({
+            where: { userId: req.user.id },
             orderBy: { updatedAt: 'desc' },
             include: {
                 _count: {
@@ -35,8 +36,8 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const flow = await prisma.flow.findUnique({
-            where: { id: parseInt(id) }
+        const flow = await prisma.flow.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
         });
 
         if (!flow) {
@@ -60,6 +61,7 @@ router.post('/', async (req, res) => {
 
         const flow = await prisma.flow.create({
             data: {
+                userId: req.user.id,
                 name,
                 description,
                 triggerType: triggerType || 'NEW_CONTACT',
@@ -83,6 +85,12 @@ router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, triggerType, triggerKeyword, content, isActive } = req.body;
+
+        const existing = await prisma.flow.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
+        });
+
+        if (!existing) return res.status(404).json({ error: 'Flow not found' });
 
         const flow = await prisma.flow.update({
             where: { id: parseInt(id) },
@@ -110,6 +118,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+
+        const existing = await prisma.flow.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
+        });
+
+        if (!existing) return res.status(404).json({ error: 'Flow not found' });
 
         await prisma.flow.delete({
             where: { id: parseInt(id) }

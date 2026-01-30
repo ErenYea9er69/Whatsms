@@ -15,6 +15,14 @@ model User {
   updatedAt DateTime @updatedAt
 
   whatsAppCredential WhatsAppCredential?
+
+  contacts      Contact[]
+  contactLists  ContactList[]
+  campaigns     Campaign[]
+  templates     MessageTemplate[]
+  media         Media[]
+  flows         Flow[]
+  teamMembers   TeamMember[]
 }
 
 model WhatsAppCredential {
@@ -34,8 +42,10 @@ model WhatsAppCredential {
 
 model Contact {
   id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
-  phone       String   @unique
+  phone       String
   preferences Json?    // Custom user-defined preferences
   interests   String[] // Array of interests e.g. ["marketing", "sales"]
   tags        String[] // Quick labels e.g. ["VIP", "Hot Lead"]
@@ -48,10 +58,14 @@ model Contact {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, phone])
 }
 
 model ContactList {
   id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   description String?
   
@@ -75,6 +89,8 @@ model ContactListMember {
 
 model Campaign {
   id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name          String
   status        String   // DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED, STOPPED
   scheduledAt   DateTime?
@@ -111,6 +127,8 @@ model CampaignRecipient {
 
 model MessageTemplate {
   id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   content   String
   
@@ -120,6 +138,8 @@ model MessageTemplate {
 
 model Media {
   id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   filename  String
   path      String   // path in storage or URL
   mimetype  String
@@ -150,6 +170,8 @@ model SystemConfig {
 
 model Flow {
   id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   description String?
   isActive    Boolean  @default(false)
@@ -182,8 +204,10 @@ model FlowExecution {
 
 model TeamMember {
   id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name          String
-  email         String   @unique
+  email         String
   role          String   @default("AGENT") // ADMIN, AGENT, MANAGER
   avatar        String?
   
@@ -193,6 +217,8 @@ model TeamMember {
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  
+  @@unique([userId, email])
 }
 
 model Conversation {

@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../config/prisma');
+const { authenticate } = require('../middleware/auth');
+
+// Apply auth to all routes
+router.use(authenticate);
 
 // Get all team members
 router.get('/', async (req, res) => {
     try {
         const members = await prisma.teamMember.findMany({
+            where: { userId: req.user.id },
             orderBy: { name: 'asc' }
         });
         res.json(members);
@@ -20,12 +25,12 @@ router.post('/', async (req, res) => {
         const { name, email, role, avatar } = req.body;
 
         // Basic limit check (simple implementation)
-        const count = await prisma.teamMember.count();
+        const count = await prisma.teamMember.count({ where: { userId: req.user.id } });
         // Limits: Lite: 3, Pro: 7, Leader: 15 (Assume these are enforced here or by a higher logic)
         // For now, let's just create.
 
         const member = await prisma.teamMember.create({
-            data: { name, email, role, avatar }
+            data: { userId: req.user.id, name, email, role, avatar }
         });
         res.status(201).json(member);
     } catch (error) {
@@ -42,6 +47,12 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
         const { name, email, role, avatar } = req.body;
 
+        const existing = await prisma.teamMember.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
+        });
+
+        if (!existing) return res.status(404).json({ error: 'Team member not found' });
+
         const member = await prisma.teamMember.update({
             where: { id: parseInt(id) },
             data: { name, email, role, avatar }
@@ -56,6 +67,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const existing = await prisma.teamMember.findFirst({
+            where: { id: parseInt(id), userId: req.user.id }
+        });
+
+        if (!existing) return res.status(404).json({ error: 'Team member not found' });
+
         await prisma.teamMember.delete({
             where: { id: parseInt(id) }
         });
