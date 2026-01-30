@@ -24,10 +24,11 @@ const WhatsAppPreview = ({ header, body, footer, files, buttons }) => {
     return (
         <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-[#E5DDD5] dark:bg-[#0b141a] rounded-xl overflow-hidden relative">
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.08] pointer-events-none dark:invert"
+            <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.3] pointer-events-none"
                 style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M200 400c110.457 0 200-89.543 200-200S310.457 0 200 0 0 89.543 0 200s89.543 200 200 200zm-82.5-224.5l-42.5 42.5-42.5-42.5 42.5-42.5 42.5 42.5zm165 0l-42.5 42.5-42.5-42.5 42.5-42.5 42.5 42.5zm-165 165l-42.5 42.5-42.5-42.5 42.5-42.5 42.5 42.5zm165 0l-42.5 42.5-42.5-42.5 42.5-42.5 42.5 42.5zM200 282.5l-42.5 42.5-42.5-42.5 42.5-42.5 42.5 42.5zm0-165l-42.5 42.5-42.5-42.5 42.5-42.5 42.5 42.5z'/%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundSize: '400px'
+                    backgroundImage: `url("/whatsapp-bg.png")`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
                 }}
             />
 
