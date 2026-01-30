@@ -7,8 +7,8 @@ export default function ConditionNode({ data }) {
             <Handle type="target" position={Position.Top} className="!bg-gray-400 dark:!bg-neutral-600 !w-3 !h-3" />
 
             <div className="p-3 border-b border-gray-50 dark:border-[#262626] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/10 flex items-center justify-center border border-purple-100 dark:border-purple-900/30">
-                    <GitBranch size={16} className="text-purple-600 dark:text-purple-400" />
+                <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-900/10 flex items-center justify-center border border-teal-100 dark:border-teal-900/30">
+                    <GitBranch size={16} className="text-teal-600 dark:text-teal-400" />
                 </div>
                 <span className="text-sm font-semibold text-gray-800 dark:text-neutral-100">Condition</span>
             </div>

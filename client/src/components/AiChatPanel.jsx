@@ -106,7 +106,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
         return (
             <button
                 onClick={() => setIsCollapsed(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
             >
                 <Wand2 size={16} />
                 <span>AI Assistant</span>
@@ -118,9 +118,9 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
     return (
         <div className="flex flex-col h-full bg-white dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-emerald-500/10 to-teal-600/10">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center">
                         <Sparkles size={16} className="text-white" />
                     </div>
                     <div>
@@ -140,8 +140,8 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
             <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ minHeight: '200px' }}>
                 {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center mb-3">
-                            <Wand2 size={24} className="text-violet-500" />
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-600/20 flex items-center justify-center mb-3">
+                            <Wand2 size={24} className="text-emerald-500" />
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                             Hi! I can help you write, edit, or analyze your {contentType}.
@@ -214,7 +214,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                             <div className="flex justify-start">
                                 <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-md px-4 py-3">
                                     <div className="flex items-center gap-2">
-                                        <Loader2 size={14} className="animate-spin text-violet-500" />
+                                        <Loader2 size={14} className="animate-spin text-emerald-500" />
                                         <span className="text-sm text-gray-500">Thinking...</span>
                                     </div>
                                 </div>
@@ -258,7 +258,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                     <button
                         onClick={() => handleSend()}
                         disabled={!input.trim() || loading}
-                        className="p-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                        className="p-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
                     >
                         <Send size={18} />
                     </button>
