@@ -22,9 +22,9 @@ const WhatsAppPreview = ({ header, body, footer, files, buttons }) => {
     };
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-[#E5DDD5] dark:bg-[#0b141a] rounded-xl overflow-hidden relative">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.3] pointer-events-none"
+        <div className="w-full h-full flex flex-col items-center justify-center p-4 rounded-xl overflow-hidden relative">
+            {/* Background - Full opacity to show the actual WhatsApp wallpaper */}
+            <div className="absolute inset-0"
                 style={{
                     backgroundImage: `url("/whatsapp-bg.png")`,
                     backgroundSize: 'cover',
