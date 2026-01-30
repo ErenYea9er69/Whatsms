@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, X, MessageSquare, LayoutTemplate, Loader2, AlertCi
 import api from '../services/api';
 import aiService from '../services/ai';
 import AiChatPanel from '../components/AiChatPanel';
+import WhatsAppPreview from '../components/WhatsAppPreview';
 
 const Templates = () => {
     const [templates, setTemplates] = useState([]);
@@ -235,9 +236,11 @@ const Templates = () => {
             {/* Editor Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-surface-dark w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl overflow-hidden flex animate-slide-up">
-                        {/* Editor Side */}
-                        <div className="w-1/2 p-6 overflow-y-auto border-r border-gray-200 dark:border-gray-800">
+                    {/* WIDER CONTAINER: max-w-[95vw] or similar to fit 3 columns */}
+                    <div className="bg-white dark:bg-surface-dark w-full max-w-[95vw] h-[90vh] rounded-xl shadow-2xl overflow-hidden flex animate-slide-up">
+
+                        {/* 1. EDITOR COLUMN (Left) */}
+                        <div className="w-[35%] p-6 overflow-y-auto border-r border-gray-200 dark:border-gray-800 scrollbar-hide">
                             <h2 className="text-xl font-bold mb-6">{editingId ? 'Edit Template' : 'New Template'}</h2>
 
                             <div className="space-y-4">
@@ -324,9 +327,43 @@ const Templates = () => {
                                 </div>
                             </div>
 
-                            {/* Analysis Results */}
+                            <div className="mt-8 flex gap-3">
+                                <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAnalyze}
+                                    disabled={analyzing || !formData.body.trim()}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-primary text-primary hover:bg-primary/10 disabled:opacity-50"
+                                >
+                                    {analyzing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                    {analyzing ? 'Analyzing...' : 'Analyze'}
+                                </button>
+                                <button onClick={handleSave} className="flex-1 py-2.5 btn-primary text-white rounded-xl shadow-glow">
+                                    Save Template
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 2. PREVIEW COLUMN (Middle) - NEW */}
+                        <div className="w-[30%] bg-gray-50/50 dark:bg-black/10 border-r border-gray-200 dark:border-gray-800 p-4 flex flex-col">
+                            <h3 className="text-sm font-medium text-gray-500 mb-4 px-2">Preview</h3>
+                            <div className="flex-1 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-inner">
+                                <WhatsAppPreview
+                                    header={formData.header}
+                                    body={formData.body}
+                                    footer={formData.footer}
+                                    files={formData.files}
+                                    buttons={formData.buttons}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 3. AI / HELP COLUMN (Right) */}
+                        <div className="w-[35%] bg-gray-50 dark:bg-black/40 flex flex-col overflow-hidden p-4">
+                            {/* Analysis Results (Moved here) */}
                             {analysis && (
-                                <div className={`p-4 rounded-xl border ${analysis.verdict === 'good'
+                                <div className={`mb-4 p-4 rounded-xl border ${analysis.verdict === 'good'
                                     ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
                                     : analysis.verdict === 'bad'
                                         ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
@@ -356,26 +393,6 @@ const Templates = () => {
                                 </div>
                             )}
 
-                            <div className="mt-8 flex gap-3">
-                                <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleAnalyze}
-                                    disabled={analyzing || !formData.body.trim()}
-                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-primary text-primary hover:bg-primary/10 disabled:opacity-50"
-                                >
-                                    {analyzing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                    {analyzing ? 'Analyzing...' : 'Analyze'}
-                                </button>
-                                <button onClick={handleSave} className="flex-1 py-2.5 btn-primary text-white rounded-xl shadow-glow">
-                                    Save Template
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* AI Chat Side */}
-                        <div className="w-1/2 bg-gray-50 dark:bg-black/40 flex flex-col overflow-hidden p-4">
                             <AiChatPanel
                                 currentContent={formData.body}
                                 contentType="template"
@@ -385,11 +402,10 @@ const Templates = () => {
                                 }}
                             />
                         </div>
+
                     </div>
                 </div>
             )}
-
-
         </div >
     );
 };
