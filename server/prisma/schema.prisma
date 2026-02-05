@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -30,7 +30,7 @@ model WhatsAppCredential {
   userId        Int      @unique
   phoneNumberId String   // Meta's Phone Number ID
   wabaId        String?  // WhatsApp Business Account ID (optional, for display)
-  accessToken   String   // Access Token
+  accessToken   String   @db.Text // Access Token (can be long)
   verifyToken   String   @default("whatsms_token")
   displayName   String?  // User-friendly label
 
@@ -47,8 +47,8 @@ model Contact {
   name        String
   phone       String
   preferences Json?    // Custom user-defined preferences
-  interests   String[] // Array of interests e.g. ["marketing", "sales"]
-  tags        String[] // Quick labels e.g. ["VIP", "Hot Lead"]
+  interests   Json     @default("[]") // Array stored as JSON e.g. ["marketing", "sales"]
+  tags        Json     @default("[]") // Quick labels stored as JSON e.g. ["VIP", "Hot Lead"]
   
   lists       ContactListMember[]
   messages    CampaignRecipient[]
@@ -67,10 +67,10 @@ model ContactList {
   userId      Int
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
-  description String?
-  
+  description String?  @db.Text
+
   members     ContactListMember[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -78,7 +78,7 @@ model ContactList {
 model ContactListMember {
   contactId     Int
   contactListId Int
-  
+
   contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
   contactList   ContactList @relation(fields: [contactListId], references: [id], onDelete: Cascade)
 
@@ -94,11 +94,11 @@ model Campaign {
   name          String
   status        String   // DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED, STOPPED
   scheduledAt   DateTime?
-  messageBody   String
-  
+  messageBody   String   @db.Text
+
   recipients    CampaignRecipient[]
   attachments   CampaignAttachment[] // Many-to-many relationship with media
-  
+
   statsDelivered Int @default(0)
   statsRead      Int @default(0)
   statsFailed    Int @default(0)
@@ -112,16 +112,16 @@ model CampaignRecipient {
   id          Int      @id @default(autoincrement())
   campaignId  Int
   contactId   Int
-  
+
   status      String   // PENDING, SENT, DELIVERED, READ, FAILED
   replied     Boolean  @default(false)
   sentAt      DateTime?
   deliveredAt DateTime?
   readAt      DateTime?
-  
+
   campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  
+
   @@unique([campaignId, contactId])
 }
 
@@ -130,8 +130,8 @@ model MessageTemplate {
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
-  content   String
-  
+  content   String   @db.Text
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -144,9 +144,9 @@ model Media {
   path      String   // path in storage or URL
   mimetype  String
   size      Int
-  
+
   campaigns CampaignAttachment[]
-  
+
   createdAt DateTime @default(now())
 }
 
@@ -154,17 +154,17 @@ model Media {
 model CampaignAttachment {
   campaignId Int
   mediaId    Int
-  
+
   campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   media      Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-  
+
   @@id([campaignId, mediaId])
 }
 
 model SystemConfig {
   key         String   @id
-  value       String
-  description String?
+  value       String   @db.Text
+  description String?  @db.Text
   updatedAt   DateTime @updatedAt
 }
 
@@ -173,16 +173,16 @@ model Flow {
   userId      Int
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
-  description String?
+  description String?  @db.Text
   isActive    Boolean  @default(false)
   triggerType String   // e.g., "KEYWORD", "NEW_CONTACT", "NO_REPLY"
   triggerKeyword String? // If triggerType is KEYWORD
-  
+
   // The visual state of the flow (nodes, edges, viewport)
   content     Json
-  
+
   executions  FlowExecution[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -194,10 +194,10 @@ model FlowExecution {
   status      String   // PENDING, IN_PROGRESS, COMPLETED, FAILED
   currentStep String?  // ID of the current node
   variables   Json?    // Store current state/variables for this execution
-  
+
   flow        Flow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
   contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -210,32 +210,32 @@ model TeamMember {
   email         String
   role          String   @default("AGENT") // ADMIN, AGENT, MANAGER
   avatar        String?
-  
+
   conversations Conversation[]
   messages      ConversationMessage[]
   notes         ContactNote[]
-  
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   @@unique([userId, email])
 }
 
 model Conversation {
   id           Int      @id @default(autoincrement())
   contactId    Int
-  
+
   assignedToId Int?
   status       String   @default("OPEN") // OPEN, CLOSED, PENDING
-  lastMessage  String?
+  lastMessage  String?  @db.Text
   lastMessageAt DateTime?
   unreadCount  Int      @default(0)
-  
+
   contact      Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
   assignedTo   TeamMember? @relation(fields: [assignedToId], references: [id])
-  
+
   messages     ConversationMessage[]
-  
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -243,17 +243,17 @@ model Conversation {
 model ConversationMessage {
   id             Int      @id @default(autoincrement())
   conversationId Int
-  
-  content        String
+
+  content        String   @db.Text
   type           String   @default("TEXT") // TEXT, MEDIA, TEMPLATE
   direction      String   // INBOUND, OUTBOUND
   status         String   @default("SENT") // SENT, DELIVERED, READ, FAILED
-  
+
   senderId       Int?     // If OUTBOUND, which TeamMember sent it?
-  
+
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         TeamMember?  @relation(fields: [senderId], references: [id])
-  
+
   createdAt      DateTime @default(now())
 }
 
@@ -261,12 +261,12 @@ model ContactNote {
   id        Int      @id @default(autoincrement())
   contactId Int
   authorId  Int?
-  
-  content   String
-  
+
+  content   String   @db.Text
+
   contact   Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
   author    TeamMember? @relation(fields: [authorId], references: [id])
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

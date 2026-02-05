@@ -22,6 +22,15 @@ const upload = multer({
 // Apply auth to all routes
 router.use(authenticate);
 
+// Helper: Parse JSON array field safely
+const parseJsonArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch { return []; }
+    }
+    return [];
+};
+
 /**
  * GET /api/contacts
  * List contacts with pagination and search
@@ -44,38 +53,44 @@ router.get('/', async (req, res) => {
 
         if (search) {
             where.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search } },
                 { phone: { contains: search } }
             ];
         }
 
-        // Filter by tag
-        if (tag) {
-            where.tags = { has: tag };
-        }
-
-        const [contacts, total] = await Promise.all([
-            prisma.contact.findMany({
-                where,
-                skip,
-                take,
-                orderBy: { [sortBy]: sortOrder },
-                include: {
-                    lists: {
-                        include: {
-                            contactList: {
-                                select: { id: true, name: true }
-                            }
+        // For MySQL, we can't use array operators. We fetch all and filter in JS for tags.
+        // This is less efficient but works for small-medium datasets.
+        let contacts = await prisma.contact.findMany({
+            where,
+            orderBy: { [sortBy]: sortOrder },
+            include: {
+                lists: {
+                    include: {
+                        contactList: {
+                            select: { id: true, name: true }
                         }
                     }
                 }
-            }),
-            prisma.contact.count({ where })
-        ]);
+            }
+        });
 
-        // Transform to include list names directly
-        const transformedContacts = contacts.map(contact => ({
+        // Filter by tag in JavaScript (since JSON columns can't be indexed like arrays)
+        if (tag) {
+            contacts = contacts.filter(c => {
+                const tags = parseJsonArray(c.tags);
+                return tags.includes(tag);
+            });
+        }
+
+        // Paginate after filtering
+        const total = contacts.length;
+        const paginatedContacts = contacts.slice(skip, skip + take);
+
+        // Transform to include list names directly and parse JSON arrays
+        const transformedContacts = paginatedContacts.map(contact => ({
             ...contact,
+            tags: parseJsonArray(contact.tags),
+            interests: parseJsonArray(contact.interests),
             lists: contact.lists.map(l => l.contactList)
         }));
 
@@ -141,8 +156,8 @@ router.get('/tags', async (req, res) => {
             select: { tags: true }
         });
 
-        // Flatten and get unique tags
-        const allTags = contacts.flatMap(c => c.tags || []);
+        // Flatten and get unique tags from JSON arrays
+        const allTags = contacts.flatMap(c => parseJsonArray(c.tags));
         const uniqueTags = [...new Set(allTags)].sort();
 
         res.json({ tags: uniqueTags });
@@ -190,7 +205,14 @@ router.get('/:id', async (req, res) => {
             });
         }
 
-        res.json({ contact });
+        // Parse JSON arrays for response
+        res.json({
+            contact: {
+                ...contact,
+                tags: parseJsonArray(contact.tags),
+                interests: parseJsonArray(contact.interests)
+            }
+        });
     } catch (error) {
         console.error('Get contact error:', error);
         res.status(500).json({
@@ -232,8 +254,8 @@ router.post('/', async (req, res) => {
                 userId: req.user.id,
                 name,
                 phone,
-                interests,
-                tags,
+                interests: Array.isArray(interests) ? interests : [],
+                tags: Array.isArray(tags) ? tags : [],
                 preferences
             }
         });
@@ -241,14 +263,18 @@ router.post('/', async (req, res) => {
         // Trigger automation flows
         try {
             const flowService = require('../services/FlowService');
-            flowService.triggerFlow('NEW_CONTACT', { contact });
+            flowService.triggerFlow('NEW_CONTACT', { contact: { ...contact, tags: parseJsonArray(contact.tags), interests: parseJsonArray(contact.interests) } });
         } catch (flowError) {
             console.error('Flow trigger error:', flowError);
         }
 
         res.status(201).json({
             message: 'Contact created successfully',
-            contact
+            contact: {
+                ...contact,
+                tags: parseJsonArray(contact.tags),
+                interests: parseJsonArray(contact.interests)
+            }
         });
     } catch (error) {
         console.error('Create contact error:', error);
@@ -297,15 +323,19 @@ router.put('/:id', async (req, res) => {
             data: {
                 ...(name && { name }),
                 ...(phone && { phone }),
-                ...(interests && { interests }),
-                ...(tags !== undefined && { tags }),
+                ...(interests !== undefined && { interests: Array.isArray(interests) ? interests : [] }),
+                ...(tags !== undefined && { tags: Array.isArray(tags) ? tags : [] }),
                 ...(preferences && { preferences })
             }
         });
 
         res.json({
             message: 'Contact updated successfully',
-            contact
+            contact: {
+                ...contact,
+                tags: parseJsonArray(contact.tags),
+                interests: parseJsonArray(contact.interests)
+            }
         });
     } catch (error) {
         console.error('Update contact error:', error);

@@ -218,27 +218,34 @@ async function processIncomingMessage(message, contacts, ownerUserId = null) {
     const contactName = waContact?.profile?.name || `WhatsApp User`;
 
     // Auto-create or update contact if not exists
-    try {
-        const existingContact = await prisma.contact.findFirst({
-            where: {
-                phone: { endsWith: from.slice(-10) }
-            }
-        });
-
-        if (!existingContact) {
-            await prisma.contact.create({
-                data: {
-                    name: contactName,
-                    phone: from,
-                    tags: ['whatsapp-import'],
-                    interests: [],
-                    preferences: {}
+    // Only process if we have a valid ownerUserId
+    if (ownerUserId) {
+        try {
+            const existingContact = await prisma.contact.findFirst({
+                where: {
+                    userId: ownerUserId,
+                    phone: { endsWith: from.slice(-10) }
                 }
             });
-            console.log(`✅ Auto-created contact for ${from} (${contactName})`);
+
+            if (!existingContact) {
+                await prisma.contact.create({
+                    data: {
+                        userId: ownerUserId,
+                        name: contactName,
+                        phone: from,
+                        tags: ['whatsapp-import'],
+                        interests: [],
+                        preferences: {}
+                    }
+                });
+                console.log(`✅ Auto-created contact for ${from} (${contactName}) under user ${ownerUserId}`);
+            }
+        } catch (err) {
+            console.error('Failed to auto-create contact:', err);
         }
-    } catch (err) {
-        console.error('Failed to auto-create contact:', err);
+    } else {
+        console.log(`⚠️ Cannot auto-create contact - no ownerUserId found for phone ${from}`);
     }
 
 
@@ -246,8 +253,12 @@ async function processIncomingMessage(message, contacts, ownerUserId = null) {
     try {
         const flowService = require('../services/FlowService');
         // Find the contact object either from existing or created
+        const contactQuery = ownerUserId
+            ? { userId: ownerUserId, phone: { endsWith: from.slice(-10) } }
+            : { phone: { endsWith: from.slice(-10) } };
+
         const contact = await prisma.contact.findFirst({
-            where: { phone: { endsWith: from.slice(-10) } }
+            where: contactQuery
         });
 
         if (contact) {
