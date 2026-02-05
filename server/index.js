@@ -28,6 +28,10 @@ const aiRoutes = require('./routes/ai');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - required when behind Nginx/Apache (Plesk)
+// This allows express-rate-limit to correctly identify users by IP
+app.set('trust proxy', 1);
+
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
