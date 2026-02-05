@@ -89,6 +89,11 @@ app.use('/api/team', require('./routes/team'));
 app.use('/api/conversations', require('./routes/conversations'));
 app.use('/api/notes', require('./routes/notes'));
 
+// Serve static files in production (built React app)
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'public')));
+}
+
 // 404 handler for API routes
 app.use((req, res, next) => {
     if (req.path.startsWith('/api/')) {
@@ -125,6 +130,14 @@ app.use((err, req, res, next) => {
         message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
     });
 });
+
+// SPA fallback - serve index.html for all non-API routes in production
+// This must be AFTER all other routes
+if (process.env.NODE_ENV === 'production') {
+    app.get(/(.*)/, (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+}
 
 // Import Prisma for connection check
 const prisma = require('./config/prisma');
