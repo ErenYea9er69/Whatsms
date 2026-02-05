@@ -16,8 +16,11 @@ const aiService = {
         }
 
         try {
+            const url = `${LONGCAT_BASE_URL}/chat/completions`;
+            console.log(`🤖 calling AI: ${url} (Key length: ${LONGCAT_API_KEY.length})`);
+
             const response = await axios.post(
-                `${LONGCAT_BASE_URL}/chat/completions`,
+                url,
                 {
                     model: model,
                     messages: messages,

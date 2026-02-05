@@ -68,7 +68,7 @@ class ApiClient {
         }
 
         if (!response.ok) {
-            throw new Error(data.message || 'An error occurred');
+            throw new Error(data.message || data.error || 'An error occurred');
         }
 
         return data;
