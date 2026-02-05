@@ -39,12 +39,20 @@ const WhatsAppPreview = ({ header, body, footer, files, buttons }) => {
                     <div className="p-2 pb-6 min-w-[120px]">
                         {/* Media Preview */}
                         {files && files.length > 0 && (
-                            <div className="mb-2 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center h-40 border border-gray-100 dark:border-gray-700">
-                                <div className="text-center p-4">
-                                    <Paperclip className="mx-auto mb-2 text-gray-400" size={24} />
-                                    <p className="text-xs text-gray-500 truncate max-w-[150px]">{files[0].filename}</p>
-                                    <p className="text-[10px] text-gray-400 uppercase mt-0.5">{files[0].mimetype?.split('/')[1] || 'FILE'}</p>
-                                </div>
+                            <div className="mb-2 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700">
+                                {files[0].mimetype?.startsWith('image/') && files[0].previewUrl ? (
+                                    <img
+                                        src={files[0].previewUrl}
+                                        alt="Preview"
+                                        className="w-full h-auto max-h-48 object-cover"
+                                    />
+                                ) : (
+                                    <div className="text-center p-4">
+                                        <Paperclip className="mx-auto mb-2 text-gray-400" size={24} />
+                                        <p className="text-xs text-gray-500 truncate max-w-[150px]">{files[0].filename}</p>
+                                        <p className="text-[10px] text-gray-400 uppercase mt-0.5">{files[0].mimetype?.split('/')[1] || 'FILE'}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 

@@ -76,6 +76,9 @@ const Templates = () => {
             return;
         }
 
+        // Create preview URL locally
+        const previewUrl = URL.createObjectURL(file);
+
         setUploading(true);
         try {
             const result = await api.uploadFile(file);
@@ -84,7 +87,8 @@ const Templates = () => {
                 files: [...prev.files, {
                     mediaId: result.mediaId,
                     filename: result.filename || file.name,
-                    mimetype: result.mimeType || file.type
+                    mimetype: result.mimeType || file.type,
+                    previewUrl: previewUrl // Pass local preview URL
                 }]
             }));
         } catch {
