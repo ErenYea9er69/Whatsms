@@ -208,3 +208,30 @@ Once Plesk is working:
 3. Go to Settings → Delete Project
 
 You can also delete `vercel.json` from your local project if you want.
+
+---
+
+## Automated Deployment (Optional)
+
+You can set up GitHub Actions to automatically deploy your changes whenever you push to the `main` branch.
+
+### 1. Create Deployment Workflow
+I have created the file `.github/workflows/deploy.yml` for you. This script will:
+1.  Build your React frontend.
+2.  Install server dependencies.
+3.  Upload the ready-to-run code to your Plesk server via FTP.
+
+### 2. Configure GitHub Secrets
+To make this work securely, you need to add your FTP credentials to GitHub:
+
+1.  Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions**.
+2.  Click **New repository secret**.
+3.  Add the following secrets:
+    *   `PLESK_FTP_USER`: Your Plesk FTP username (e.g., `iconflow.tn_admin`).
+    *   `PLESK_FTP_PASSWORD`: Your Plesk FTP password.
+
+### 3. Push and Deploy
+Once these secrets are set, any commit to `main` will trigger a deployment!
+
+> [!NOTE]
+> The server will automatically restart after deployment if you are using PM2 with the `--watch` flag, or you might need to add a restart step via SSH if it doesn't pick up changes immediately.
