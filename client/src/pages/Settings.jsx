@@ -4,10 +4,12 @@ import { Settings as SettingsIcon, Save, Eye, EyeOff, Copy, Check, Globe, Moon, 
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import apiClient from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 const Settings = () => {
     const { isDark, toggleTheme } = useTheme();
     const toast = useToast();
+    const { t, i18n } = useTranslation();
     const [credentials, setCredentials] = useState({
         phoneNumberId: '',
         accessToken: '',
@@ -83,7 +85,7 @@ const Settings = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Appearance Card */}
+                {/* Appearance & Language Card */}
                 <div className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800/80 lg:col-span-2">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -91,21 +93,34 @@ const Settings = () => {
                                 <SettingsIcon size={20} />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-lg">Appearance</h3>
+                                <h3 className="font-semibold text-lg">{t('settings')}</h3>
                                 <p className="text-sm text-gray-400">Customize the look and feel</p>
                             </div>
                         </div>
-                        <button
-                            onClick={toggleTheme}
-                            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${isDark ? 'bg-emerald-600' : 'bg-gray-200'}`}
-                        >
-                            <span className="sr-only">Toggle theme</span>
-                            <span
-                                className={`${isDark ? 'translate-x-7' : 'translate-x-1'} inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 flex items-center justify-center`}
+
+                        <div className="flex items-center gap-4">
+                            {/* Language Selector */}
+                            <select
+                                value={i18n.language}
+                                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                                className="px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-primary"
                             >
-                                {isDark ? <Moon size={14} className="text-emerald-600" /> : <Sun size={14} className="text-orange-400" />}
-                            </span>
-                        </button>
+                                <option value="en">English</option>
+                                <option value="fr">Français</option>
+                            </select>
+
+                            <button
+                                onClick={toggleTheme}
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${isDark ? 'bg-emerald-600' : 'bg-gray-200'}`}
+                            >
+                                <span className="sr-only">Toggle theme</span>
+                                <span
+                                    className={`${isDark ? 'translate-x-7' : 'translate-x-1'} inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 flex items-center justify-center`}
+                                >
+                                    {isDark ? <Moon size={14} className="text-emerald-600" /> : <Sun size={14} className="text-orange-400" />}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, X, FileText, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 const ImportContacts = ({ onClose, onSuccess }) => {
+    const { t } = useTranslation();
     const [dragActive, setDragActive] = useState(false);
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
@@ -70,7 +72,7 @@ const ImportContacts = ({ onClose, onSuccess }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
             <div className="bg-white dark:bg-surface-dark w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                    <h2 className="text-xl font-bold">Import Contacts</h2>
+                    <h2 className="text-xl font-bold">{t('import_contacts_title')}</h2>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
                         <X size={20} className="text-gray-500" />
                     </button>
@@ -110,8 +112,8 @@ const ImportContacts = ({ onClose, onSuccess }) => {
                                         <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center mb-3">
                                             <Upload size={24} />
                                         </div>
-                                        <p className="font-medium text-gray-900 dark:text-white">Click or drag CSV here</p>
-                                        <p className="text-sm text-gray-500 mt-1">Columns: name, phone, interests</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{t('drag_drop_csv')}</p>
+                                        <p className="text-sm text-gray-500 mt-1">{t('csv_columns')}</p>
                                     </div>
                                 )}
                             </div>
@@ -128,7 +130,7 @@ const ImportContacts = ({ onClose, onSuccess }) => {
                                     onClick={onClose}
                                     className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
-                                    Cancel
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     onClick={handleUpload}
@@ -141,10 +143,10 @@ const ImportContacts = ({ onClose, onSuccess }) => {
                                     {uploading ? (
                                         <>
                                             <Loader2 size={16} className="animate-spin" />
-                                            Importing...
+                                            {t('importing')}
                                         </>
                                     ) : (
-                                        "Import Contacts"
+                                        t('import_button')
                                     )}
                                 </button>
                             </div>
@@ -154,21 +156,21 @@ const ImportContacts = ({ onClose, onSuccess }) => {
                             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
                                 <Check size={32} strokeWidth={3} />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Import Complete</h3>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('import_complete')}</h3>
                             <div className="flex justify-center gap-8 my-6">
                                 <div className="text-center">
                                     <p className="text-3xl font-bold text-gray-900 dark:text-white">{result.imported}</p>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Imported</p>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('imported_count')}</p>
                                 </div>
                                 <div className="text-center">
                                     <p className="text-3xl font-bold text-gray-900 dark:text-white">{result.skipped}</p>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Skipped</p>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('skipped_count')}</p>
                                 </div>
                             </div>
 
                             {result.errors && result.errors.length > 0 && (
                                 <div className="text-left bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 mb-6 max-h-32 overflow-y-auto text-xs text-gray-600 dark:text-gray-400">
-                                    <p className="font-medium mb-1">Errors:</p>
+                                    <p className="font-medium mb-1">{t('errors_label')}</p>
                                     <ul className="list-disc pl-4 space-y-1">
                                         {result.errors.map((err, i) => (
                                             <li key={i}>{err}</li>
@@ -182,13 +184,13 @@ const ImportContacts = ({ onClose, onSuccess }) => {
                                     onClick={reset}
                                     className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
-                                    Import More
+                                    {t('import_more')}
                                 </button>
                                 <button
                                     onClick={onClose}
                                     className="px-6 py-2 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                                 >
-                                    Done
+                                    {t('done')}
                                 </button>
                             </div>
                         </div>

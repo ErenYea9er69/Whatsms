@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -26,6 +27,7 @@ const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -33,21 +35,21 @@ const Layout = () => {
   };
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-    { to: '/inbox', icon: InboxIcon, label: 'Inbox' },
-    { to: '/team', icon: UserCog, label: 'Team' },
-    { to: '/contacts', icon: Users, label: 'Contacts' },
-    { to: '/lists', icon: List, label: 'Lists' },
-    { to: '/campaigns/new', icon: MessageSquarePlus, label: 'New Campaign' },
-    { to: '/campaigns', icon: History, label: 'History', end: true },
-    { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
-    { to: '/automations', icon: GitBranch, label: 'Automations' },
-    { to: '/media', icon: Image, label: 'Media Library' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
+    { to: '/', icon: LayoutDashboard, label: t('nav_dashboard'), end: true },
+    { to: '/inbox', icon: InboxIcon, label: t('nav_inbox') },
+    { to: '/team', icon: UserCog, label: t('nav_team') },
+    { to: '/contacts', icon: Users, label: t('nav_contacts') },
+    { to: '/lists', icon: List, label: t('nav_lists') },
+    { to: '/campaigns/new', icon: MessageSquarePlus, label: t('nav_new_campaign') },
+    { to: '/campaigns', icon: History, label: t('nav_history'), end: true },
+    { to: '/templates', icon: LayoutTemplate, label: t('nav_templates') },
+    { to: '/automations', icon: GitBranch, label: t('nav_automations') },
+    { to: '/media', icon: Image, label: t('nav_media_library') },
+    { to: '/settings', icon: Settings, label: t('nav_settings') },
   ];
 
-  const mainNavItems = navItems.filter(item => !['Team', 'Settings'].includes(item.label));
-  const bottomNavItems = navItems.filter(item => ['Team', 'Settings'].includes(item.label));
+  const mainNavItems = navItems.filter(item => !['/team', '/settings'].includes(item.to));
+  const bottomNavItems = navItems.filter(item => ['/team', '/settings'].includes(item.to));
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -58,7 +60,7 @@ const Layout = () => {
           {/* Header Pill */}
           <div className="mb-6 mx-2">
             <div className="bg-emerald-100/50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-4 py-3 rounded-2xl flex items-center justify-center font-bold text-sm tracking-wide shadow-sm backdrop-blur-sm">
-              WHATSMS ORGANIZATION
+              {t('organization_header')}
             </div>
           </div>
 
@@ -109,13 +111,13 @@ const Layout = () => {
               className="flex items-center gap-3 w-full px-4 py-3 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-2xl transition-all duration-200 font-medium group"
             >
               <LogOut size={20} className="group-hover:text-red-500 transition-colors" strokeWidth={1.8} />
-              <span>Logout</span>
+              <span>{t('nav_logout')}</span>
             </button>
           </div>
 
           <div className="px-6 py-2">
             <p className="text-xs text-gray-400 dark:text-gray-600">
-              {user ? `Logged in as ${user.username}` : ''}
+              {user ? t('logged_in_as', { name: user.username }) : ''}
             </p>
           </div>
 
@@ -190,7 +192,7 @@ const Layout = () => {
               className="flex items-center gap-3 w-full px-4 py-3 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 rounded-2xl transition-all duration-200 font-medium"
             >
               <LogOut size={20} strokeWidth={1.8} />
-              <span>Logout</span>
+              <span>{t('nav_logout')}</span>
             </button>
           </div>
         </div>
