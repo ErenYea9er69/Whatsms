@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, Search, Filter, Plus, MoreHorizontal, Mail, Phone, Tag, X, RefreshCw, AlertCircle, ChevronDown, MessageSquare, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import ImportContacts from '../components/ImportContacts';
 import { useToast } from '../context/ToastContext';
 
 const Contacts = () => {
+    const { t } = useTranslation();
     const toast = useToast();
     const [contacts, setContacts] = useState([]);
     const [stats, setStats] = useState(null);
@@ -152,8 +154,8 @@ const Contacts = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your audience and contact lists</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('contacts_title')}</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">{t('contacts_subtitle')}</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -166,21 +168,21 @@ const Contacts = () => {
                         ) : (
                             <MessageSquare size={18} />
                         )}
-                        <span>{fetchingWhatsApp ? 'Fetching...' : 'Fetch WhatsApp'}</span>
+                        <span>{fetchingWhatsApp ? t('loading') : t('btn_fetch_whatsapp')}</span>
                     </button>
                     <button
                         onClick={() => setShowImportModal(true)}
                         className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-sm font-medium shadow-soft card-hover"
                     >
                         <Upload size={18} className="icon-gray" strokeWidth={1.75} />
-                        <span>Import CSV</span>
+                        <span>{t('btn_import_csv')}</span>
                     </button>
                     <button
                         onClick={() => setShowAddModal(true)}
                         className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                     >
                         <Plus size={18} strokeWidth={2} />
-                        <span>Add Contact</span>
+                        <span>{t('btn_add_contact')}</span>
                     </button>
                 </div>
             </div>
@@ -188,10 +190,10 @@ const Contacts = () => {
             {/* Stats Bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { label: 'Total Contacts', value: stats?.total?.toLocaleString() ?? '-' },
-                    { label: 'Active Lists', value: stats?.listsCount ?? '-' },
-                    { label: 'New This Week', value: stats?.thisWeek ?? '-' },
-                    { label: 'Showing', value: `${contacts.length} of ${pagination.total}` },
+                    { label: t('stat_total_contacts'), value: stats?.total?.toLocaleString() ?? '-' },
+                    { label: t('stat_active_lists'), value: stats?.listsCount ?? '-' },
+                    { label: t('stat_new_this_week'), value: stats?.thisWeek ?? '-' },
+                    { label: t('label_showing'), value: `${contacts.length} of ${pagination.total}` },
                 ].map((stat, index) => (
                     <div key={index} className="bg-white dark:bg-surface-dark px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-800/80 shadow-soft">
                         <p className="text-xs text-gray-400 font-medium">{stat.label}</p>
@@ -208,7 +210,7 @@ const Contacts = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 icon-gray" size={18} strokeWidth={1.75} />
                         <input
                             type="text"
-                            placeholder="Search contacts by name or phone..."
+                            placeholder={t('placeholder_search_contacts')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:border-primary outline-none transition-all text-sm text-gray-900 dark:text-white placeholder:text-gray-400"
@@ -222,7 +224,7 @@ const Contacts = () => {
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium border ${selectedTag ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
                         >
                             <Tag size={16} strokeWidth={1.75} />
-                            <span>{selectedTag || 'Filter by Tag'}</span>
+                            <span>{selectedTag || t('btn_filter_tag')}</span>
                             <ChevronDown size={14} />
                         </button>
 
@@ -232,7 +234,7 @@ const Contacts = () => {
                                     onClick={() => handleTagFilter('')}
                                     className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${!selectedTag ? 'text-emerald-600 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
                                 >
-                                    All Contacts
+                                    {t('label_all_contacts')}
                                 </button>
                                 {allTags.map(tag => (
                                     <button
@@ -255,7 +257,7 @@ const Contacts = () => {
                         className="flex items-center gap-2 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700"
                     >
                         <RefreshCw size={16} className="icon-gray" strokeWidth={1.75} />
-                        <span>Refresh</span>
+                        <span>{t('btn_refresh')}</span>
                     </button>
                 </div>
 
@@ -273,11 +275,11 @@ const Contacts = () => {
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 dark:bg-background-dark text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-semibold">
                             <tr>
-                                <th className="px-6 py-4 font-semibold">Contact</th>
-                                <th className="px-6 py-4 font-semibold">Phone</th>
-                                <th className="px-6 py-4 font-semibold">Tags</th>
-                                <th className="px-6 py-4 font-semibold">Lists</th>
-                                <th className="px-6 py-4 text-right font-semibold">Actions</th>
+                                <th className="px-6 py-4 font-semibold">{t('col_contact')}</th>
+                                <th className="px-6 py-4 font-semibold">{t('col_phone')}</th>
+                                <th className="px-6 py-4 font-semibold">{t('col_tags')}</th>
+                                <th className="px-6 py-4 font-semibold">{t('col_lists')}</th>
+                                <th className="px-6 py-4 text-right font-semibold">{t('col_actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800/80">

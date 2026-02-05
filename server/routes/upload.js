@@ -78,24 +78,28 @@ router.post('/', upload.single('file'), async (req, res) => {
             data: {
                 userId: req.user.id,
                 filename: req.file.originalname,
-                path: waMediaId, // Store WhatsApp Media ID here
+                path: req.file.filename, // Store local filename so it appears in Media Library
                 mimetype: mimeType,
                 size: req.file.size
             }
         });
 
         // Delete local file after successful upload to WhatsApp
+        /* 
+        // KEEP FILE LOCALLY for Media Library
         try {
             fs.unlinkSync(filePath);
             console.log('🗑️ [DEBUG] Local file deleted');
         } catch (e) {
             console.error('⚠️ [DEBUG] Failed to delete local file:', e.message);
         }
+        */
 
         res.json({
             success: true,
             media,
-            mediaId: media.id // Return DB ID for frontend to link
+            mediaId: media.id, // Return DB ID for frontend to link
+            waMediaId: waMediaId // Return WA Media ID just in case
         });
 
     } catch (error) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
     Megaphone,
@@ -34,6 +35,7 @@ import api from '../services/api';
 import AiService from '../services/ai';
 
 const Dashboard = () => {
+    const { t } = useTranslation();
     const [stats, setStats] = useState(null);
     const [campaignStats, setCampaignStats] = useState(null);
     const [campaigns, setCampaigns] = useState([]);
@@ -129,7 +131,7 @@ const Dashboard = () => {
             setShowAnalysisModal(false);
         } catch (err) {
             console.error(err);
-            alert('Failed to generate insights');
+            alert(t('error_analyze_failed') || 'Failed to generate insights');
         } finally {
             setAnalyzing(false);
         }
@@ -145,30 +147,30 @@ const Dashboard = () => {
 
     const statCards = [
         {
-            label: 'Total Campaigns',
+            label: t('stat_total_campaigns'),
             value: campaignStats?.totalCampaigns ?? '-',
-            change: `${campaignStats?.activeCampaigns ?? 0} active`,
+            change: t('active_count', { count: campaignStats?.activeCampaigns ?? 0 }),
             trend: campaignStats?.activeCampaigns > 0 ? 'up' : 'neutral',
             icon: Megaphone
         },
         {
-            label: 'Messages Sent',
+            label: t('stat_messages_sent'),
             value: campaignStats?.totalMessagesSent?.toLocaleString() ?? '-',
-            change: `${campaignStats?.deliveryRate ?? 0}% delivery rate`,
+            change: t('delivery_rate', { rate: campaignStats?.deliveryRate ?? 0 }),
             trend: 'up',
             icon: Send
         },
         {
-            label: 'Total Contacts',
+            label: t('stat_total_contacts'),
             value: stats?.total?.toLocaleString() ?? '-',
-            change: `+${stats?.thisWeek ?? 0} this week`,
+            change: t('this_week', { count: stats?.thisWeek ?? 0 }),
             trend: stats?.thisWeek > 0 ? 'up' : 'neutral',
             icon: Users
         },
         {
-            label: 'Contact Lists',
+            label: t('stat_contact_lists'),
             value: stats?.listsCount ?? '-',
-            change: 'Active lists',
+            change: t('active_lists'),
             trend: 'neutral',
             icon: Clock
         },
@@ -232,7 +234,7 @@ const Dashboard = () => {
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl"
                 >
                     <RefreshCw size={16} />
-                    Retry
+                    {t('btn_refresh') || 'Retry'}
                 </button>
             </div>
         );
@@ -243,9 +245,9 @@ const Dashboard = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('dashboard_title')}</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        Welcome back! Here's an overview of your campaigns.
+                        {t('dashboard_subtitle')}
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -254,14 +256,14 @@ const Dashboard = () => {
                         className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 text-sm font-medium shadow-soft card-hover"
                     >
                         <Upload size={18} className="icon-gray" strokeWidth={1.75} />
-                        <span>Import</span>
+                        <span>{t('import_contacts') || 'Import'}</span>
                     </button>
                     <button
                         onClick={() => navigate('/campaigns/new')}
                         className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                     >
                         <Plus size={18} strokeWidth={2} />
-                        <span>New Campaign</span>
+                        <span>{t('btn_new_campaign')}</span>
                     </button>
                 </div>
             </div>
@@ -277,8 +279,8 @@ const Dashboard = () => {
                                 <Sparkles size={20} className="text-white" />
                             </div>
                             <div>
-                                <h2 className="font-semibold">AI Performance Insights</h2>
-                                <p className="text-xs text-gray-400">AI-powered analysis</p>
+                                <h2 className="font-semibold">{t('ai_insights_title')}</h2>
+                                <p className="text-xs text-gray-400">{t('ai_insights_subtitle')}</p>
                             </div>
                         </div>
                         <button
@@ -286,14 +288,14 @@ const Dashboard = () => {
                             className="flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                         >
                             <Sparkles size={14} />
-                            {insights.length > 0 ? 'Analyze Again' : 'Analyze'}
+                            {insights.length > 0 ? t('btn_analyze_again') : t('btn_analyze')}
                         </button>
                     </div>
 
                     {analyzing ? (
                         <div className="flex items-center gap-3 py-4 text-gray-600 dark:text-gray-400">
                             <Loader2 size={24} className="animate-spin text-primary" />
-                            <p>Analyzing campaign data...</p>
+                            <p>{t('status_analyzing')}</p>
                         </div>
                     ) : insights.length > 0 ? (
                         <div className="grid md:grid-cols-3 gap-4">
@@ -310,7 +312,7 @@ const Dashboard = () => {
                                 onClick={() => setShowAnalysisModal(true)}
                                 className="text-sm text-primary hover:underline font-medium"
                             >
-                                Start Analysis →
+                                {t('btn_start_analysis')}
                             </button>
                         </div>
                     )}
@@ -454,8 +456,8 @@ const Dashboard = () => {
                                 <Activity size={20} className="text-white" strokeWidth={1.75} />
                             </div>
                             <div>
-                                <h3 className="font-semibold">Message Trends</h3>
-                                <p className="text-xs text-gray-400">Last 7 days</p>
+                                <h3 className="font-semibold">{t('chart_message_trends')}</h3>
+                                <p className="text-xs text-gray-400">{t('last_7_days')}</p>
                             </div>
                         </div>
                     </div>
@@ -489,15 +491,15 @@ const Dashboard = () => {
                     <div className="flex justify-center gap-6 mt-4">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                            <span className="text-xs text-gray-500">Sent</span>
+                            <span className="text-xs text-gray-500">{t('status_sent')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                            <span className="text-xs text-gray-500">Delivered</span>
+                            <span className="text-xs text-gray-500">{t('status_delivered')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                            <span className="text-xs text-gray-500">Read</span>
+                            <span className="text-xs text-gray-500">{t('status_read')}</span>
                         </div>
                     </div>
                 </div>
@@ -510,8 +512,8 @@ const Dashboard = () => {
                                 <BarChart3 size={20} className="text-white" strokeWidth={1.75} />
                             </div>
                             <div>
-                                <h3 className="font-semibold">Campaign Comparison</h3>
-                                <p className="text-xs text-gray-400">Recent campaigns</p>
+                                <h3 className="font-semibold">{t('chart_campaign_comparison')}</h3>
+                                <p className="text-xs text-gray-400">{t('recent_campaigns')}</p>
                             </div>
                         </div>
                     </div>
@@ -530,22 +532,22 @@ const Dashboard = () => {
                             </ResponsiveContainer>
                         ) : (
                             <div className="h-full flex items-center justify-center">
-                                <p className="text-gray-400 text-sm">No campaigns yet</p>
+                                <p className="text-gray-400 text-sm">{t('no_campaigns_yet')}</p>
                             </div>
                         )}
                     </div>
                     <div className="flex justify-center gap-6 mt-4">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                            <span className="text-xs text-gray-500">Delivered</span>
+                            <span className="text-xs text-gray-500">{t('status_delivered')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                            <span className="text-xs text-gray-500">Read</span>
+                            <span className="text-xs text-gray-500">{t('status_read')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                            <span className="text-xs text-gray-500">Replied</span>
+                            <span className="text-xs text-gray-500">{t('status_replied')}</span>
                         </div>
                     </div>
                 </div>
@@ -560,8 +562,8 @@ const Dashboard = () => {
                             <TrendingUp size={20} className="icon-gray" strokeWidth={1.75} />
                         </div>
                         <div>
-                            <h3 className="font-semibold">Performance Overview</h3>
-                            <p className="text-xs text-gray-400">Message delivery metrics</p>
+                            <h3 className="font-semibold">{t('performance_overview')}</h3>
+                            <p className="text-xs text-gray-400">{t('performance_subtitle')}</p>
                         </div>
                     </div>
 
@@ -569,19 +571,19 @@ const Dashboard = () => {
                     <div className="grid grid-cols-4 gap-4 mb-6">
                         <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/20">
                             <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{campaignStats?.totalDelivered?.toLocaleString() ?? 0}</p>
-                            <p className="text-xs text-gray-500 mt-1">Delivered</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('status_delivered')}</p>
                         </div>
                         <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
                             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{campaignStats?.totalRead?.toLocaleString() ?? 0}</p>
-                            <p className="text-xs text-gray-500 mt-1">Read</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('status_read')}</p>
                         </div>
                         <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20">
                             <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{campaignStats?.totalReplied?.toLocaleString() ?? 0}</p>
-                            <p className="text-xs text-gray-500 mt-1">Replied</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('status_replied')}</p>
                         </div>
                         <div className="text-center p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
                             <p className="text-2xl font-bold text-red-600 dark:text-red-400">{campaignStats?.totalFailed?.toLocaleString() ?? 0}</p>
-                            <p className="text-xs text-gray-500 mt-1">Failed</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('status_failed')}</p>
                         </div>
                     </div>
 
@@ -589,7 +591,7 @@ const Dashboard = () => {
                     <div className="space-y-4">
                         <div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-500">Delivery Rate</span>
+                                <span className="text-gray-500">{t('rate_delivery')}</span>
                                 <span className="font-semibold text-emerald-600">{campaignStats?.deliveryRate ?? 0}%</span>
                             </div>
                             <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -601,7 +603,7 @@ const Dashboard = () => {
                         </div>
                         <div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-500">Read Rate</span>
+                                <span className="text-gray-500">{t('rate_read')}</span>
                                 <span className="font-semibold text-blue-600">{campaignStats?.readRate ?? 0}%</span>
                             </div>
                             <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -621,8 +623,8 @@ const Dashboard = () => {
                             <Activity size={20} className="icon-gray" strokeWidth={1.75} />
                         </div>
                         <div>
-                            <h3 className="font-semibold">Recent Campaigns</h3>
-                            <p className="text-xs text-gray-400">Latest updates</p>
+                            <h3 className="font-semibold">{t('recent_campaigns_title')}</h3>
+                            <p className="text-xs text-gray-400">{t('latest_updates')}</p>
                         </div>
                     </div>
 
@@ -642,7 +644,7 @@ const Dashboard = () => {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-sm text-gray-400 text-center py-4">No campaigns yet</p>
+                            <p className="text-sm text-gray-400 text-center py-4">{t('no_campaigns_yet')}</p>
                         )}
                     </div>
 
@@ -650,7 +652,7 @@ const Dashboard = () => {
                         onClick={() => navigate('/campaigns')}
                         className="w-full mt-6 py-2.5 text-sm text-primary font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/10 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
-                        View All Campaigns
+                        {t('btn_view_all_campaigns')}
                         <ArrowUpRight size={14} />
                     </button>
                 </div>

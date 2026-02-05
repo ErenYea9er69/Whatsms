@@ -16,9 +16,11 @@ import {
     XCircle,
     Loader2
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 const CampaignHistory = () => {
+    const { t } = useTranslation();
     const [campaigns, setCampaigns] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ const CampaignHistory = () => {
     }, [fetchData]);
 
     const handleSendCampaign = async (id) => {
-        if (!confirm('Start sending this campaign now?')) return;
+        if (!confirm(t('confirm_send_campaign'))) return;
 
         try {
             await api.sendCampaign(id);
@@ -61,7 +63,7 @@ const CampaignHistory = () => {
     };
 
     const handleStopCampaign = async (id) => {
-        if (!confirm('Stop this campaign?')) return;
+        if (!confirm(t('confirm_stop_campaign'))) return;
 
         try {
             await api.stopCampaign(id);
@@ -72,7 +74,7 @@ const CampaignHistory = () => {
     };
 
     const handleDeleteCampaign = async (id) => {
-        if (!confirm('Delete this campaign?')) return;
+        if (!confirm(t('confirm_delete_campaign'))) return;
 
         try {
             await api.deleteCampaign(id);
@@ -89,44 +91,44 @@ const CampaignHistory = () => {
                     bg: 'bg-blue-50 dark:bg-blue-900/20',
                     text: 'text-blue-600 dark:text-blue-400',
                     icon: CheckCircle,
-                    label: 'Completed'
+                    label: t('status_completed')
                 };
             case 'IN_PROGRESS':
                 return {
                     bg: 'bg-emerald-50 dark:bg-emerald-900/20',
                     text: 'text-emerald-600 dark:text-emerald-400',
                     icon: Play,
-                    label: 'In Progress'
+                    label: t('status_in_progress')
                 };
             case 'SCHEDULED':
                 return {
                     bg: 'bg-amber-50 dark:bg-amber-900/20',
                     text: 'text-amber-600 dark:text-amber-400',
                     icon: Clock,
-                    label: 'Scheduled'
+                    label: t('status_scheduled')
                 };
             case 'STOPPED':
                 return {
                     bg: 'bg-red-50 dark:bg-red-900/20',
                     text: 'text-red-600 dark:text-red-400',
                     icon: XCircle,
-                    label: 'Stopped'
+                    label: t('status_stopped')
                 };
             default:
                 return {
                     bg: 'bg-gray-50 dark:bg-gray-800/50',
                     text: 'text-gray-500 dark:text-gray-400',
                     icon: Clock,
-                    label: 'Draft'
+                    label: t('status_draft')
                 };
         }
     };
 
     const statSummaries = [
-        { label: 'Total Campaigns', value: stats?.totalCampaigns ?? '-', icon: BarChart3 },
-        { label: 'Messages Sent', value: stats?.totalMessagesSent?.toLocaleString() ?? '-', icon: Send },
-        { label: 'Delivery Rate', value: `${stats?.deliveryRate ?? 0}%`, icon: CheckCircle },
-        { label: 'Active Now', value: stats?.activeCampaigns ?? '-', icon: Play },
+        { label: t('stat_total_campaigns'), value: stats?.totalCampaigns ?? '-', icon: BarChart3 },
+        { label: t('stat_messages_sent'), value: stats?.totalMessagesSent?.toLocaleString() ?? '-', icon: Send },
+        { label: t('rate_delivery'), value: `${stats?.deliveryRate ?? 0}%`, icon: CheckCircle },
+        { label: t('stat_active_now'), value: stats?.activeCampaigns ?? '-', icon: Play },
     ];
 
     return (
@@ -134,15 +136,15 @@ const CampaignHistory = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">View and manage your marketing campaigns</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('campaigns_title')}</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">{t('campaigns_subtitle')}</p>
                 </div>
                 <button
                     onClick={() => navigate('/campaigns/new')}
                     className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                 >
                     <Plus size={18} strokeWidth={2} />
-                    <span>New Campaign</span>
+                    <span>{t('btn_new_campaign')}</span>
                 </button>
             </div>
 
@@ -181,7 +183,7 @@ const CampaignHistory = () => {
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                             }`}
                     >
-                        {status || 'All'}
+                        {status ? t(`status_${status.toLowerCase()}`) : t('label_all_contacts')}
                     </button>
                 ))}
             </div>
@@ -191,7 +193,7 @@ const CampaignHistory = () => {
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-400">
                     <AlertCircle size={18} />
                     <span>{error}</span>
-                    <button onClick={fetchData} className="ml-auto text-sm underline">Retry</button>
+                    <button onClick={fetchData} className="ml-auto text-sm underline">{t('btn_refresh')}</button>
                 </div>
             )}
 
@@ -216,16 +218,16 @@ const CampaignHistory = () => {
                     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <BarChart3 size={28} className="icon-gray" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No Campaigns Yet</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('no_campaigns_yet')}</h3>
                     <p className="text-gray-500 dark:text-gray-400 mb-6">
-                        {filter ? `No ${filter.toLowerCase().replace('_', ' ')} campaigns found` : 'Create your first campaign to get started'}
+                        {filter ? t('no_campaigns_filter', { filter: filter.toLowerCase().replace('_', ' ') }) : t('start_campaign_prompt')}
                     </p>
                     <button
                         onClick={() => navigate('/campaigns/new')}
                         className="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-xl font-medium"
                     >
                         <Plus size={18} />
-                        Create Campaign
+                        {t('btn_create_campaign')}
                     </button>
                 </div>
             ) : (
@@ -263,19 +265,19 @@ const CampaignHistory = () => {
                                 <div className="grid grid-cols-4 gap-2 mb-4">
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                                         <p className="text-lg font-bold">{campaign.recipientCount || 0}</p>
-                                        <p className="text-xs text-gray-400">Recipients</p>
+                                        <p className="text-xs text-gray-400">{t('stat_recipients')}</p>
                                     </div>
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                                         <p className="text-lg font-bold text-blue-600">{campaign.statsDelivered || 0}</p>
-                                        <p className="text-xs text-gray-400">Delivered</p>
+                                        <p className="text-xs text-gray-400">{t('status_delivered')}</p>
                                     </div>
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                                         <p className="text-lg font-bold text-emerald-600">{campaign.statsRead || 0}</p>
-                                        <p className="text-xs text-gray-400">Read</p>
+                                        <p className="text-xs text-gray-400">{t('status_read')}</p>
                                     </div>
                                     <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                                         <p className="text-lg font-bold text-red-600">{campaign.statsFailed || 0}</p>
-                                        <p className="text-xs text-gray-400">Failed</p>
+                                        <p className="text-xs text-gray-400">{t('status_failed')}</p>
                                     </div>
                                 </div>
 
@@ -283,7 +285,7 @@ const CampaignHistory = () => {
                                 {campaign.status === 'IN_PROGRESS' && (
                                     <div className="mb-4">
                                         <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                            <span>Progress</span>
+                                            <span>{t('label_progress')}</span>
                                             <span>{campaign.statsDelivered || 0} / {campaign.recipientCount || 0}</span>
                                         </div>
                                         <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">

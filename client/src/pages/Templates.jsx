@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Edit2, X, MessageSquare, LayoutTemplate, Loader2, AlertCircle, CheckCircle2, Paperclip, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import aiService from '../services/ai';
@@ -6,6 +7,7 @@ import AiChatPanel from '../components/AiChatPanel';
 import WhatsAppPreview from '../components/WhatsAppPreview';
 
 const Templates = () => {
+    const { t } = useTranslation();
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -169,15 +171,15 @@ const Templates = () => {
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Message Templates</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Design structured WhatsApp messages</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('templates_title')}</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">{t('templates_subtitle')}</p>
                 </div>
                 <button
                     onClick={() => { resetForm(); setShowModal(true); }}
                     className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                 >
                     <Plus size={18} strokeWidth={2} />
-                    <span>Create Template</span>
+                    <span>{t('btn_create_template')}</span>
                 </button>
             </div>
 
@@ -192,7 +194,7 @@ const Templates = () => {
                     <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
                         <LayoutTemplate size={32} className="text-blue-500" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">No templates yet</p>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">{t('no_templates')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -245,11 +247,11 @@ const Templates = () => {
 
                         {/* 1. EDITOR COLUMN (Left) */}
                         <div className="w-[35%] p-6 overflow-y-auto border-r border-gray-200 dark:border-gray-800 scrollbar-hide">
-                            <h2 className="text-xl font-bold mb-6">{editingId ? 'Edit Template' : 'New Template'}</h2>
+                            <h2 className="text-xl font-bold mb-6">{editingId ? t('modal_edit_template') : t('modal_new_template')}</h2>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5">Template Name</label>
+                                    <label className="block text-sm font-medium mb-1.5">{t('label_template_name')}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary text-gray-900 dark:text-white placeholder:text-gray-400"
@@ -260,7 +262,7 @@ const Templates = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5">Header (Optional)</label>
+                                    <label className="block text-sm font-medium mb-1.5">{t('label_header_optional')}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary text-gray-900 dark:text-white placeholder:text-gray-400"
@@ -272,7 +274,7 @@ const Templates = () => {
 
                                 <div>
                                     <div className="flex items-center justify-between mb-1.5">
-                                        <label className="block text-sm font-medium">Body Text</label>
+                                        <label className="block text-sm font-medium">{t('label_body_text')}</label>
                                         <div className="flex gap-2">
                                             <input
                                                 type="file"
@@ -320,7 +322,7 @@ const Templates = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5">Footer (Optional)</label>
+                                    <label className="block text-sm font-medium mb-1.5">{t('label_footer_optional')}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary text-gray-900 dark:text-white placeholder:text-gray-400"
@@ -333,7 +335,7 @@ const Templates = () => {
 
                             <div className="mt-8 flex gap-3">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    Cancel
+                                    {t('btn_cancel')}
                                 </button>
                                 <button
                                     onClick={handleAnalyze}
@@ -341,17 +343,17 @@ const Templates = () => {
                                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-primary text-primary hover:bg-primary/10 disabled:opacity-50"
                                 >
                                     {analyzing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                    {analyzing ? 'Analyzing...' : 'Analyze'}
+                                    {analyzing ? t('status_analyzing') : t('btn_analyze')}
                                 </button>
                                 <button onClick={handleSave} className="flex-1 py-2.5 btn-primary text-white rounded-xl shadow-glow">
-                                    Save Template
+                                    {t('btn_save_template')}
                                 </button>
                             </div>
                         </div>
 
                         {/* 2. PREVIEW COLUMN (Middle) - NEW */}
                         <div className="w-[30%] bg-gray-50/50 dark:bg-black/10 border-r border-gray-200 dark:border-gray-800 p-4 flex flex-col">
-                            <h3 className="text-sm font-medium text-gray-500 mb-4 px-2">Preview</h3>
+                            <h3 className="text-sm font-medium text-gray-500 mb-4 px-2">{t('label_preview')}</h3>
                             <div className="flex-1 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-inner">
                                 <WhatsAppPreview
                                     header={formData.header}
