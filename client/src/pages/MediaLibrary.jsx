@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Trash2, Search, FileText, Image as ImageIcon, Video, Music, MoreVertical, X, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
-const MediaLibrary = () => {
+const MediaLibrary = ({ onSelect, isModal }) => {
     const [mediaItems, setMediaItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -16,7 +16,7 @@ const MediaLibrary = () => {
             const data = await api.getMedia();
             setMediaItems(data.media || []);
         } catch (err) {
-            setError(err.message);
+            // setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -32,9 +32,18 @@ const MediaLibrary = () => {
 
         setUploading(true);
         try {
-            await api.uploadMedia(file);
+            const result = await api.uploadMedia(file);
             setShowUploadModal(false);
             fetchMedia();
+
+            // If in selection mode, auto-select uploaded file
+            if (onSelect) {
+                const previewUrl = `${import.meta.env.VITE_API_URL?.replace('/api', '')}/uploads/${result.media.path}`;
+                onSelect({
+                    ...result.media,
+                    previewUrl
+                });
+            }
         } catch (err) {
             alert(err.message);
         } finally {
@@ -42,7 +51,8 @@ const MediaLibrary = () => {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, e) => {
+        e.stopPropagation(); // Prevent selection when deleting
         if (!confirm('Are you sure you want to delete this file?')) return;
         try {
             await api.deleteMedia(id);
@@ -50,6 +60,15 @@ const MediaLibrary = () => {
         } catch (err) {
             alert(err.message);
         }
+    };
+
+    const handleSelect = (media) => {
+        if (!onSelect) return;
+        const previewUrl = `${import.meta.env.VITE_API_URL?.replace('/api', '')}/uploads/${media.path}`;
+        onSelect({
+            ...media,
+            previewUrl
+        });
     };
 
     const formatSize = (bytes) => {
@@ -68,20 +87,35 @@ const MediaLibrary = () => {
     };
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Media Library</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage images, videos, and documents for your campaigns</p>
+        <div className="space-y-6 animate-fade-in h-full flex flex-col">
+            {!isModal && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Media Library</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage images, videos, and documents for your campaigns</p>
+                    </div>
+                    <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
+                    >
+                        <Upload size={18} strokeWidth={2} />
+                        <span>Upload File</span>
+                    </button>
                 </div>
-                <button
-                    onClick={() => setShowUploadModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
-                >
-                    <Upload size={18} strokeWidth={2} />
-                    <span>Upload File</span>
-                </button>
-            </div>
+            )}
+
+            {isModal && (
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+                    <h2 className="text-xl font-bold">Select Media</h2>
+                    <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <Upload size={16} strokeWidth={2} />
+                        <span>Upload New</span>
+                    </button>
+                </div>
+            )}
 
             {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -103,9 +137,13 @@ const MediaLibrary = () => {
                     </button>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto pr-2 pb-20">
                     {mediaItems.map((media) => (
-                        <div key={media.id} className="group relative bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 overflow-hidden card-hover">
+                        <div
+                            key={media.id}
+                            onClick={onSelect ? () => handleSelect(media) : undefined}
+                            className={`group relative bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 overflow-hidden ${onSelect ? 'cursor-pointer ring-2 ring-transparent hover:ring-primary' : 'card-hover'}`}
+                        >
                             <div className="aspect-square bg-gray-50 dark:bg-black/20 flex items-center justify-center relative overflow-hidden">
                                 {media.mimetype.startsWith('image/') ? (
                                     <img
@@ -117,15 +155,23 @@ const MediaLibrary = () => {
                                     getIcon(media.mimetype)
                                 )}
 
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                                    <button
-                                        onClick={() => handleDelete(media.id)}
-                                        className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm transition-colors"
-                                        title="Delete"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
+                                {!onSelect && (
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                                        <button
+                                            onClick={(e) => handleDelete(media.id, e)}
+                                            className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm transition-colors"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {onSelect && (
+                                    <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-full shadow-lg">Select</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="p-3">
                                 <p className="text-sm font-medium truncate text-gray-900 dark:text-white" title={media.filename}>
