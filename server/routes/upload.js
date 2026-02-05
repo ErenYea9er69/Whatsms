@@ -12,8 +12,15 @@ const os = require('os');
 // Configure storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        // Use system temp directory which is writable on Vercel
-        cb(null, os.tmpdir());
+        // Use persistent storage in public/uploads for Plesk/Production
+        const uploadsDir = path.join(__dirname, '../public/uploads');
+
+        // Ensure uploads directory exists
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -53,13 +60,23 @@ router.post('/', upload.single('file'), async (req, res) => {
         const filePath = req.file.path;
         const mimeType = req.file.mimetype;
 
+        console.log('📂 [DEBUG] File Upload Request:');
+        console.log(`   - Original Name: ${req.file.originalname}`);
+        console.log(`   - MimeType: ${mimeType}`);
+        console.log(`   - Temp Path: ${filePath}`);
+        console.log(`   - File Exists: ${fs.existsSync(filePath)}`);
+        console.log(`   - User ID: ${req.user.id}`);
+
         // Upload to WhatsApp
-        const waMediaId = await whatsappService.uploadMedia(filePath, mimeType);
+        console.log('🚀 [DEBUG] Starting WhatsApp Upload...');
+        const waMediaId = await whatsappService.uploadMedia(filePath, mimeType, req.user.id);
+        console.log(`✅ [DEBUG] WhatsApp Upload Success! Media ID: ${waMediaId}`);
 
         // Create Media record in DB
         // We store the WhatsApp Media ID in the 'path' field as a convention
         const media = await prisma.media.create({
             data: {
+                userId: req.user.id,
                 filename: req.file.originalname,
                 path: waMediaId, // Store WhatsApp Media ID here
                 mimetype: mimeType,
@@ -68,7 +85,12 @@ router.post('/', upload.single('file'), async (req, res) => {
         });
 
         // Delete local file after successful upload to WhatsApp
-        fs.unlinkSync(filePath);
+        try {
+            fs.unlinkSync(filePath);
+            console.log('🗑️ [DEBUG] Local file deleted');
+        } catch (e) {
+            console.error('⚠️ [DEBUG] Failed to delete local file:', e.message);
+        }
 
         res.json({
             success: true,
@@ -77,12 +99,21 @@ router.post('/', upload.single('file'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('❌ [DEBUG] Upload Route Error:', error);
+        console.error('   - Stack:', error.stack);
+
         // Clean up file if error
         if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
+            try {
+                fs.unlinkSync(req.file.path);
+            } catch (cleanupErr) {
+                console.error('   - Failed to cleanup file:', cleanupErr.message);
+            }
         }
-        res.status(500).json({ error: 'Failed to upload file to WhatsApp' });
+        res.status(500).json({
+            error: 'Failed to upload file to WhatsApp',
+            details: error.message
+        });
     }
 });
 

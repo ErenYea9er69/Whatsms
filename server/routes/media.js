@@ -9,9 +9,13 @@ const router = express.Router();
 
 const os = require('os');
 
-// Helper to get uploads directory (in production use S3/Cloud Storage)
-// For Vercel, this is ephermal and only /tmp is writable
-const uploadsDir = os.tmpdir();
+// Use persistent storage in public/uploads for Plesk/Production
+const uploadsDir = path.join(__dirname, '../public/uploads');
+
+// Ensure uploads directory exists
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configure multer storage
 const storage = multer.diskStorage({

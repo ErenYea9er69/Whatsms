@@ -102,9 +102,14 @@ async function sendTextMessage(phone, message, userId = null) {
  * Returns the media ID
  */
 async function uploadMedia(filePath, mimeType, userId = null) {
+    console.log(`🔌 [DEBUG] Service: uploadMedia called for User ${userId}`);
     const { ACCESS_TOKEN, PHONE_NUMBER_ID, isMockMode } = await getCredentials(userId);
     const fs = require('fs');
     const FormData = require('form-data');
+
+    if (!ACCESS_TOKEN || !PHONE_NUMBER_ID) {
+        console.error('❌ [DEBUG] Missing Credentials:', { ACCESS_TOKEN: !!ACCESS_TOKEN, PHONE_NUMBER_ID });
+    }
 
     if (isMockMode) {
         console.log(`📱 [MOCK] Uploading media: ${filePath}`);
@@ -117,6 +122,8 @@ async function uploadMedia(filePath, mimeType, userId = null) {
         form.append('messaging_product', 'whatsapp');
         form.append('file', fs.createReadStream(filePath), { contentType: mimeType });
 
+        console.log(`📡 [DEBUG] Sending to Meta API: ${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/media`);
+
         const response = await axios.post(
             `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/media`,
             form,
@@ -124,13 +131,19 @@ async function uploadMedia(filePath, mimeType, userId = null) {
                 headers: {
                     'Authorization': `Bearer ${ACCESS_TOKEN}`,
                     ...form.getHeaders()
-                }
+                },
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity
             }
         );
+        console.log('✅ [DEBUG] Meta API Response:', JSON.stringify(response.data));
         return response.data.id;
     } catch (error) {
-        console.error('WhatsApp Upload Error:', error.response?.data || error.message);
-        throw new Error('Failed to upload media to WhatsApp');
+        console.error('❌ [DEBUG] WhatsApp Service Upload Error:');
+        console.error('   - Message:', error.message);
+        console.error('   - Response Data:', JSON.stringify(error.response?.data || {}));
+        console.error('   - Status:', error.response?.status);
+        throw new Error(`Failed to upload media to WhatsApp: ${error.response?.data?.error?.message || error.message}`);
     }
 }
 
