@@ -13,7 +13,7 @@ import {
     BarChart3,
     Activity,
     RefreshCw,
-    Sparkles,
+
     CheckSquare,
     Square,
     X,
@@ -32,20 +32,14 @@ import {
     Legend
 } from 'recharts';
 import api from '../services/api';
-import AiService from '../services/ai';
+
 
 const Dashboard = () => {
     const { t } = useTranslation();
     const [stats, setStats] = useState(null);
     const [campaignStats, setCampaignStats] = useState(null);
     const [campaigns, setCampaigns] = useState([]);
-    const [insights, setInsights] = useState([]);
 
-    // Analysis State
-    const [analyzing, setAnalyzing] = useState(false);
-    const [showAnalysisModal, setShowAnalysisModal] = useState(false);
-    const [analysisScope, setAnalysisScope] = useState('all'); // 'all' | 'select'
-    const [selectedCampaignIds, setSelectedCampaignIds] = useState([]);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -122,28 +116,7 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const handleAnalyze = async () => {
-        setAnalyzing(true);
-        try {
-            const ids = analysisScope === 'select' ? selectedCampaignIds : [];
-            const newInsights = await AiService.getAnalyticsInsights(ids);
-            setInsights(newInsights || []);
-            setShowAnalysisModal(false);
-        } catch (err) {
-            console.error(err);
-            alert(t('error_analyze_failed') || 'Failed to generate insights');
-        } finally {
-            setAnalyzing(false);
-        }
-    };
 
-    const toggleCampaignSelection = (id) => {
-        setSelectedCampaignIds(prev =>
-            prev.includes(id)
-                ? prev.filter(cid => cid !== id)
-                : [...prev, id]
-        );
-    };
 
     const statCards = [
         {
@@ -268,157 +241,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* AI Insights Widget */}
-            <div className="bg-white dark:bg-surface-dark rounded-xl p-6 shadow-soft border border-gray-100 dark:border-gray-800/80 relative overflow-hidden animate-slide-up">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 dark:bg-primary/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
-                <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                                <Sparkles size={20} className="text-white" />
-                            </div>
-                            <div>
-                                <h2 className="font-semibold">{t('ai_insights_title')}</h2>
-                                <p className="text-xs text-gray-400">{t('ai_insights_subtitle')}</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setShowAnalysisModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
-                        >
-                            <Sparkles size={14} />
-                            {insights.length > 0 ? t('btn_analyze_again') : t('btn_analyze')}
-                        </button>
-                    </div>
-
-                    {analyzing ? (
-                        <div className="flex items-center gap-3 py-4 text-gray-600 dark:text-gray-400">
-                            <Loader2 size={24} className="animate-spin text-primary" />
-                            <p>{t('status_analyzing')}</p>
-                        </div>
-                    ) : insights.length > 0 ? (
-                        <div className="grid md:grid-cols-3 gap-4">
-                            {insights.map((insight, idx) => (
-                                <div key={idx} className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 hover:border-primary/30 transition-colors">
-                                    <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">{insight}</p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="py-6 text-center bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700/50 border-dashed">
-                            <p className="text-gray-500 dark:text-gray-400 mb-2">Get AI-powered recommendations to improve your delivery and read rates.</p>
-                            <button
-                                onClick={() => setShowAnalysisModal(true)}
-                                className="text-sm text-primary hover:underline font-medium"
-                            >
-                                {t('btn_start_analysis')}
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Analysis Modal */}
-            {showAnalysisModal && (
-                <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 animate-fade-in backdrop-blur-sm">
-                    <div className="bg-white dark:bg-surface-dark w-full max-w-lg rounded-xl shadow-2xl p-6 border border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold">Configure Analysis</h3>
-                            <button onClick={() => setShowAnalysisModal(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4 mb-6">
-                            <div
-                                onClick={() => setAnalysisScope('all')}
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${analysisScope === 'all'
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${analysisScope === 'all' ? 'border-primary' : 'border-gray-300'
-                                        }`}>
-                                        {analysisScope === 'all' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">Analyze All Data</p>
-                                        <p className="text-xs text-gray-500">Includes all past campaigns</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                onClick={() => setAnalysisScope('select')}
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${analysisScope === 'select'
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-gray-100 dark:border-gray-800 hover:border-gray-300'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${analysisScope === 'select' ? 'border-primary' : 'border-gray-300'
-                                        }`}>
-                                        {analysisScope === 'select' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">Select Specific Campaigns</p>
-                                        <p className="text-xs text-gray-500">Compare specific blasts</p>
-                                    </div>
-                                </div>
-
-                                {analysisScope === 'select' && (
-                                    <div className="pl-8 space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                                        {campaigns.map(c => (
-                                            <div
-                                                key={c.id}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleCampaignSelection(c.id);
-                                                }}
-                                                className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-lg cursor-pointer"
-                                            >
-                                                {selectedCampaignIds.includes(c.id)
-                                                    ? <CheckSquare size={18} className="text-primary" />
-                                                    : <Square size={18} className="text-gray-400" />
-                                                }
-                                                <span className="text-sm truncate">{c.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => setShowAnalysisModal(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleAnalyze}
-                                disabled={analyzing || (analysisScope === 'select' && selectedCampaignIds.length === 0)}
-                                className="flex items-center gap-2 px-6 py-2 btn-primary text-white rounded-lg font-medium shadow-glow disabled:opacity-50"
-                            >
-                                {analyzing ? (
-                                    <>
-                                        <Loader2 size={16} className="animate-spin" />
-                                        <span>Analyzing...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles size={16} />
-                                        <span>Generate Insights</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
