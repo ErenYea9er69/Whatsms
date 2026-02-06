@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Copy, Check, Sparkles, Loader2, Wand2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import aiService from '../services/ai';
 
 /**
@@ -9,6 +10,7 @@ import aiService from '../services/ai';
  * @param {string} contentType - 'template' or 'campaign' for context-aware prompts
  */
 const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template' }) => {
+    const { t } = useTranslation();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -19,10 +21,10 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
 
     // Quick action suggestions
     const quickActions = [
-        { label: '📊 Analyze my text', prompt: 'Analyze my current text and give feedback' },
-        { label: '✂️ Make it shorter', prompt: 'Make my current text shorter and more concise' },
-        { label: '😊 Add emojis', prompt: 'Add relevant emojis to my current text' },
-        { label: '🎯 Improve CTA', prompt: 'Improve the call-to-action in my text' },
+        { label: '📊 ' + t('action_analyze'), prompt: t('prompt_analyze') },
+        { label: '✂️ ' + t('action_shorten'), prompt: t('prompt_shorten') },
+        { label: '😊 ' + t('action_emojis'), prompt: t('prompt_emojis') },
+        { label: '🎯 ' + t('action_cta'), prompt: t('prompt_cta') },
     ];
 
     // Simple markdown renderer for bold text
@@ -71,7 +73,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
         } catch {
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'Sorry, I encountered an error. Please try again.',
+                content: t('error_ai'),
                 isError: true
             }]);
         } finally {
@@ -109,7 +111,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                 className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
             >
                 <Wand2 size={16} />
-                <span>AI Assistant</span>
+                <span>{t('ai_title')}</span>
                 <ChevronUp size={16} />
             </button>
         );
@@ -124,8 +126,8 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                         <Sparkles size={16} className="text-white" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-sm">AI Assistant</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Ask me anything about your {contentType}</p>
+                        <h3 className="font-semibold text-sm">{t('ai_title')}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t('ai_subtitle', { type: contentType })}</p>
                     </div>
                 </div>
                 <button
@@ -144,7 +146,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                             <Wand2 size={24} className="text-emerald-500" />
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            Hi! I can help you write, edit, or analyze your {contentType}.
+                            {t('ai_welcome', { type: contentType })}
                         </p>
                         {/* Quick Actions */}
                         <div className="flex flex-wrap gap-2 justify-center">
@@ -187,12 +189,12 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                                                 {copiedIndex === idx ? (
                                                     <>
                                                         <Check size={12} className="text-green-500" />
-                                                        <span className="text-green-500">Copied!</span>
+                                                        <span className="text-green-500">{t('btn_copied')}</span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Copy size={12} />
-                                                        <span>Copy</span>
+                                                        <span>{t('btn_copy')}</span>
                                                     </>
                                                 )}
                                             </button>
@@ -202,7 +204,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                                                     className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
                                                 >
                                                     <Wand2 size={12} />
-                                                    <span>Apply</span>
+                                                    <span>{t('btn_apply')}</span>
                                                 </button>
                                             )}
                                         </div>
@@ -215,7 +217,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                                 <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-md px-4 py-3">
                                     <div className="flex items-center gap-2">
                                         <Loader2 size={14} className="animate-spin text-emerald-500" />
-                                        <span className="text-sm text-gray-500">Thinking...</span>
+                                        <span className="text-sm text-gray-500">{t('status_thinking')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -249,7 +251,7 @@ const AiChatPanel = ({ currentContent = '', onApplyText, contentType = 'template
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask me anything..."
+                        placeholder={t('placeholder_ask_ai')}
                         rows={1}
                         className="flex-1 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-primary resize-none text-sm min-h-[42px] max-h-[120px] text-gray-900 dark:text-white placeholder:text-gray-400"
                         style={{ height: 'auto' }}

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, User, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
+    const { t } = useTranslation();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -61,12 +63,12 @@ const Login = () => {
                             <LogIn size={28} className="icon-gray" strokeWidth={1.5} />
                         </div>
                         <h1 className="text-3xl font-bold gradient-text mb-2">
-                            {isRegisterMode ? 'Create Account' : 'Welcome Back'}
+                            {isRegisterMode ? t('register_title') : t('login_title')}
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400">
                             {isRegisterMode
-                                ? 'Sign up to start managing campaigns'
-                                : 'Sign in to manage your campaigns'}
+                                ? t('register_subtitle')
+                                : t('login_subtitle')}
                         </p>
                     </div>
 
@@ -82,7 +84,7 @@ const Login = () => {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Username
+                                {t('label_username')}
                             </label>
                             <div className="relative">
                                 <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 icon-gray" strokeWidth={1.75} />
@@ -91,7 +93,7 @@ const Login = () => {
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base text-gray-900 dark:text-white placeholder:text-gray-400"
-                                    placeholder="Enter your username"
+                                    placeholder={t('placeholder_username')}
                                     required
                                     autoComplete="username"
                                 />
@@ -100,7 +102,7 @@ const Login = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Password
+                                {t('label_password')}
                             </label>
                             <div className="relative">
                                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 icon-gray" strokeWidth={1.75} />
@@ -109,7 +111,7 @@ const Login = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none transition-all text-base text-gray-900 dark:text-white placeholder:text-gray-400"
-                                    placeholder={isRegisterMode ? 'Create a password (min 6 chars)' : 'Enter your password'}
+                                    placeholder={isRegisterMode ? t('placeholder_create_password') : t('placeholder_password')}
                                     required
                                     minLength={isRegisterMode ? 6 : undefined}
                                     autoComplete={isRegisterMode ? 'new-password' : 'current-password'}
@@ -126,7 +128,7 @@ const Login = () => {
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    <span>{isRegisterMode ? 'Create Account' : 'Sign In'}</span>
+                                    <span>{isRegisterMode ? t('btn_create_account') : t('btn_login')}</span>
                                     <ArrowRight size={18} strokeWidth={2} />
                                 </>
                             )}
@@ -135,7 +137,7 @@ const Login = () => {
 
                     {/* Toggle Register/Login */}
                     <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
-                        {isRegisterMode ? 'Already have an account?' : "Don't have an account?"}{' '}
+                        {isRegisterMode ? t('text_has_account') : t('text_no_account')}{' '}
                         <button
                             onClick={() => {
                                 setIsRegisterMode(!isRegisterMode);
@@ -143,7 +145,7 @@ const Login = () => {
                             }}
                             className="text-primary hover:underline font-medium"
                         >
-                            {isRegisterMode ? 'Sign In' : 'Create one'}
+                            {isRegisterMode ? t('link_sign_in') : t('link_create_one')}
                         </button>
                     </p>
                 </div>

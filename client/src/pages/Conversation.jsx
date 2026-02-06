@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import InternalNotes from '../components/InternalNotes';
 
 const Conversation = () => {
+    const { t } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const [conversation, setConversation] = useState(null);
@@ -86,8 +88,8 @@ const Conversation = () => {
         }
     };
 
-    if (loading) return <div className="p-6 text-center">Loading conversation...</div>;
-    if (!conversation) return <div className="p-6 text-center">Conversation not found</div>;
+    if (loading) return <div className="p-6 text-center">{t('conversation_loading')}</div>;
+    if (!conversation) return <div className="p-6 text-center">{t('conversation_not_found')}</div>;
 
     return (
         <div className="conversation-page h-[calc(100vh-64px)] flex flex-col md:flex-row bg-white dark:bg-gray-900">
@@ -97,7 +99,7 @@ const Conversation = () => {
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
                     <div className="flex items-center gap-3">
                         <button onClick={() => navigate('/inbox')} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mr-2 md:hidden">
-                            &larr; Back
+                            &larr; {t('btn_back')}
                         </button>
                         <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-semibold text-lg">
                             {conversation.contact?.name?.[0] || 'C'}
@@ -113,14 +115,14 @@ const Conversation = () => {
                                 onClick={() => handleStatusChange('CLOSED')}
                                 className="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1 rounded"
                             >
-                                Mark Closed
+                                {t('btn_mark_closed')}
                             </button>
                         ) : (
                             <button
                                 onClick={() => handleStatusChange('OPEN')}
                                 className="text-xs bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/20 text-green-700 dark:text-green-400 px-3 py-1 rounded"
                             >
-                                Reopen
+                                {t('btn_reopen')}
                             </button>
                         )}
                     </div>
@@ -155,7 +157,7 @@ const Conversation = () => {
                             type="text"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Type a message..."
+                            placeholder={t('placeholder_type_message')}
                             className="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:placeholder-gray-400"
                         />
                         <button
@@ -163,7 +165,7 @@ const Conversation = () => {
                             disabled={!newMessage.trim()}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                         >
-                            Send
+                            {t('btn_send')}
                         </button>
                     </form>
                 </div>
@@ -172,13 +174,13 @@ const Conversation = () => {
             {/* Sidebar (Details + Notes) */}
             <div className="w-full md:w-80 bg-white dark:bg-gray-800 p-4 overflow-y-auto border-l border-gray-200 dark:border-gray-700">
                 <div className="mb-6">
-                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Assignment</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">{t('label_assignment')}</h3>
                     <select
                         value={conversation.assignedToId || ''}
                         onChange={handleAssign}
                         className="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="">Unassigned</option>
+                        <option value="">{t('label_unassigned')}</option>
                         {teamMembers.map(member => (
                             <option key={member.id} value={member.id}>{member.name}</option>
                         ))}
@@ -186,10 +188,10 @@ const Conversation = () => {
                 </div>
 
                 <div className="mb-6">
-                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contact Info</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">{t('label_contact_info')}</h3>
                     <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded border border-gray-100 dark:border-gray-600">
-                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-1"><span className="font-semibold">Name:</span> {conversation.contact?.name}</p>
-                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-1"><span className="font-semibold">Phone:</span> {conversation.contact?.phone}</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-1"><span className="font-semibold">{t('label_name')}</span> {conversation.contact?.name}</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-1"><span className="font-semibold">{t('label_phone')}</span> {conversation.contact?.phone}</p>
                         <div className="mt-2 flex flex-wrap gap-1">
                             {conversation.contact?.tags?.map((tag, i) => (
                                 <span key={i} className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-full">{tag}</span>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 const Team = () => {
+    const { t } = useTranslation();
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('Verified'); // Verified, Unverified
@@ -44,12 +46,12 @@ const Team = () => {
             setFormData({ name: '', email: '', role: 'AGENT', avatar: '' });
         } catch (error) {
             console.error('Failed to add team member:', error);
-            alert('Failed to add team member');
+            alert(t('error_add_member'));
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to remove this team member?')) return;
+        if (!window.confirm(t('confirm_remove_member'))) return;
         try {
             await api.deleteTeamMember(id);
             fetchMembers();
@@ -66,14 +68,14 @@ const Team = () => {
                     className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'Verified' ? 'text-blue-600 dark:text-green-500' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
                     onClick={() => setActiveTab('Verified')}
                 >
-                    Verified
+                    {t('tab_verified')}
                     {activeTab === 'Verified' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-green-500 rounded-t-full" />}
                 </button>
                 <button
                     className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'Unverified' ? 'text-blue-600 dark:text-green-500' : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300'}`}
                     onClick={() => setActiveTab('Unverified')}
                 >
-                    Unverified
+                    {t('tab_unverified')}
                     {activeTab === 'Unverified' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-green-500 rounded-t-full" />}
                 </button>
             </div>
@@ -81,14 +83,14 @@ const Team = () => {
             {/* Header Section */}
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Team</h1>
-                    <p className="text-sm text-gray-500 dark:text-zinc-400">Add, edit, and delete accounts in your team</p>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{t('team_title')}</h1>
+                    <p className="text-sm text-gray-500 dark:text-zinc-400">{t('team_subtitle')}</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
                     className="bg-blue-600 hover:bg-blue-700 dark:bg-green-600 dark:hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
                 >
-                    Invite User <Plus size={16} />
+                    {t('btn_invite_user')} <Plus size={16} />
                 </button>
             </div>
 
@@ -98,13 +100,13 @@ const Team = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={18} />
                     <input
                         type="text"
-                        placeholder="Search Team"
+                        placeholder={t('placeholder_search_team')}
                         className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-zinc-900/50 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-100 dark:focus:ring-green-900 focus:bg-white dark:focus:bg-zinc-900 transition-all outline-none text-gray-700 dark:text-zinc-200 placeholder-gray-400 dark:placeholder-zinc-600"
                     />
                 </div>
                 <button className="flex items-center gap-2 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200 border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 rounded-lg px-3 py-2 text-sm transition-all bg-white dark:bg-[#09090b]">
                     <SlidersHorizontal size={16} />
-                    Columns
+                    {t('btn_columns')}
                 </button>
             </div>
 
@@ -113,20 +115,20 @@ const Team = () => {
                 <table className="w-full">
                     <thead>
                         <tr className="bg-blue-50/50 dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800">
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">Name</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">Email</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">Role</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">Active/Inactive</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">Assignable</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">Last updated</th>
-                            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-900 dark:text-zinc-200">Actions</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_name')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_email')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_role')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_active')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_assignable')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_last_updated')}</th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-900 dark:text-zinc-200">{t('col_actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-zinc-800">
                         {loading ? (
-                            <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500 dark:text-zinc-500 text-sm">Loading...</td></tr>
+                            <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500 dark:text-zinc-500 text-sm">{t('loading')}</td></tr>
                         ) : members.length === 0 ? (
-                            <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500 dark:text-zinc-500 text-sm">No team members found.</td></tr>
+                            <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500 dark:text-zinc-500 text-sm">{t('no_team_members')}</td></tr>
                         ) : (
                             members.map((member) => (
                                 <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors">
@@ -158,7 +160,7 @@ const Team = () => {
                                             onClick={() => handleDelete(member.id)}
                                             className="text-gray-400 dark:text-zinc-600 hover:text-red-600 dark:hover:text-red-500 transition-colors"
                                         >
-                                            Remove
+                                            {t('btn_delete')}
                                         </button>
                                     </td>
                                 </tr>
@@ -172,11 +174,11 @@ const Team = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/20 dark:bg-black/70 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
                     <div className="relative p-6 border dark:border-zinc-800 w-96 shadow-2xl rounded-xl bg-white dark:bg-[#09090b] animate-fade-in up">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Invite Team Member</h3>
-                        <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">Send an invitation to join your team.</p>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{t('modal_invite_title')}</h3>
+                        <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">{t('modal_invite_subtitle')}</p>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
-                                <label className="block text-gray-700 dark:text-zinc-300 text-xs font-semibold mb-1.5 uppercase tracking-wide">Name</label>
+                                <label className="block text-gray-700 dark:text-zinc-300 text-xs font-semibold mb-1.5 uppercase tracking-wide">{t('col_name')}</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -188,7 +190,7 @@ const Team = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="block text-gray-700 dark:text-zinc-300 text-xs font-semibold mb-1.5 uppercase tracking-wide">Email</label>
+                                <label className="block text-gray-700 dark:text-zinc-300 text-xs font-semibold mb-1.5 uppercase tracking-wide">{t('col_email')}</label>
                                 <input
                                     type="email"
                                     name="email"
@@ -200,16 +202,16 @@ const Team = () => {
                                 />
                             </div>
                             <div className="mb-6">
-                                <label className="block text-gray-700 dark:text-zinc-300 text-xs font-semibold mb-1.5 uppercase tracking-wide">Role</label>
+                                <label className="block text-gray-700 dark:text-zinc-300 text-xs font-semibold mb-1.5 uppercase tracking-wide">{t('col_role')}</label>
                                 <select
                                     name="role"
                                     value={formData.role}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-green-500/20 focus:border-blue-500 dark:focus:border-green-500 transition-all bg-white dark:bg-zinc-900 dark:text-white"
                                 >
-                                    <option value="AGENT">Agent</option>
-                                    <option value="MANAGER">Manager</option>
-                                    <option value="ADMIN">Admin</option>
+                                    <option value="AGENT">{t('role_agent')}</option>
+                                    <option value="MANAGER">{t('role_manager')}</option>
+                                    <option value="ADMIN">{t('role_admin')}</option>
                                 </select>
                             </div>
                             <div className="flex justify-end gap-3">
@@ -218,13 +220,13 @@ const Team = () => {
                                     onClick={() => setIsModalOpen(false)}
                                     className="px-4 py-2 bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
                                 >
-                                    Cancel
+                                    {t('btn_cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-blue-600 dark:bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 dark:hover:bg-green-700 shadow-sm shadow-blue-200 dark:shadow-none transition-colors"
                                 >
-                                    Send Invitation
+                                    {t('btn_send_invitation')}
                                 </button>
                             </div>
                         </form>

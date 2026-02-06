@@ -14,10 +14,12 @@ import {
     Tag,
     CheckCheck
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 
 const Lists = () => {
+    const { t } = useTranslation();
     const toast = useToast();
     const [lists, setLists] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -93,11 +95,11 @@ const Lists = () => {
         setSaving(true);
         try {
             await api.createList(newList);
-            toast.success('List created successfully!');
+            toast.success(t('msg_list_created'));
             setShowCreateModal(false);
             setNewList({ name: '', description: '' });
             fetchLists();
-        } catch {
+        } catch (err) {
             toast.error(err.message);
         } finally {
             setSaving(false);
@@ -105,16 +107,16 @@ const Lists = () => {
     };
 
     const handleDeleteList = async (id) => {
-        if (!confirm('Are you sure you want to delete this list?')) return;
+        if (!confirm(t('confirm_delete_list') || 'Are you sure you want to delete this list?')) return;
         try {
             await api.deleteList(id);
-            toast.success('List deleted');
+            toast.success(t('msg_list_deleted'));
             if (selectedList?.id === id) {
                 setSelectedList(null);
                 setListMembers([]);
             }
             fetchLists();
-        } catch {
+        } catch (err) {
             toast.error(err.message);
         }
     };
@@ -132,7 +134,7 @@ const Lists = () => {
             setSelectedContacts([]);
             fetchListMembers(selectedList.id);
             fetchLists(); // Refresh counts
-        } catch {
+        } catch (err) {
             toast.error(err.message);
         } finally {
             setSaving(false);
@@ -162,7 +164,7 @@ const Lists = () => {
             setSourceListId('');
             fetchListMembers(selectedList.id);
             fetchLists();
-        } catch {
+        } catch (err) {
             toast.error(err.message);
         } finally {
             setSaving(false);
@@ -175,7 +177,7 @@ const Lists = () => {
             toast.success('Contact removed from list');
             fetchListMembers(selectedList.id);
             fetchLists();
-        } catch {
+        } catch (err) {
             toast.error(err.message);
         }
     };
@@ -228,15 +230,15 @@ const Lists = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Contact Lists</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Organize your contacts into targeted lists</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('lists_title')}</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">{t('lists_subtitle')}</p>
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                 >
                     <Plus size={18} strokeWidth={2} />
-                    <span>Create List</span>
+                    <span>{t('btn_create_list')}</span>
                 </button>
             </div>
 
@@ -244,7 +246,7 @@ const Lists = () => {
                 {/* Lists Sidebar */}
                 <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800/80 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 dark:border-gray-800/80 flex items-center justify-between">
-                        <h3 className="font-semibold">Your Lists</h3>
+                        <h3 className="font-semibold">{t('header_your_lists')}</h3>
                         <button onClick={fetchLists} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                             <RefreshCw size={16} className="icon-gray" />
                         </button>
@@ -258,7 +260,7 @@ const Lists = () => {
                                 ))}
                             </div>
                         ) : lists.length === 0 ? (
-                            <p className="p-4 text-center text-gray-400">No lists yet. Create your first list!</p>
+                            <p className="p-4 text-center text-gray-400">{t('no_lists')}</p>
                         ) : (
                             <div className="p-2">
                                 {lists.map(list => (
@@ -302,7 +304,7 @@ const Lists = () => {
                     {!selectedList ? (
                         <div className="flex flex-col items-center justify-center h-80 text-gray-400">
                             <Users size={48} strokeWidth={1} className="mb-4 opacity-50" />
-                            <p className="text-lg font-medium">Select a list</p>
+                            <p className="text-lg font-medium">{t('modal_add_contacts').replace('{{list}}', 'list')}</p>
                             <p className="text-sm">Choose a list from the sidebar to view its contacts</p>
                         </div>
                     ) : (
@@ -318,14 +320,14 @@ const Lists = () => {
                                         className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
                                     >
                                         <Users size={16} />
-                                        From List
+                                        {t('btn_from_list')}
                                     </button>
                                     <button
                                         onClick={openAddContactsModal}
                                         className="flex items-center gap-2 px-3 py-2 text-sm font-medium btn-primary text-white rounded-xl"
                                     >
                                         <UserPlus size={16} />
-                                        Add Contacts
+                                        {t('btn_add_contacts')}
                                     </button>
                                 </div>
                             </div>
@@ -377,7 +379,7 @@ const Lists = () => {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full p-6 animate-slide-up" style={{ opacity: 0 }}>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">Create New List</h2>
+                            <h2 className="text-xl font-bold">{t('modal_create_list')}</h2>
                             <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                                 <X size={20} />
                             </button>
@@ -385,32 +387,32 @@ const Lists = () => {
 
                         <form onSubmit={handleCreateList} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-2">List Name *</label>
+                                <label className="block text-sm font-medium mb-2">{t('label_list_name')} *</label>
                                 <input
                                     type="text"
                                     value={newList.name}
                                     onChange={(e) => setNewList({ ...newList, name: e.target.value })}
                                     className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
-                                    placeholder="e.g. VIP Customers"
+                                    placeholder={t('placeholder_list_name')}
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2">Description</label>
+                                <label className="block text-sm font-medium mb-2">{t('label_list_desc')}</label>
                                 <textarea
                                     value={newList.description}
                                     onChange={(e) => setNewList({ ...newList, description: e.target.value })}
                                     className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none resize-none"
                                     rows={3}
-                                    placeholder="Optional description..."
+                                    placeholder={t('placeholder_list_name').replace('e.g.', '')}
                                 />
                             </div>
                             <div className="flex gap-3 pt-4">
                                 <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-medium">
-                                    Cancel
+                                    {t('btn_cancel') || 'Cancel'}
                                 </button>
                                 <button type="submit" disabled={saving} className="flex-1 py-2.5 btn-primary text-white rounded-xl font-medium disabled:opacity-50">
-                                    {saving ? 'Creating...' : 'Create List'}
+                                    {saving ? 'Creating...' : t('btn_create_list')}
                                 </button>
                             </div>
                         </form>
@@ -423,7 +425,7 @@ const Lists = () => {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl max-w-lg w-full p-6 animate-slide-up max-h-[80vh] flex flex-col" style={{ opacity: 0 }}>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold">Add Contacts to {selectedList?.name}</h2>
+                            <h2 className="text-xl font-bold">{t('modal_add_contacts').replace('{{list}}', selectedList?.name)}</h2>
                             <button onClick={() => setShowAddContactsModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                                 <X size={20} />
                             </button>
@@ -437,7 +439,7 @@ const Lists = () => {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Search contacts..."
+                                    placeholder={t('placeholder_search_contacts')}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none"
@@ -451,7 +453,7 @@ const Lists = () => {
                                     className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${selectedTag ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                                 >
                                     <Tag size={16} />
-                                    <span className="text-sm">{selectedTag || 'Tag'}</span>
+                                    <span className="text-sm">{selectedTag || t('col_tags') || 'Tag'}</span>
                                     <ChevronDown size={14} />
                                 </button>
 
@@ -500,7 +502,7 @@ const Lists = () => {
                                 </button>
                             )}
                             <span className="ml-auto text-xs text-gray-400">
-                                Showing {filteredContacts.length} contacts
+                                {t('label_showing')} {filteredContacts.length} contacts
                             </span>
                         </div>
 
@@ -550,10 +552,10 @@ const Lists = () => {
 
                         <div className="flex gap-3 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800">
                             <button onClick={() => setShowAddContactsModal(false)} className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-medium">
-                                Cancel
+                                {t('btn_cancel') || 'Cancel'}
                             </button>
                             <button onClick={handleAddContacts} disabled={saving || selectedContacts.length === 0} className="flex-1 py-2.5 btn-primary text-white rounded-xl font-medium disabled:opacity-50">
-                                {saving ? 'Adding...' : `Add ${selectedContacts.length} Contact${selectedContacts.length !== 1 ? 's' : ''}`}
+                                {saving ? 'Adding...' : `${t('btn_add_contacts')} (${selectedContacts.length})`}
                             </button>
                         </div>
                     </div>
@@ -565,14 +567,14 @@ const Lists = () => {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full p-6 animate-slide-up" style={{ opacity: 0 }}>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">Copy From Another List</h2>
+                            <h2 className="text-xl font-bold">{t('modal_copy_list')}</h2>
                             <button onClick={() => setShowAddFromListModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>
 
                         <p className="text-sm text-gray-500 mb-4">
-                            All contacts from the selected list will be copied to <strong>{selectedList?.name}</strong>
+                            {t('text_copy_explanation')} <strong>{selectedList?.name}</strong>
                         </p>
 
                         <div className="space-y-2 mb-6">
@@ -607,10 +609,10 @@ const Lists = () => {
 
                         <div className="flex gap-3">
                             <button onClick={() => setShowAddFromListModal(false)} className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-medium">
-                                Cancel
+                                {t('btn_cancel') || 'Cancel'}
                             </button>
                             <button onClick={handleAddFromList} disabled={saving || !sourceListId} className="flex-1 py-2.5 btn-primary text-white rounded-xl font-medium disabled:opacity-50">
-                                {saving ? 'Copying...' : 'Copy Contacts'}
+                                {saving ? 'Copying...' : t('btn_copy_contacts')}
                             </button>
                         </div>
                     </div>

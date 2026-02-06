@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Users, Check, ChevronRight, Paperclip, X, AlertCircle, Loader2, Sparkles, Wand2, Send, LayoutDashboard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 // import aiService from '../services/ai'; // Unused now
 import AiChatPanel from '../components/AiChatPanel';
 
 const CampaignBuilder = () => {
+    const { t } = useTranslation();
     const [step, setStep] = useState(1);
     const [lists, setLists] = useState([]);
     const [templates, setTemplates] = useState([]);
@@ -59,9 +61,9 @@ const CampaignBuilder = () => {
     };
 
     const steps = [
-        { number: 1, label: 'Compose', icon: FileText },
-        { number: 2, label: 'Recipients', icon: Users },
-        { number: 3, label: 'Review', icon: Check },
+        { number: 1, label: t('step_compose'), icon: FileText },
+        { number: 2, label: t('step_recipients'), icon: Users },
+        { number: 3, label: t('step_review'), icon: Check },
     ];
 
     const toggleList = (listId) => {
@@ -141,7 +143,7 @@ const CampaignBuilder = () => {
 
         // check size (10MB)
         if (file.size > 10 * 1024 * 1024) {
-            setError('File size must be less than 10MB');
+            setError(t('error_file_size'));
             return;
         }
 
@@ -157,7 +159,7 @@ const CampaignBuilder = () => {
                 }]
             }));
         } catch {
-            setError('Failed to upload file');
+            setError(t('error_upload_failed'));
         } finally {
             setUploading(false);
             // Reset input
@@ -184,8 +186,8 @@ const CampaignBuilder = () => {
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Create Campaign</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Compose and send messages to your contacts</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t('builder_title')}</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">{t('builder_subtitle')}</p>
             </div>
 
             {/* Step Indicator */}
@@ -236,23 +238,23 @@ const CampaignBuilder = () => {
                     <div className="flex gap-6 animate-fade-in">
                         {/* Form Side */}
                         <div className="flex-1 space-y-6">
-                            <h2 className="text-xl font-semibold">Compose Message</h2>
+                            <h2 className="text-xl font-semibold">{t('section_compose')}</h2>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Campaign Name *</label>
+                                <label className="block text-sm font-medium mb-2">{t('label_campaign_name_required')}</label>
                                 <input
                                     type="text"
                                     value={campaign.name}
                                     onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
                                     className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors text-gray-900 dark:text-white placeholder:text-gray-400"
-                                    placeholder="e.g., January Newsletter"
+                                    placeholder={t('placeholder_campaign_name')}
                                 />
                             </div>
 
                             {/* Templates */}
                             {templates.length > 0 && (
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Use Template</label>
+                                    <label className="block text-sm font-medium mb-2">{t('label_use_template')}</label>
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {templates.map(template => (
                                             <button
@@ -269,7 +271,7 @@ const CampaignBuilder = () => {
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Message Content</h3>
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('label_message_content')}</h3>
                                     <div className="flex gap-2">
                                         <input
                                             type="file"
@@ -282,14 +284,14 @@ const CampaignBuilder = () => {
                                         <label
                                             htmlFor="file-upload"
                                             className={`p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            title="Attach Image or PDF"
+                                            title={t('tooltip_attach')}
                                         >
                                             {uploading ? <Loader2 size={16} className="animate-spin text-gray-500" /> : <Paperclip size={16} className="text-gray-500 dark:text-gray-400" />}
                                         </label>
                                     </div>
                                 </div>
                                 <div className="text-xs text-gray-400 mb-2">
-                                    Use <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{name}}'}</code> or <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{'{{phone}}'}</code> for personalization
+                                    {t('hint_personalization')}
                                 </div>
                                 <textarea
                                     value={campaign.messageBody}
@@ -297,7 +299,7 @@ const CampaignBuilder = () => {
                                     className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition-colors resize-none h-40 text-gray-900 dark:text-white placeholder:text-gray-400"
                                     placeholder="Hey {{name}}, we have exciting news for you..."
                                 />
-                                <p className="text-xs text-gray-400 mt-2">{campaign.messageBody.length} characters</p>
+                                <p className="text-xs text-gray-400 mt-2">{campaign.messageBody.length} {t('text_characters')}</p>
 
                                 {/* File Attachments List */}
                                 {campaign.files && campaign.files.length > 0 && (
@@ -320,7 +322,7 @@ const CampaignBuilder = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Schedule (Optional)</label>
+                                <label className="block text-sm font-medium mb-2">{t('label_schedule')}</label>
                                 <input
                                     type="datetime-local"
                                     value={campaign.scheduledAt}
@@ -343,17 +345,17 @@ const CampaignBuilder = () => {
 
                 {step === 2 && (
                     <div className="space-y-6 animate-fade-in">
-                        <h2 className="text-xl font-semibold">Select Recipients</h2>
-                        <p className="text-gray-500 dark:text-gray-400">Choose which contact lists will receive this campaign</p>
+                        <h2 className="text-xl font-semibold">{t('section_select_recipients')}</h2>
+                        <p className="text-gray-500 dark:text-gray-400">{t('text_select_recipients_subtitle')}</p>
 
                         {lists.length === 0 ? (
                             <div className="text-center py-8">
-                                <p className="text-gray-400 mb-4">No contact lists found</p>
+                                <p className="text-gray-400 mb-4">{t('no_lists_found')}</p>
                                 <button
                                     onClick={() => navigate('/contacts')}
                                     className="text-primary hover:underline"
                                 >
-                                    Create a list first
+                                    {t('link_create_list')}
                                 </button>
                             </div>
                         ) : (
@@ -387,7 +389,7 @@ const CampaignBuilder = () => {
 
                         <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
                             <p className="text-lg font-medium">
-                                Total Recipients: <span className="text-primary">{getTotalRecipients()}</span>
+                                {t('label_total_recipients')} <span className="text-primary">{getTotalRecipients()}</span>
                             </p>
                         </div>
                     </div>
@@ -395,22 +397,24 @@ const CampaignBuilder = () => {
 
                 {step === 3 && (
                     <div className="space-y-6 animate-fade-in">
-                        <h2 className="text-xl font-semibold">Review Campaign</h2>
+                        <h2 className="text-xl font-semibold">{t('section_review')}</h2>
 
                         <div className="space-y-4">
                             <div className="p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
-                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Campaign Name</p>
+                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('label_campaign_name')}</p>
                                 <p className="font-medium">{campaign.name}</p>
                             </div>
 
                             <div className="p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
-                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Message</p>
+                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('label_message_content')}</p>
                                 <p className="whitespace-pre-wrap">{campaign.messageBody}</p>
                             </div>
 
                             <div className="p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
-                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Recipients</p>
-                                <p className="font-medium">{getTotalRecipients()} contacts from {campaign.selectedLists.length} lists</p>
+                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('step_recipients')}</p>
+                                <p className="font-medium">
+                                    {t('text_review_recipients', { count: getTotalRecipients(), lists: campaign.selectedLists.length })}
+                                </p>
                                 <div className="flex flex-wrap gap-2 mt-2">
                                     {lists.filter(l => campaign.selectedLists.includes(l.id)).map(list => (
                                         <span key={list.id} className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-800 rounded-lg">
@@ -422,7 +426,7 @@ const CampaignBuilder = () => {
 
                             {campaign.scheduledAt && (
                                 <div className="p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
-                                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Scheduled For</p>
+                                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('label_scheduled_for')}</p>
                                     <p className="font-medium">{new Date(campaign.scheduledAt).toLocaleString()}</p>
                                 </div>
                             )}
@@ -437,7 +441,7 @@ const CampaignBuilder = () => {
                     onClick={() => step > 1 ? setStep(step - 1) : navigate('/campaigns')}
                     className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors font-medium"
                 >
-                    {step === 1 ? 'Cancel' : 'Back'}
+                    {step === 1 ? t('btn_cancel') : t('btn_back')}
                 </button>
 
                 {step < 3 ? (
@@ -446,7 +450,7 @@ const CampaignBuilder = () => {
                         disabled={!canProceed()}
                         className="flex items-center gap-2 px-6 py-3 btn-primary text-white rounded-xl font-medium shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span>Continue</span>
+                        <span>{t('btn_continue')}</span>
                         <ChevronRight size={18} />
                     </button>
                 ) : (
@@ -458,12 +462,12 @@ const CampaignBuilder = () => {
                         {saving ? (
                             <>
                                 <Loader2 size={18} className="animate-spin" />
-                                <span>Creating...</span>
+                                <span>{t('status_creating')}</span>
                             </>
                         ) : (
                             <>
                                 <Check size={18} />
-                                <span>Create Campaign</span>
+                                <span>{t('builder_title')}</span>
                             </>
                         )}
                     </button>
@@ -477,9 +481,9 @@ const CampaignBuilder = () => {
                             <Check size={32} strokeWidth={3} />
                         </div>
 
-                        <h3 className="text-xl font-bold mb-2">Campaign Created!</h3>
+                        <h3 className="text-xl font-bold mb-2">{t('modal_success_title')}</h3>
                         <p className="text-gray-500 dark:text-gray-400 mb-6">
-                            Your campaign has been successfully saved as a draft. What would you like to do next?
+                            {t('text_success_subtitle')}
                         </p>
 
                         <div className="space-y-3">
@@ -487,7 +491,7 @@ const CampaignBuilder = () => {
                                 onClick={async () => {
                                     try {
                                         // Show toast immediately
-                                        toast.success('Campaign started! Sending messages...');
+                                        toast.success(t('msg_campaign_started'));
                                         // Close modal first
                                         setShowSuccessModal(false);
                                         // Navigate to dashboard
@@ -495,13 +499,13 @@ const CampaignBuilder = () => {
                                         // Trigger send in background (or await if critical, but better UI to move on)
                                         await api.sendCampaign(createdCampaignId);
                                     } catch (err) {
-                                        toast.error('Failed to start campaign: ' + err.message);
+                                        toast.error(t('error_start_campaign') + err.message);
                                     }
                                 }}
                                 className="w-full py-3 btn-primary text-white rounded-xl font-medium shadow-glow flex items-center justify-center gap-2"
                             >
                                 <Send size={18} />
-                                <span>Send Now</span>
+                                <span>{t('btn_send_now')}</span>
                             </button>
 
                             <button
@@ -509,7 +513,7 @@ const CampaignBuilder = () => {
                                 className="w-full py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
                             >
                                 <LayoutDashboard size={18} />
-                                <span>Go to Dashboard</span>
+                                <span>{t('btn_go_dashboard')}</span>
                             </button>
                         </div>
                     </div>

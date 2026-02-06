@@ -23,6 +23,7 @@ import TriggerNode from '../../components/Flow/nodes/TriggerNode';
 import GenericNode from '../../components/Flow/nodes/GenericNode';
 import ConditionNode from '../../components/Flow/nodes/ConditionNode';
 import api from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 const nodeTypes = {
     trigger: TriggerNode,
@@ -34,57 +35,58 @@ const nodeTypes = {
 const sidebarCategories = [
     {
         id: 'messages',
-        title: 'Messages',
+        title: 'cat_messages',
         items: [
-            { id: 'text', label: 'Simple text', icon: FileText, subType: 'text' },
-            { id: 'media', label: 'Media files', icon: Image, subType: 'media' },
-            { id: 'buttons', label: 'Interactive buttons', icon: MousePointerClick, subType: 'buttons' },
-            { id: 'list', label: 'Interactive list', icon: List, subType: 'list' },
-            { id: 'template', label: 'Template', icon: LayoutTemplate, subType: 'template' },
+            { id: 'text', label: 'node_text', icon: FileText, subType: 'text' },
+            { id: 'media', label: 'node_media', icon: Image, subType: 'media' },
+            { id: 'buttons', label: 'node_buttons', icon: MousePointerClick, subType: 'buttons' },
+            { id: 'list', label: 'node_list', icon: List, subType: 'list' },
+            { id: 'template', label: 'node_template', icon: LayoutTemplate, subType: 'template' },
         ]
     },
     {
         id: 'groups',
-        title: 'Group Actions',
+        title: 'cat_groups',
         items: [
-            { id: 'addGroup', label: 'Add to group', icon: Users, subType: 'addGroup' },
-            { id: 'removeGroup', label: 'Remove from Group', icon: UserMinus, subType: 'removeGroup' },
+            { id: 'addGroup', label: 'node_add_group', icon: Users, subType: 'addGroup' },
+            { id: 'removeGroup', label: 'node_remove_group', icon: UserMinus, subType: 'removeGroup' },
         ]
     },
     {
         id: 'tags',
-        title: 'Tag',
+        title: 'cat_tags',
         items: [
-            { id: 'addTag', label: 'Add Tags', icon: Tag, subType: 'addTag' },
-            { id: 'removeTag', label: 'Remove Tags', icon: Hash, subType: 'removeTag' },
+            { id: 'addTag', label: 'node_add_tag', icon: Tag, subType: 'addTag' },
+            { id: 'removeTag', label: 'node_remove_tag', icon: Hash, subType: 'removeTag' },
         ]
     },
     {
         id: 'funnel',
-        title: 'Funnel',
+        title: 'cat_funnel',
         items: [
-            { id: 'addPipeline', label: 'Add/Edit to Pipeline', icon: Layout, subType: 'addPipeline' },
-            { id: 'removePipeline', label: 'Remove from Pipeline', icon: Trash2, subType: 'removePipeline' },
+            { id: 'addPipeline', label: 'node_add_pipeline', icon: Layout, subType: 'addPipeline' },
+            { id: 'removePipeline', label: 'node_remove_pipeline', icon: Trash2, subType: 'removePipeline' },
         ]
     },
     {
         id: 'others',
-        title: 'Others',
+        title: 'cat_others',
         items: [
-            { id: 'delay', label: 'Delay', icon: Clock, subType: 'delay' },
+            { id: 'delay', label: 'node_delay', icon: Clock, subType: 'delay' },
         ]
     }
 ];
 
 const triggerOptions = [
-    { value: 'NEW_CONVERSATION', label: 'New conversation' },
-    { value: 'KEYWORDS', label: 'Text contains specific keywords' },
-    { value: 'HAS_TAGS', label: 'Contact has specific tags' },
-    { value: 'PIPELINE_UPDATE', label: 'Contact has been affected to a pipeline' },
-    { value: 'SHORT_RESPONSE', label: 'Advanced Short response' },
+    { value: 'NEW_CONVERSATION', label: 'trigger_new_conversation' },
+    { value: 'KEYWORDS', label: 'trigger_keywords' },
+    { value: 'HAS_TAGS', label: 'trigger_has_tags' },
+    { value: 'PIPELINE_UPDATE', label: 'trigger_pipeline_update' },
+    { value: 'SHORT_RESPONSE', label: 'trigger_short_response' },
 ];
 
 export default function FlowBuilder() {
+    const { t } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const isNew = id === 'new';
@@ -192,7 +194,7 @@ export default function FlowBuilder() {
             id: `${item.subType}-${Date.now()}`,
             type: 'action',
             data: {
-                label: item.label,
+                label: t(item.label),
                 subType: item.subType,
                 description: 'Click to configure'
             },
@@ -214,7 +216,7 @@ export default function FlowBuilder() {
                     <button onClick={() => navigate('/automations')} className="text-gray-500 hover:text-gray-800 dark:hover:text-neutral-200 transition-colors">
                         <ArrowLeft size={18} />
                     </button>
-                    <span className="font-semibold text-gray-700 dark:text-neutral-200">Components</span>
+                    <span className="font-semibold text-gray-700 dark:text-neutral-200">{t('flow_builder_components')}</span>
                     <div className="w-5" />
                 </div>
 
@@ -225,7 +227,7 @@ export default function FlowBuilder() {
                                 onClick={() => toggleCategory(cat.id)}
                                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors"
                             >
-                                <span className="font-semibold text-sm text-gray-800 dark:text-neutral-200">{cat.title}</span>
+                                <span className="font-semibold text-sm text-gray-800 dark:text-neutral-200">{t(cat.title)}</span>
                                 {expandedCategories[cat.id] ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronRight size={16} className="text-gray-400" />}
                             </button>
 
@@ -238,7 +240,7 @@ export default function FlowBuilder() {
                                             className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] cursor-pointer flex items-center gap-3 group transition-colors"
                                         >
                                             <item.icon size={18} className="text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-                                            <span className="text-sm text-gray-600 dark:text-neutral-400 group-hover:text-gray-900 dark:group-hover:text-neutral-200 transition-colors">{item.label}</span>
+                                            <span className="text-sm text-gray-600 dark:text-neutral-400 group-hover:text-gray-900 dark:group-hover:text-neutral-200 transition-colors">{t(item.label)}</span>
                                             <div className="flex-1" />
                                             <span className="opacity-0 group-hover:opacity-100 text-gray-400">
                                                 <div className="grid grid-cols-2 gap-0.5">
@@ -279,7 +281,7 @@ export default function FlowBuilder() {
                                 }`}
                         >
                             {isActive ? <Pause size={16} /> : <Play size={16} />}
-                            {isActive ? 'Active' : 'Draft'}
+                            {isActive ? t('tooltip_active') : t('tooltip_draft')}
                         </button>
 
                         <button
@@ -288,7 +290,7 @@ export default function FlowBuilder() {
                             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow active:scale-95"
                         >
                             <Save size={18} />
-                            {saving ? 'Saving...' : 'Save Flow'}
+                            {saving ? t('status_saving') : t('btn_save_flow')}
                         </button>
                     </div>
                 </div>
@@ -298,25 +300,25 @@ export default function FlowBuilder() {
                     {selectedNode?.type === 'trigger' ? (
                         <div className="bg-white dark:bg-[#0F0F0F] rounded-xl shadow-xl border border-gray-100 dark:border-[#262626] overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200">
                             <div className="bg-gray-50 dark:bg-[#151515] px-4 py-3 border-b border-gray-100 dark:border-[#262626] flex items-center justify-between">
-                                <span className="font-semibold text-gray-700 dark:text-neutral-200 text-sm">Configure Trigger</span>
+                                <span className="font-semibold text-gray-700 dark:text-neutral-200 text-sm">{t('config_trigger')}</span>
                             </div>
                             <div className="p-4 space-y-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-500 dark:text-neutral-400 mb-1">Trigger Event</label>
+                                    <label className="block text-xs font-semibold text-gray-500 dark:text-neutral-400 mb-1">{t('label_trigger_event')}</label>
                                     <select
                                         value={triggerType}
                                         onChange={(e) => setTriggerType(e.target.value)}
                                         className="w-full text-sm border-gray-200 dark:border-[#404040] dark:bg-[#1A1A1A] dark:text-neutral-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     >
                                         {triggerOptions.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            <option key={opt.value} value={opt.value}>{t(opt.label)}</option>
                                         ))}
                                     </select>
                                 </div>
 
                                 {triggerType === 'KEYWORDS' && (
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-500 dark:text-neutral-400 mb-1">Keywords</label>
+                                        <label className="block text-xs font-semibold text-gray-500 dark:text-neutral-400 mb-1">{t('label_keywords')}</label>
                                         <input
                                             type="text"
                                             placeholder="e.g. hello, pricing"
@@ -324,7 +326,7 @@ export default function FlowBuilder() {
                                             value={triggerData.keyword || ''}
                                             onChange={(e) => setTriggerData({ ...triggerData, keyword: e.target.value })}
                                         />
-                                        <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">Comma separated</p>
+                                        <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{t('hint_comma_separated')}</p>
                                     </div>
                                 )}
                             </div>

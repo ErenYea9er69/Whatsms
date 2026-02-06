@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Trash2, Search, FileText, Image as ImageIcon, Video, Music, MoreVertical, X, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 const MediaLibrary = ({ onSelect, isModal }) => {
+    const { t } = useTranslation();
     const [mediaItems, setMediaItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -91,28 +93,28 @@ const MediaLibrary = ({ onSelect, isModal }) => {
             {!isModal && (
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Media Library</h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage images, videos, and documents for your campaigns</p>
+                        <h1 className="text-3xl font-bold tracking-tight">{t('media_title')}</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">{t('media_subtitle')}</p>
                     </div>
                     <button
                         onClick={() => setShowUploadModal(true)}
                         className="flex items-center gap-2 px-4 py-2.5 btn-primary text-white rounded-xl text-sm font-medium shadow-glow"
                     >
                         <Upload size={18} strokeWidth={2} />
-                        <span>Upload File</span>
+                        <span>{t('btn_upload_file')}</span>
                     </button>
                 </div>
             )}
 
             {isModal && (
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
-                    <h2 className="text-xl font-bold">Select Media</h2>
+                    <h2 className="text-xl font-bold">{t('modal_upload_title') || 'Select Media'}</h2>
                     <button
                         onClick={() => setShowUploadModal(true)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
                     >
                         <Upload size={16} strokeWidth={2} />
-                        <span>Upload New</span>
+                        <span>{t('btn_upload_file')}</span>
                     </button>
                 </div>
             )}
@@ -128,12 +130,12 @@ const MediaLibrary = ({ onSelect, isModal }) => {
                     <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                         <ImageIcon size={32} className="text-gray-300 dark:text-gray-600" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">No media files yet</p>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">{t('no_media')}</p>
                     <button
                         onClick={() => setShowUploadModal(true)}
                         className="mt-2 text-primary text-sm hover:underline"
                     >
-                        Upload your first file
+                        {t('btn_upload_first')}
                     </button>
                 </div>
             ) : (
@@ -191,7 +193,7 @@ const MediaLibrary = ({ onSelect, isModal }) => {
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white dark:bg-surface-dark w-full max-w-md rounded-2xl shadow-2xl p-6 animate-slide-up">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">Upload Media</h2>
+                            <h2 className="text-xl font-bold">{t('modal_upload_title')}</h2>
                             <button onClick={() => setShowUploadModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                                 <X size={20} />
                             </button>
@@ -208,15 +210,15 @@ const MediaLibrary = ({ onSelect, isModal }) => {
                             {uploading ? (
                                 <div className="flex flex-col items-center">
                                     <Loader2 size={32} className="text-primary animate-spin mb-3" />
-                                    <p className="text-sm font-medium">Uploading...</p>
+                                    <p className="text-sm font-medium">{t('status_uploading')}</p>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center">
                                     <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-full flex items-center justify-center mb-3">
                                         <Upload size={24} />
                                     </div>
-                                    <p className="font-medium text-gray-900 dark:text-white">Click to upload</p>
-                                    <p className="text-xs text-gray-500 mt-1">Images, Videos, PDF (Max 16MB)</p>
+                                    <p className="font-medium text-gray-900 dark:text-white">{t('text_drag_drop')}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{t('text_file_types')}</p>
                                 </div>
                             )}
                         </div>
