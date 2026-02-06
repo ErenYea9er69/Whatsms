@@ -8,7 +8,7 @@ Complete guide for deploying WhatsSMS to your Plesk server at **iconflow.tn**.
 
 - [x] Plesk hosting with Node.js support
 - [x] SSH access enabled
-- [x] PostgreSQL database (you're using Neon - keep using it!)
+- [x] PostgreSQL database
 
 ---
 
@@ -71,9 +71,7 @@ server/
 1. In Plesk File Manager, navigate to `/httpdocs/`
 2. Create a new file called `.env`
 3. Copy contents from `.env.plesk` and fill in your actual values:
-   - `DATABASE_URL` - **(Required)** Connection string.
-     - **Option A (Recommended):** Continue using Neon (easiest, no changes needed).
-     - **Option B (Plesk DB):** If your Plesk supports **PostgreSQL**, create a DB there and use its URL.
+   - `DATABASE_URL` - **(Required)** Connection string to your Plesk PostgreSQL database.
      - *Note: This app usually requires PostgreSQL. If your Plesk only has MySQL, let me know, as we'll need to update the code.*
    - `JWT_SECRET` - **(Required)** Your secret key for user sessions
    - `WHATSAPP_*` - **(Optional)** You can leave these blank! Your users will provide their own credentials inside the app.
@@ -177,7 +175,7 @@ pm2 logs whatsms
 
 ### Database connection issues?
 - Verify `DATABASE_URL` in `.env` is correct
-- Ensure Neon database allows connections from Plesk IP
+- Ensure database allows connections from Plesk IP
 
 ### 502 Bad Gateway?
 - Node.js app isn't running - start it with PM2
@@ -199,15 +197,6 @@ When you make changes:
 
 ---
 
-## Remove Vercel (Optional)
-
-Once Plesk is working:
-
-1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
-2. Find your project
-3. Go to Settings → Delete Project
-
-You can also delete `vercel.json` from your local project if you want.
 
 ---
 
